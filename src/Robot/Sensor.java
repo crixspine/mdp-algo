@@ -5,7 +5,13 @@ import java.awt.*;
 import Map.*;
 
 public class Sensor {
-
+    /**
+     * ID as an identifier to each sensor
+     * MinRange for minimum range of the sensor to detect obstacle accurately
+     * MaxRange for maximum range of the sensor to detect obstacle accurately
+     * Pos for position of sensor
+     * Direction for direction that sensor is facing
+     */
     private String id;
     private int minRange;
     private int maxRange;
@@ -13,7 +19,7 @@ public class Sensor {
     private Point pos;
     private Direction sensorDir;
 
-    public Sensor(String id, int minRange, int maxRange, int sensorPosRow, int sensorPosCol, Direction sensorDir) {
+    Sensor(String id, int minRange, int maxRange, int sensorPosRow, int sensorPosCol, Direction sensorDir) {
         this.id = id;
         this.minRange = minRange;
         this.maxRange = maxRange;
@@ -21,32 +27,33 @@ public class Sensor {
         this.sensorDir = sensorDir;
     }
 
-    // Getters and Setters
+    //Getters and setters of attributes
+
     public String getId() {
         return id;
     }
 
-    public void setId(String id) {
+    void setId(String id) {
         this.id = id;
     }
 
-    public int getMinRange() {
+    int getMinRange() {
         return minRange;
     }
 
-    public void setMinRange(int minRange) {
+    void setMinRange(int minRange) {
         this.minRange = minRange;
     }
 
-    public int getMaxRange() {
+    int getMaxRange() {
         return maxRange;
     }
 
-    public void setMaxRange(int maxRange) {
+    void setMaxRange(int maxRange) {
         this.maxRange = maxRange;
     }
 
-    public Point getPos() {
+    Point getPos() {
         return pos;
     }
 
@@ -58,56 +65,57 @@ public class Sensor {
         return pos.x;
     }
 
-    public void setPos(int row, int col) {
+    void setPos(int row, int col) {
         this.pos.setLocation(col, row);
     }
 
-    public Direction getSensorDir() {
+    Direction getSensorDir() {
         return sensorDir;
     }
 
-    public void setSensorDir(Direction sensorDir) {
+    void setSensorDir(Direction sensorDir) {
         this.sensorDir = sensorDir;
     }
 
+    /**
+     * Converts sensor id, position and direction to string format
+     */
     @Override
     public String toString() {
-        String s = String.format("Sensor %s at %s facing %s\n", id, pos.toString(), sensorDir.toString());
-        return s;
+        return String.format("Sensor %s at %s facing %s\n", id, pos.toString(), sensorDir.toString());
     }
 
-    public int detect(Map map) {
+
+    /**
+     * Sensor detect if obstacle is a cell in simulation
+     * @param map RealMap to determine obstacle cells in simulation
+     * @return Sensor result (-1 as no obstacle detected; integer value of distance from obstacle otherwise)
+     */
+     int detect(Map map) {
 
         for (int cur = minRange; cur <= maxRange; cur++) {
 
             switch (sensorDir) {
                 case UP:
-//                    if (pos.y + cur > MapConstants.MAP_HEIGHT - 1)
-//                        return -1;
+                    //Return value if sensor detects border or obstacle
                     if (pos.y + cur == MapConstants.MAP_HEIGHT)
                         return cur;
                     else if (map.getCell(pos.y + cur, pos.x).isObstacle())
                         return cur;
                     break;
                 case RIGHT:
-//                    if (pos.x + cur > MapConstants.MAP_WIDTH - 1)
-//                        return -1;
                     if (pos.x + cur == MapConstants.MAP_WIDTH)
                         return cur;
                     else if (map.getCell(pos.y, pos.x + cur).isObstacle())
                         return cur;
                     break;
                 case DOWN:
-//                    if (pos.y - cur < 0)
-//                        return -1;
                     if (pos.y - cur == -1)
                         return cur;
                     else if (map.getCell(pos.y - cur, pos.x).isObstacle())
                         return cur;
                     break;
                 case LEFT:
-//                    if (pos.x - cur < 0)
-//                        return -1;
                     if (pos.x - cur == -1)
                         return cur;
                     else if (map.getCell(pos.y, pos.x - cur).isObstacle())

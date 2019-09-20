@@ -195,7 +195,7 @@ public class RequestHandler extends Thread {
     }
 
     public void sendSensorRes() {
-        robot.updateSensorRes(exploredMap, realMap);
+        robot.updateSensorRes(realMap);
         send(formatSensorRes(robot.getSensorRes()));
     }
 

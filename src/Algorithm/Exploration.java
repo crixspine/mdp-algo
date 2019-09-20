@@ -14,12 +14,23 @@ import Robot.RobotConstants;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.logging.Logger;
 
-import Helper.*;
-
 public class Exploration {
+
+    /**
+     * logger to print log information on robot status, movement, position, etc.
+     * ExploredMap to hold current explored environment
+     * RealMap to hold entire environment of arena (obstacles, free cells, etc)
+     * CoverageLimit to reflect no of cells to explore before ceasing exploration
+     * TimeLimit to reflect the time limit before ceasing exploration
+     * StepPerSecond to reflect the preset no of steps per second of the robot
+     * Sim to show simulation mode (true) or real run (false)
+     * AreaExplored to reflect no of cells explored
+     * StartTime, EndTime are variables used enforce time limit
+     * Start is start position for robot in x,y coordinates
+     * NotYetTaken to track obstacle surfaces that are yet to be taken
+     */
 
     private static final Logger LOGGER = Logger.getLogger(Exploration.class.getName());
 
@@ -35,12 +46,12 @@ public class Exploration {
     private long endTime;
     private Point start;
 
-    // for image
-    HashMap<String, ObsSurface> notYetTaken;
+    private HashMap<String, ObsSurface> notYetTaken;
 
-    private int right_move = 0;     // checking for four consecutive right + forward move
+    // Checking for four consecutive right + forward move
 
-//    private boolean firstMove = false;  // for aligning right when it is firstMove
+    private int right_move = 0;
+
     public Exploration(Map exploredMap, Map realMap, Robot robot, double coverageLimit, int timeLimit, int stepPerSecond,
                        boolean sim) {
         this.exploredMap = exploredMap;
@@ -52,6 +63,7 @@ public class Exploration {
         this.sim = sim;
     }
 
+    //Getters and setters
     public Map getExploredMap() {
         return exploredMap;
     }
@@ -76,76 +88,143 @@ public class Exploration {
         this.timeLimit = timeLimit;
     }
 
+    /**
+     * Obtain row increment for robot's position for every direction
+     * @param dir Direction of movement
+     * @return Row coordinates after movement
+     */
+    private int getRowIncrementForMovement(Direction dir) {
+        int rowInc = 0;
+
+        switch (dir) {
+            case UP:
+                rowInc = 1;
+                break;
+            case DOWN:
+                rowInc = -1;
+                break;
+            default:
+                break;
+        }
+        return rowInc;
+    }
+    /**
+     * Obtain column increment for robot's position for every direction
+     * @param dir Direction of movement
+     * @return Column coordinates after movement
+     */
+    private int getColIncrementForMovement(Direction dir) {
+        int colInc = 0;
+
+        switch (dir) {
+            case LEFT:
+                colInc = -1;
+                break;
+            case RIGHT:
+                colInc = 1;
+                break;
+            default:
+                break;
+        }
+        return colInc;
+    }
+
+    /**
+     * Execute image recognition exploration
+     * @param start Coordinates of start point
+     * @throws InterruptedException Will throw exception if parameter is null
+     */
 
     public void imageExploration(Point start) throws InterruptedException {
         long imageStartTime = System.currentTimeMillis();
+        //Time taken for right wall hug execution
         int exp_timing = explorationAllRightWallHug(start);
-        HashMap<String, ObsSurface> allPossibleSurfaces;
 
-        // if fastest than previous leaderboard timing -- return to stop (do not go out)
-        if (exp_timing < RobotConstants.BEST_EXP_TIMING) {
-            return;
-        }
-        else {
+        //Cease image recognition exploration upon return to start point if timing is better than previous record
+        if (exp_timing >= RobotConstants.BEST_EXP_TIMING) {
+        //If exploration timing not the best timing, begin image recognition
+            //Initialize HashMap of all possible obstacle surfaces
             robot.setDoingImage(true);
-            // algo for image
             notYetTaken = getUntakenSurfaces();
+
+            //If all surfaces taken; cease function
             if (notYetTaken.size() == 0) {
                 return;
             }
-            // calibrate and let the robot face up
+            // Calibrate robot at start point after exploration complete
             calibrate_at_start_before_going_out();
-            // get all untaken surfaces
             System.out.println("DEBUG " + notYetTaken);
+            // Repeatedly move robot to nearest obstacle surface that is not yet captured
             while (notYetTaken.size() > 0) {
                 imageLoop();
-                // TODO
             }
+            // Upon capturing all possible obstacle surfaces, return to start point
             goToPoint(start);
         }
 
     }
 
+
+    /**
+     * Moves robot to nearest obstacle surface and start right wall hugging algorithm for image recognition
+     * @throws InterruptedException Will throw exception if parameter is null
+     */
     private void imageLoop() throws InterruptedException {
         boolean doingImage = true;
         ArrayList<ObsSurface> surfTaken;
         ObsSurface nearestObstacle;
         Cell nearestCell;
         boolean success;
+
+        //Find nearest obstacle surface that has not been captured
         nearestObstacle = exploredMap.nearestObsSurface(robot.getPos(), notYetTaken);
+
         System.out.println("DEBUG nearestObstacle " + nearestObstacle.toString());
+
+        //Find nearest cell to specified obstacle that has a movable path to
         nearestCell = exploredMap.nearestMovable(nearestObstacle);
         System.out.println("DEBUG nearestCell is null:" + (nearestCell == null));
+
 
         if (nearestCell != null) {
             System.out.println("DEBUG nearestCell " + nearestCell.toString());
 
-            // go to nearest cell
+            //Move robot to nearest cell
             success = goToPointForImage(nearestCell.getPos(), nearestObstacle);
+            //If move to nearest cell successfully
             if (success) {
                 System.out.println("DEBUG cell pos " + nearestCell.getPos().toString());
                 do {
                     robot.setImageCount(0);
+                    //Capture surface of obstacle using right sensors
                     surfTaken = robot.imageRecognitionRight(exploredMap);
+                    //Remove Obstacle Surface from HashMap of surfaces not taken
                     updateNotYetTaken(surfTaken);
+                    //Continue moving in right-wall-hug method from obstacle
                     rightWallHug(doingImage);
-                    // TODO
                     System.out.println("DEBUG robot pos " + robot.getPos().toString());
+                    //Robot has not reached nearestCell nor initiated rightHuggingWall
                 } while (!robot.getPos().equals(nearestCell.getPos()) && !robot.isRightHuggingWall());
             }
             else {
                 System.out.println("DEBUG in inner else");
+                //Nearest obstacle cannot be reached
                 removeFromNotYetTaken(nearestObstacle);
             }
 
         }
         else {
+            //Cannot compute nearest obstacle
             System.out.println("DEBUG in outer else");
             removeFromNotYetTaken(nearestObstacle);
             System.out.println("DEBUG after removing in outer else");
         }
     }
 
+    /**
+     * Remove captured surfaces from HashMap of obstacle surfaces that has not been taken
+     * @param surfTaken Array of Obstacle surface that has been captured
+     */
     private void updateNotYetTaken(ArrayList<ObsSurface> surfTaken) {
         for (ObsSurface obsSurface : surfTaken) {
             if (notYetTaken.containsKey(obsSurface.toString())) {
@@ -155,93 +234,65 @@ public class Exploration {
         }
     }
 
+    /**
+     * Remove captured surface from HashMap of obstacle surfaces that has not been taken
+     * @param obsSurface Obstacle surface that has been captured
+     */
     private void removeFromNotYetTaken(ObsSurface obsSurface) {
         notYetTaken.remove(obsSurface.toString());
         LOGGER.info("Remove from not yet taken: " + obsSurface.toString());
 
     }
 
+    /**
+     *
+     * @param loc Coordinates of target point
+     * @param obsSurface Target surface
+     * @return True if successfully reach the point, false otherwise
+     * @throws InterruptedException Will throw exception if parameter is null
+     */
     private boolean goToPointForImage(Point loc, ObsSurface obsSurface) throws InterruptedException {
-        ArrayList<ObsSurface> surfTaken = new ArrayList<ObsSurface>();
         robot.setStatus("Go to point: " + loc.toString());
         LOGGER.info(robot.getStatus());
-        ArrayList<Command> commands = new ArrayList<Command>();
-        ArrayList<Cell> path = new ArrayList<Cell>();
+        ArrayList<Command> commands;
+        ArrayList<Cell> path;
         FastestPath fp = new FastestPath(exploredMap, robot, sim);
+        //Obtain path from robot's position to target location
         path = fp.runAStar(robot.getPos(), loc, robot.getDir());
         if (path == null) {
             return false;
         }
 
+        //Convert fastest path to commands
         fp.displayFastestPath(path, true);
         commands = fp.getPathCommands(path);
         System.out.println("Exploration Fastest Commands: "+commands);
 
-        for (Command c : commands) {
-            System.out.println("Command: "+c);
-            if ((c == Command.FORWARD) && !movable(robot.getDir())) {
-                System.out.println("Not Executing Forward Not Movable");
-                // TODO
-                goToPointForImage(loc, obsSurface);
-                break;
-            } else{
-                if(((c == Command.TURN_LEFT && !movable(Direction.getAntiClockwise(robot.getDir())))||
-                        (c == Command.TURN_RIGHT && !movable(Direction.getClockwise(robot.getDir())))) && commands.indexOf(c) == commands.size()-1)
-                    goToPointForImage(loc, obsSurface);
-                if (c == Command.TURN_LEFT || c == Command.TURN_RIGHT){
-                    robot.turn(c, stepPerSecond);
-                }
-                else {
-                    robot.move(c, RobotConstants.MOVE_STEPS, exploredMap, stepPerSecond);
-                }
+        executeCommandsMoveToTarget(commands,loc, obsSurface);
 
-                surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
-                updateNotYetTaken(surfTaken);
-
-            }
-        }
-
-
-        // Orient the robot to make its right side hug the wall
-        // if right movable
-
+        // Re- orientate the robot to ensure right side is facing obstacle
         Direction desiredDir = Direction.getClockwise(obsSurface.getSurface());
-        if (desiredDir == robot.getDir()) {
-            return true;
-        }
-        else if (desiredDir == Direction.getClockwise(robot.getDir())) {
-            robot.turn(Command.TURN_RIGHT, stepPerSecond);
-            surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
-            updateNotYetTaken(surfTaken);
-        }
-        else if (desiredDir == Direction.getAntiClockwise(robot.getDir())) {
-            robot.turn(Command.TURN_LEFT, stepPerSecond);
-            surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
-            updateNotYetTaken(surfTaken);
-        }
-        // opposite
-        else {
-            robot.turn(Command.TURN_LEFT, stepPerSecond);
-            surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
-            updateNotYetTaken(surfTaken);
-            robot.turn(Command.TURN_LEFT, stepPerSecond);
-            surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
-            updateNotYetTaken(surfTaken);
-        }
+        turnRobotToFaceDirectionDuringImage(desiredDir);
 
         return true;
     }
 
+    /**
+     * Remove captured surfaces from HashMap of all possible obstacle surfaces
+     * @return HashMap of remaining untaken surfaces
+     */
     private HashMap<String, ObsSurface> getUntakenSurfaces() {
         HashMap<String, ObsSurface> notYetTaken;
 
-        // get all surfaces possilbe
+        // Obtain all obstacle surfaces after exploration
         notYetTaken = getAllObsSurfaces();
+        // Remove taken surfaces from HashMap of all possible obstacle surfaces
         for (String tempObsSurfaceStr : robot.getSurfaceTaken().keySet()) {
             if (!notYetTaken.containsKey(tempObsSurfaceStr)) {
                 LOGGER.warning("Surface taken not in all possible surfaces. Please check. \n\n\n");
             }
             else {
+
                 notYetTaken.remove(tempObsSurfaceStr);
             }
         }
@@ -249,6 +300,10 @@ public class Exploration {
         return notYetTaken;
     }
 
+    /**
+     * Check all valid cells for obstacle surface; add them into HashMap and return HashMap upon completion
+     * @return HashMap of ObstacleSurfaces
+     */
     private HashMap<String, ObsSurface> getAllObsSurfaces() {
         // TODO
         Cell tempCell;
@@ -261,14 +316,17 @@ public class Exploration {
                 tempCell = exploredMap.getCell(row, col);
 
                 if (tempCell.isObstacle()) {
-                    // check neighbouring
+                    //Get neighbouring cell of specified cell
                     tempNeighbours = exploredMap.getNeighboursMap(tempCell);
 
+                    //Get all direction of neighbour
                     for (Direction neighbourDir: tempNeighbours.keySet()) {
                         temp = tempNeighbours.get(neighbourDir);
 
                         if (!temp.isObstacle()) {
+                            //Identify obstacle surface and direction
                             tempObsSurface = new ObsSurface(tempCell.getPos(), neighbourDir);
+                            //Add surface to ArrayList
                             allPossibleSurfaces.put(tempObsSurface.toString(), tempObsSurface);
                         }
                     }
@@ -280,60 +338,80 @@ public class Exploration {
         return allPossibleSurfaces;
     }
 
+    /**
+     * Calibrate robot at start point
+     * @throws InterruptedException Will throw exception if parameter is null
+     */
     private void calibrate_at_start_before_going_out() throws InterruptedException {
-        String calibrationCmd = robot.getCommand(Command.INITIAL_CALIBERATE, 1);    // steps 1 for consistency
+        //Send command to Arduino for initial calibration
+        String calibrationCmd = robot.getCommand(Command.INITIAL_CALIBERATE, 1);
         NetMgr.getInstance().send(NetworkConstants.ARDUINO + calibrationCmd);
 
-        // Orient the robot on laptop to face lap as after caliberation, it will face up
-        // need to turn after setFindingFP(true) as it will not send command to arduino
-        robot.setFindingFP(true);
+        //robot.setFindingFP(true);
         robot.turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
         robot.turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
-        robot.setFindingFP(false);
+        //robot.setFindingFP(false);
     }
 
 
-    //TODO clean this
-    public int explorationAllRightWallHug(Point start) throws InterruptedException {
+    /**
+     * Execute right wall hug and failsafe protocol of moving robot to start point if right wall hug yield no
+     * progress during execution.
+     * Initiate preparation for second run upon reaching back to start point
+     * @param start Coordinates of starting position
+     * @return Time taken for completion or execution (if unable to complete right wall hug) in seconds
+     * @throws InterruptedException Will throw exception if parameter is null
+     */
+    private int explorationAllRightWallHug(Point start) throws InterruptedException {
         boolean doingImage = false;
         areaExplored = exploredMap.getExploredPercentage();
         startTime = System.currentTimeMillis();
+
+        //Set stipulated end time
         endTime = startTime + timeLimit;
-        double prevArea = exploredMap.getExploredPercentage();
+
+        double prevArea;
         int moves = 1;
+        // Limit of moves that does not increment robot's exploration progress (i.e. no increased in percentage of
+        // explored map)
         int checkingStep = RobotConstants.CHECKSTEPS;
         this.start = start;
-//        this.firstMove = true;
 
-        // Loop to explore the map
         outer:
         do {
             prevArea = areaExplored;
+
             if(areaExplored >= 100)
                 break;
             try {
+                //Execute one movement of right wall hug
                 rightWallHug(doingImage);
 
             } catch (InterruptedException e1) {
-                // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
+
             areaExplored = exploredMap.getExploredPercentage();
+            //Check if areaExplored has increased
             if (prevArea == areaExplored)
+                //Increment number of moves each iteration of this loop
                 moves++;
+                //If areaExplored has increased; progression
             else
                 moves=1;
 
             LOGGER.info(Double.toString(areaExplored));
-            if (moves % checkingStep == 0 || right_move > 3 || (robot.getPos().distance(start)==0 && areaExplored < 100.00)) {      // prevent from keep turning right and forward
-//            if (moves % checkingStep == 0 || robot.getPos().distance(start)==0) {     // original
-//            if (moves % checkingStep == 0) {
+
+            //Prevent endless loop of moving right and forward in "cage-like" obstacle or no progression in exploration
+            if (moves % checkingStep == 0 || right_move > 3 || (robot.getPos().distance(start)==0 && areaExplored < 100.00)) {
                 do{
+                    //If robot position at start; do calibration
                     if (robot.getPos().equals(start)) {
                         goToPoint(start);
                         calibrate_at_start_before_going_out();
                     }
                     prevArea = areaExplored;
+                    //If no path to go to nearest unexplored cell; stop carrying out right wall hug
                     if(!goToUnexplored())
                         break outer;
                     areaExplored = exploredMap.getExploredPercentage();
@@ -341,18 +419,26 @@ public class Exploration {
                 moves = 1;
                 checkingStep = RobotConstants.CHECKSTEPS;
             }
+            //Have not reached coverage limit or time limit
         } while (areaExplored < coverageLimit && System.currentTimeMillis() < endTime);
-        if (sim) {  // for actual run, just let the timer run
+
+        //Stop timer if coverage limit or time limit reached
+        if (sim) {
             Main.SimulatorNew.displayTimer.stop();
         }
         moves = 0;
-        while (!robot.getPos().equals(start) && moves < 18) {
+        //Continue right wall hug for robot which have not reach no-progress limit in previous right wall hug
+        while (!robot.getPos().equals(start) && moves < checkingStep) {
             rightWallHug(doingImage);
             moves++;
         }
+
         robot.setImageCount(0);
+        //Continue second run to do image exploration; remove if not doing image reconigtion
         robot.imageRecognitionRight(exploredMap);
-        goToPoint(start);   // orient the robot
+        //Calibrate the robot at start point
+        goToPoint(start);
+        //Compute run-time
         endTime = System.currentTimeMillis();
         int seconds = (int)((endTime - startTime)/1000%60);
         int minutes = (int)((endTime - startTime)/1000/60);
@@ -362,18 +448,22 @@ public class Exploration {
         return total_in_seconds;
     }
 
-    //TODO clean this
+    /**
+     * Exploration loop to move robot to new position using right wall hugging algorithm, and updates map in each
+     * iteration. Exits exploration when coverage or time limit is reached, or when exploration is complete.
+     * @param start Coordinates of starting position
+     * @return Run time of exploration
+     * @throws InterruptedException Will throw exception if parameters is null
+     */
     public int exploration(Point start) throws InterruptedException {
         areaExplored = exploredMap.getExploredPercentage();
         startTime = System.currentTimeMillis();
         endTime = startTime + timeLimit;
-        double prevArea = exploredMap.getExploredPercentage();
+        double prevArea;
         int moves = 1;
         int checkingStep = RobotConstants.CHECKSTEPS;
         this.start = start;
-//        this.firstMove = true;
 
-        // Loop to explore the map
         outer:
         do {
             prevArea = areaExplored;
@@ -388,26 +478,21 @@ public class Exploration {
                 e1.printStackTrace();
             }
             areaExplored = exploredMap.getExploredPercentage();
+            //No progression in exploration
             if (prevArea == areaExplored)
                 moves++;
             else
                 moves=1;
 
             LOGGER.info(Double.toString(areaExplored));
-//            LOGGER.info(Integer.toString(moves));
 
-//            // for week 8 only, do not go out again if returning to start and areaExplored > target percentage
-//            // disable after week 9
-//            if (robot.getPos().distance(start) == 0 && areaExplored > RobotConstants.TARGETED_COVERAGE) {
-//                break outer;
-//            }
-
-            if (moves % checkingStep == 0 || right_move > 3 || (robot.getPos().distance(start)==0 && areaExplored < 100.00)) {      // prevent from keep turning right and forward
-//            if (moves % checkingStep == 0 || robot.getPos().distance(start)==0) {     // original
-//            if (moves % checkingStep == 0) {
+            //Prevent endless loop of moving right and forward in "cage-like" obstacle or no progression in exploration
+            if (moves % checkingStep == 0 || right_move > 3 || (robot.getPos().distance(start)==0 && areaExplored < 100.00)) {
                 do{
+                    //Go back to start point
                     if (robot.getPos().equals(start)) {
                         goToPoint(start);
+                        //Calibrate robot at start point before moving out again
                         if (!sim) {
                             robot.turnRightAndAlignMethodWithoutMapUpdate(exploredMap, realMap);
                             robot.align_front(exploredMap, realMap);
@@ -415,17 +500,22 @@ public class Exploration {
                         }
                     }
                     prevArea = areaExplored;
+                    //If cannot move to nearest unexplored cell, break
                     if(!goToUnexplored())
                         break outer;
                     areaExplored = exploredMap.getExploredPercentage();
+                    //If no progression, attempt to recalibrate and move to unexplored area
+                    //To stop recalibration from repeating, add counter to limit loop of calibration
                 }while(prevArea == areaExplored);
                 moves = 1;
                 checkingStep = RobotConstants.CHECKSTEPS;
             }
+            //Move to new position using right wall hug algorithm for each iteration
         } while (areaExplored < coverageLimit && System.currentTimeMillis() < endTime);
-        if (sim) {  // for actual run, just let the timer run
+        if (sim) {
             Main.SimulatorNew.displayTimer.stop();
         }
+        //Return to start point
         goToPoint(start);
         endTime = System.currentTimeMillis();
         int seconds = (int)((endTime - startTime)/1000%60);
@@ -438,21 +528,18 @@ public class Exploration {
 
 
     /**
-     * Go to the nearest unexplored cell
-     * @return true there is an unexplored cell and function executed, false if unexplored cell not found or no path to the nearest unexplored cell
+     * Robot move to nearest unexplored cell
+     * @return True if there is an unexplored cell robot moves to unexplored cell, false if no such cell or no path to
+     * reach this cell
      */
-    public boolean goToUnexplored() throws InterruptedException {
+    private boolean goToUnexplored() throws InterruptedException {
         robot.setStatus("Go to nearest unexplored\n");
         LOGGER.info(robot.getStatus());
 
-        // Pause for half a second
-//        if(sim) {
-//            TimeUnit.MILLISECONDS.sleep(500);
-//        }
 
-        Cell nearestUnexp = exploredMap.nearestUnexplored(robot.getPos());
-        LOGGER.info("Nearest unexplored: " + nearestUnexp);
-        Cell nearestExp = exploredMap.nearestExplored(nearestUnexp.getPos(), robot.getPos());
+        Cell nearestUnexplored = exploredMap.nearestUnexplored(robot.getPos());
+        LOGGER.info("Nearest unexplored: " + nearestUnexplored);
+        Cell nearestExp = exploredMap.nearestExplored(nearestUnexplored.getPos(), robot.getPos());
         LOGGER.info("Nearest explored: " + nearestExp);
         if (nearestExp == null) {
             LOGGER.info("No nearest unexplored found.");
@@ -467,212 +554,134 @@ public class Exploration {
 
 
     /**
-     * Basic right wall hugging algo
+     * Execute different sensing operations for image recognition and exploration
+     * @param doingImage True for image recognition, false otherwise
      */
-    public void rightWallHug(boolean doingImage) throws InterruptedException {
-        HashMap<String, Integer> sensorRes;
-        Direction robotDir = robot.getDir();
+    private void senseForExplorationOrImage(boolean doingImage){
         ArrayList<ObsSurface> surfTaken;
-//
-//        if (sim) {
-//            TimeUnit.MILLISECONDS.sleep(RobotConstants.WAIT_TIME / stepPerSecond);
-//        }
-        
-        // if right movable
-        if (movable(Direction.getClockwise(robotDir))) {
-//            LOGGER.info("DEBUG: In right movable");
-
-            // check front alignment
-            if (!sim) {
-                robot.align_front(exploredMap, realMap);
-            }
-
-            robot.turn(Command.TURN_RIGHT, stepPerSecond);
-            if (doingImage) {
-                surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
-                updateNotYetTaken(surfTaken);
-            }
-            else {
-                robot.sense(exploredMap, realMap);
-            }
-
-            // if firstMove, align right
-//            if (firstMove) {
-//                LOGGER.info("First Move, align right.");
-//                robot.align_right(exploredMap, realMap);
-//                firstMove = false;
-//            }
-
-
-            moveForward(RobotConstants.MOVE_STEPS, stepPerSecond, doingImage);
-            right_move++;
+        if (doingImage) {
+            surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
+            updateNotYetTaken(surfTaken);
         }
-
-        // else if front movable
-        else if (movable(robotDir)) {
-//            LOGGER.info("DEBUG: In front movable");
-//            // if firstMove, align right
-//            if (firstMove) {
-//                LOGGER.info("First Move, align right.");
-//                robot.align_right(exploredMap, realMap);
-//                firstMove = false;
-//            }
-
-            robot.move(Command.FORWARD, RobotConstants.MOVE_STEPS, exploredMap, stepPerSecond);
-            if (doingImage) {
-                surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
-                updateNotYetTaken(surfTaken);
-            }
-            else {
-                robot.sense(exploredMap, realMap);
-            }
-            right_move = 0;
-
-        }
-
-        // else if left movable
-        else if (movable(Direction.getAntiClockwise(robotDir))) {
-//            LOGGER.info("DEBUG: In right movable");
-
-            // try to turn right, align front, turn left, align front and right if possible before and after turning left
-//            LOGGER.info("Right and front not movable, try to align.");
-
-            turnRightAndAlignBeforeTurnLeft(doingImage);
-
-            alignAndImageRecBeforeLeftTurn(doingImage);
-
-
-            robot.turn(Command.TURN_LEFT, stepPerSecond);
-            if (doingImage) {
-                surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
-                updateNotYetTaken(surfTaken);
-            }
-            else {
-                robot.sense(exploredMap, realMap);
-            }
-
-            if (!sim) {
-                robot.align_right(exploredMap, realMap);
-            }
-
-            moveForward(RobotConstants.MOVE_STEPS, stepPerSecond, doingImage);
-            right_move = 0;
-
-        }
-
-        // else move backwards
         else {
-//            LOGGER.info("DEBUG: In else");
-
-            // Option1. Turn left twice with alignment
-            // if R1 and R2 == 1, turn right and align first
-            turnRightAndAlignBeforeTurnLeft(doingImage);
-
-            alignAndImageRecBeforeLeftTurn(doingImage);
-
-            robot.turn(Command.TURN_LEFT, stepPerSecond);
-            if (doingImage) {
-                surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
-                updateNotYetTaken(surfTaken);
-            }
-            else {
-                robot.sense(exploredMap, realMap);
-            }
-
-            alignAndImageRecBeforeLeftTurn(doingImage);
-
-
-            robot.turn(Command.TURN_LEFT, stepPerSecond);
-            if (doingImage) {
-                surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
-                updateNotYetTaken(surfTaken);
-            }
-            else {
-                robot.sense(exploredMap, realMap);
-            }
-            if (!sim) {
-                robot.align_right(exploredMap, realMap);
-            }
-
-//            // Option2. Move backwards
-//            Boolean firstBackward = true;
-//            do {
-//                right_move = 0;
-//
-//                // try to align front and right if possible before moving backwards for the first time
-//                if (firstBackward) {
-//                    LOGGER.info("Before moving backwards, try to align");
-//                    robot.align_front(exploredMap, realMap);
-//                    robot.align_right(exploredMap, realMap);
-//                    firstBackward = false;
-//                }
-//
-//                robot.move(Command.BACKWARD, RobotConstants.MOVE_STEPS, exploredMap, stepPerSecond);
-//                robot.align_right(exploredMap, realMap);
-//                robot.sense(exploredMap, realMap);
-//
-////                if (sim) {
-////                    TimeUnit.MILLISECONDS.sleep(RobotConstants.WAIT_TIME / stepPerSecond);
-////                }
-//
-//            } while (!movable(Direction.getAntiClockwise(robotDir)) && !movable(Direction.getClockwise(robotDir)));
-//
-//            // turn left if possible
-//            if (movable(Direction.getAntiClockwise(robotDir))) {
-//                robot.turn(Command.TURN_LEFT, stepPerSecond);
-//                robot.sense(exploredMap, realMap);
-//                moveForward(RobotConstants.MOVE_STEPS, stepPerSecond);
-//                right_move = 0;
-//            }
-//
-//            // else turn left twice
-//            else {
-//                robot.turn(Command.TURN_LEFT, stepPerSecond);
-//                robot.sense(exploredMap, realMap);
-//
-//                robot.align_front(exploredMap, realMap);
-//
-//                robot.turn(Command.TURN_LEFT, stepPerSecond);
-//                robot.sense(exploredMap, realMap);
-//
-//                robot.align_right(exploredMap, realMap);
-//                // then restart, dont move forward
-////                moveForward(RobotConstants.MOVE_STEPS, stepPerSecond);
-//                right_move = 0;
-//            }
+            robot.sense(exploredMap, realMap);
         }
-
     }
 
     /**
-     * Turn right, align front, turn left, align front and right if possible before and after turning left
+     * Right wall hug algorithm - order of preference of movement (highest preference to lowest preference)
+     * 1. Turn right and move one cell (if possible)
+     * 2. Move forward and move one cell
+     * 3. Turn left and move one cell
+     * 4. U-turn
+     * @param doingImage True for image recognition, false otherwise
+     * @throws InterruptedException Will throw exception if parameter is null
+     */
+    private void rightWallHug(boolean doingImage) throws InterruptedException {
+        //ArrayList<ObsSurface> surfTaken;
+        Direction robotDir = robot.getDir();
+        //Check if right movement is possible
+        if (movable(Direction.getClockwise(robotDir))) {
+            //Calibration for real run
+            if (!sim) {
+                robot.align_front(exploredMap, realMap);
+            }
+            robot.turn(Command.TURN_RIGHT, stepPerSecond);
+
+            senseForExplorationOrImage(doingImage);
+
+            moveForward(RobotConstants.MOVE_STEPS, stepPerSecond, doingImage);
+            //Track if robot has turned 360 degrees
+            right_move++;
+        }
+        //Check if forward movement is possible
+        else if (movable(robotDir)) {
+
+            robot.move(Command.FORWARD, RobotConstants.MOVE_STEPS, exploredMap, stepPerSecond);
+            senseForExplorationOrImage(doingImage);
+            //Reset
+            right_move = 0;
+        }
+
+        //Check if can move in left direction
+        else if (movable(Direction.getAntiClockwise(robotDir))) {
+            //Calibrate and capture image (if doing image recognition)
+            turnRightAndAlignBeforeTurnLeft(doingImage);
+            //TODO: Is it neccessary to do both
+            alignAndImageRecBeforeLeftTurn(doingImage);
+
+            robot.turn(Command.TURN_LEFT, stepPerSecond);
+            //Use right sensor to record obstacle surface (turn right only if there is obstacle on robot's right)
+
+            senseForExplorationOrImage(doingImage);
+
+            //Align right after turn
+            if (!sim) {
+                robot.align_right(exploredMap, realMap);
+            }
+
+            moveForward(RobotConstants.MOVE_STEPS, stepPerSecond, doingImage);
+            right_move = 0;
+
+        }
+
+        //If all fails, u-turn
+        else {
+
+            turnRightAndAlignBeforeTurnLeft(doingImage);
+            //Turn left first time, calibrate and capture images
+            alignAndImageRecBeforeLeftTurn(doingImage);
+            robot.turn(Command.TURN_LEFT, stepPerSecond);
+            senseForExplorationOrImage(doingImage);
+
+            //Turn left second time (complete u-turn), calibrate and capture images
+            alignAndImageRecBeforeLeftTurn(doingImage);
+            robot.turn(Command.TURN_LEFT, stepPerSecond);
+            senseForExplorationOrImage(doingImage);
+
+            if (!sim) {
+                robot.align_right(exploredMap, realMap);
+            }
+        }
+    }
+
+    /**
+     * Turn right and calibrate front sensors to align with obstacle/wall; turn left and calibrate right sensors to
+     * align with obstacle/wall
      * Avoid turning twice with turnAndAlignCount in Robot class
-     * @throws InterruptedException
+     * @throws InterruptedException Will throw exception if parameter is null
      */
     private void turnRightAndAlignBeforeTurnLeft(boolean doingImage) throws InterruptedException {
+
+        //If right obstacle/wall on right side of robot, real exploration and has not turned and aligned yet
         if ((robot.getSensorRes().get("R1") == 1 && robot.getSensorRes().get("R2") == 1) &&
                 (!robot.getHasTurnAndAlign()) &&
                 (!sim)) {
+            //If doing image recognition, calibrate and capture obstacle surface without updating map
             if (doingImage) {
                 robot.turnRightAndAlignMethodWithoutMapUpdate(exploredMap, realMap);
             }
+            //If doing exploration only, just calibrate
             else {
                 robot.turnRightAndAlignMethod(exploredMap, realMap);
             }
         }
+        //Has already turned and aligned
         else if (robot.getHasTurnAndAlign()) {
             robot.setHasTurnAndAlign(false);
         }
     }
 
     /**
-     * Align front, align right and do image recognition before turning left
+     * Calibrate and capture obstacle surfaces of right obstacle/wall before turning
+     * @param doingImage True if doing image recognition, false otherwise
      */
     private void alignAndImageRecBeforeLeftTurn(boolean doingImage) {
         if (!sim) {
+            //Calibrate robot
             robot.align_front(exploredMap, realMap);
             robot.align_right(exploredMap, realMap);
-            // before turn left, take image just in case
+            //Capture obstacle surface before turning left
             robot.setImageCount(0);
             ArrayList<ObsSurface> surfTaken = robot.imageRecognitionRight(exploredMap);
             if (doingImage) {
@@ -682,15 +691,12 @@ public class Exploration {
     }
 
     /**
-     * Move forward if movable
-     * @param steps
+     * Move forward in number of steps, sensing robot's environment after each step (if movable)
+     * @param steps Number of steps to move forward
      */
     private void moveForward(int steps, int stepPerSecond, boolean doingImage) throws InterruptedException {
         if (movable(robot.getDir())) {       // for actual, double check in case of previous sensing error
 
-//            if (sim) {
-//                TimeUnit.MILLISECONDS.sleep(RobotConstants.WAIT_TIME / stepPerSecond);
-//            }
 
             robot.move(Command.FORWARD, steps, exploredMap, stepPerSecond);
             if (doingImage) {
@@ -704,306 +710,319 @@ public class Exploration {
     }
 
     /**
-     * Check whether the next cell along the dir is movable
-     * @param dir direction relative to the robot
-     * @return true if movable, false otherwise
+     * Check if the next move in cells of that direction is a valid move
+     * @param dir Direction of intended movement w.r.t robot
+     * @return True if movable, false otherwise
      */
-    public boolean movable(Direction dir) {
 
-        int rowInc = 0, colInc = 0;
+    private boolean movable(Direction dir) {
 
-        switch (dir) {
-            case UP:
-                rowInc = 1;
-                colInc = 0;
-                break;
+        int rowInc = getRowIncrementForMovement(dir);
+        int colInc = getColIncrementForMovement(dir);
 
-            case LEFT:
-                rowInc = 0;
-                colInc = -1;
-                break;
-
-            case RIGHT:
-                rowInc = 0;
-                colInc = 1;
-                break;
-
-            case DOWN:
-                rowInc = -1;
-                colInc = 0;
-                break;
-        }
-//        LOGGER.info(String.format("DEBUG: checking movable row: %d, col: %d", robot.getPos().y + rowInc, robot.getPos().x + colInc));
         return exploredMap.checkValidMove(robot.getPos().y + rowInc, robot.getPos().x + colInc);
     }
 
-    // TODO clean this
-    public boolean goToPoint(Point loc) throws InterruptedException {
-        robot.setStatus("Go to point: " + loc.toString());
-        LOGGER.info(robot.getStatus());
-        // TODO: now ignore robot already at start
+    /**
+     * Check if robot and target location is at start position; rotates robot to face down if true
+     * @param loc Coordinates of target location
+     * @return True if robot and target location is both at start location, false otherwise
+     * @throws InterruptedException Will throw exception if parameter is null
+     */
+    private boolean robotAndTargetAtStartPos(Point loc) throws InterruptedException {
         if (robot.getPos().equals(start) && loc.equals(start)) {
             while (robot.getDir() != Direction.DOWN) {
                 robot.turn(Command.TURN_LEFT, stepPerSecond);
                 System.out.println(robot.getDir());
                 if (sim) {
                     robot.sense(exploredMap, realMap);
-                }
-                else {
+                } else {
                     NetMgr.getInstance().receive();
                 }
-
             }
             return true;
+        }
+        return false;
+    }
 
+    /**
+     * Execute commands generated by a star algorithm for fastest path to target location; senses and update map after
+     * every move
+     * @param commands Array of commands to be executed in order
+     * @param loc Coordinates of target location
+     * @throws InterruptedException Will throw exception if parameter(s) is null
+     */
+    private void executeCommandsMoveToTarget(ArrayList<Command> commands, Point loc) throws InterruptedException{
+        for (Command c : commands) {
+            System.out.println("Command: "+c);
+            if ((c == Command.FORWARD) && !movable(robot.getDir())) {
+                System.out.println("Not Executing Forward Not Movable");
+                // Recompute a star path to location
+                goToPoint(loc);
+                break;
 
-            // old
-//            while (robot.getDir() != Direction.UP) {
-////                if (sim) {
-////                    try {
-////                        TimeUnit.MILLISECONDS.sleep(RobotConstants.WAIT_TIME / stepPerSecond);
-////                    } catch (InterruptedException e) {
-////                        e.printStackTrace();
-////                    }
-////                }
-//                robot.sense(exploredMap, realMap);
-//                robot.turn(Command.TURN_RIGHT, stepPerSecond);
-//                // hx: to be changed to turn right  / left
-//            }
-//            return false;
+            } else{
+                //If last command is turn; robot has already reached the destination point
+                if(((c == Command.TURN_LEFT && !movable(Direction.getAntiClockwise(robot.getDir())))||
+                        (c == Command.TURN_RIGHT && !movable(Direction.getClockwise(robot.getDir())))) && commands.indexOf(c) == commands.size()-1)
+                    continue;
+                //Calibrate before turn
+                if (c == Command.TURN_LEFT || c == Command.TURN_RIGHT){
+                    alignAndImageRecBeforeLeftTurn(false);
+                    robot.turn(c, stepPerSecond);
+                }
+                //Continue otherwise
+                else {
+                    robot.move(c, RobotConstants.MOVE_STEPS, exploredMap, stepPerSecond);
+                }
+
+                robot.sense(exploredMap, realMap);
+            }
+        }
+    }
+    /**
+     * Execute commands generated by a star algorithm for fastest path to target location; senses and does not update map after
+     * every move. Recompute path to nearest unexplored point if command is forward but invalid.
+     * @param commands Array of commands to be executed in order
+     * @param loc Coordinates of target location
+     * @throws InterruptedException Will throw exception if parameter(s) is null
+     */
+
+    private void executeCommandsMoveToTarget(ArrayList<Command> commands, Point loc, ObsSurface obsSurface) throws InterruptedException{
+        ArrayList<ObsSurface> surfTaken;
+        for (Command c : commands) {
+            System.out.println("Command: " + c);
+            if ((c == Command.FORWARD) && !movable(robot.getDir())) {
+                System.out.println("Not Executing Forward Not Movable");
+                // Recompute a star path to location
+                goToPointForImage(loc, obsSurface);
+                break;
+            } else {
+                if (((c == Command.TURN_LEFT && !movable(Direction.getAntiClockwise(robot.getDir()))) ||
+                        (c == Command.TURN_RIGHT && !movable(Direction.getClockwise(robot.getDir())))) && commands.indexOf(c) == commands.size() - 1)
+                    goToPointForImage(loc, obsSurface);
+                if (c == Command.TURN_LEFT || c == Command.TURN_RIGHT) {
+                    robot.turn(c, stepPerSecond);
+                } else {
+                    robot.move(c, RobotConstants.MOVE_STEPS, exploredMap, stepPerSecond);
+                }
+
+                surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
+                updateNotYetTaken(surfTaken);
+            }
+        }
+    }
+
+    /**
+     * Make sure robot face intended direction such that obstacle surface is on the right of the robot. Captures
+     * obstacle and updates surfaces that is not taken
+     * @param desiredDir Intended direction
+     * @throws InterruptedException Will throw exception if parameter is null
+     */
+
+    private void turnRobotToFaceDirectionDuringImage(Direction desiredDir) throws InterruptedException{
+        ArrayList<ObsSurface> surfTaken;
+        //If robot already facing desired direction, return
+        if (desiredDir != robot.getDir()) {
+            //Desired direction on robot's right turn, turn and capture surfaces and update surface
+            if (desiredDir == Direction.getClockwise(robot.getDir())) {
+                robot.turn(Command.TURN_RIGHT, stepPerSecond);
+                surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
+                updateNotYetTaken(surfTaken);
+            }
+            //Desired direction on robot's left turn, turn and capture surfaces and update surface
+            else if (desiredDir == Direction.getAntiClockwise(robot.getDir())) {
+                robot.turn(Command.TURN_LEFT, stepPerSecond);
+                surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
+                updateNotYetTaken(surfTaken);
+            }
+            //Desired direction on robot's u turn, turn twice and capture surfaces and update surfaces
+            else {
+                robot.turn(Command.TURN_LEFT, stepPerSecond);
+                surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
+                updateNotYetTaken(surfTaken);
+                robot.turn(Command.TURN_LEFT, stepPerSecond);
+                surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
+                updateNotYetTaken(surfTaken);
+            }
+        }
+    }
+
+    /**
+     * Moves robot to nearest virtual wall after reaching unexplored cell; continue right wall hugging algorithm upon
+     * reaching virtual wall
+     * @throws InterruptedException Will throw exception if parameters is null
+     */
+    private void continueExplorationUponNearestUnexplored() throws InterruptedException{
+        robot.setStatus("Continue exploration, finding the nearest virtual wall.");
+        LOGGER.info(robot.getStatus());
+
+        //Get direction of the nearest virtual wall
+        Direction dir = nearestVirtualWall(robot.getPos());
+        System.out.println(dir);
+
+        //If can move in the direction of nearest virtual wall, turn robot to face direction
+        if (movable(dir))
+        {
+            System.out.println("ininin");
+            while(dir != robot.getDir()) {
+                if(dir.ordinal() - robot.getDir().ordinal()==1)
+                    robot.turn(Command.TURN_LEFT, stepPerSecond);
+                else
+                    robot.turn(Command.TURN_RIGHT, stepPerSecond);
+            }
+
+            //Keep moving in the same direction until unable (meet obstacle at the front)
+            while(movable(robot.getDir())) {
+                robot.move(Command.FORWARD, RobotConstants.MOVE_STEPS, exploredMap, stepPerSecond);
+                robot.sense(exploredMap, realMap);
+            }
         }
 
-        ArrayList<Command> commands = new ArrayList<Command>();
-        ArrayList<Cell> path = new ArrayList<Cell>();
-        FastestPath fp = new FastestPath(exploredMap, robot, sim);
-        path = fp.runAStar(robot.getPos(), loc, robot.getDir());
-        if (path == null)
-            return false;
-        fp.displayFastestPath(path, true);
-        commands = fp.getPathCommands(path);
-        System.out.println("Exploration Fastest Commands: "+commands);
+        //Re-orientate robot's direction until it is right-hugging obstacle
+        while(Direction.getAntiClockwise(dir) != robot.getDir()) {
+            robot.turn(Command.TURN_LEFT, stepPerSecond);
+            robot.sense(exploredMap, realMap);
+        }
 
-        //Not moving back to start single moves
+    }
 
-        // TODO: temporarily disable
-//        if (true) {
-        if (!loc.equals(start)) {
-            for (Command c : commands) {
-                System.out.println("Command: "+c);
-                if ((c == Command.FORWARD) && !movable(robot.getDir())) {
-                    System.out.println("Not Executing Forward Not Movable");
-                    // TODO
-                    goToPoint(loc);
-                    break;
-                } else{
-                    if(((c == Command.TURN_LEFT && !movable(Direction.getAntiClockwise(robot.getDir())))||
-                            (c == Command.TURN_RIGHT && !movable(Direction.getClockwise(robot.getDir())))) && commands.indexOf(c) == commands.size()-1)
-                        continue;
-                    if (c == Command.TURN_LEFT || c == Command.TURN_RIGHT){
-                        alignAndImageRecBeforeLeftTurn(false);
+    /**
+     * Execute commands generated by a star algorithm for fastest path to target location, senses and update map after
+     * every move; if unable to execute command (obstacle in direction of command), call goToPoint algorithm
+     * to generate path from robot's current location to target location
+     * @param commands Array of commands to be executed in order
+     * @param loc Coordinates of start point
+     * @throws InterruptedException Will throw exception if parameter(s) is null
+     */
+    private void executeCommandsMoveToStartPoint(ArrayList<Command> commands, Point loc) throws InterruptedException{
+        //Moves to calculate no of steps to take forward
+        int moves = 0;
+        Command c;
+        for (int i = 0; i < commands.size(); i++) {
+            c = commands.get(i);
+
+            // Command is forward but unable to move forward; update map and recalculate path from current location
+            // to target location using goToPointFuncation
+            if ((c == Command.FORWARD) && (robot.getSensorRes().get("F1") == 1 ||
+                    robot.getSensorRes().get("F2") == 1 || robot.getSensorRes().get("F3") == 1)
+            ) {
+                System.out.println("Not Executing Forward Not Movable");
+                //Update map after sensing
+                robot.updateMap(exploredMap, robot.getSensorRes());
+                goToPoint(loc);
+                break;
+            }
+            else {
+                //Increment number of steps to move forward
+                if (c == Command.FORWARD && moves < 1) {
+                    moves++;
+                    // For last command, no need map update and alignment
+                    if (i == (commands.size() - 1)) {
+                        robot.move(c, moves, exploredMap, stepPerSecond);
+                        robot.senseWithoutMapUpdateAndAlignment(exploredMap, realMap);
+                    }
+                } else {
+                    // Move foward by no of steps in counter
+                    if (moves > 0) {
+                        robot.move(Command.FORWARD, moves, exploredMap, stepPerSecond);
+                        robot.senseWithoutMapUpdateAndAlignment(exploredMap, realMap);
+                    }
+                    if (c == Command.TURN_RIGHT || c == Command.TURN_LEFT) {
                         robot.turn(c, stepPerSecond);
                     }
+                    //Execute command
                     else {
                         robot.move(c, RobotConstants.MOVE_STEPS, exploredMap, stepPerSecond);
                     }
-
-                    robot.sense(exploredMap, realMap);
-
-                }
-//                if (sim) {
-//                    try {
-//                        TimeUnit.MILLISECONDS.sleep(RobotConstants.WAIT_TIME / stepPerSecond);
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-            }
-
-            //If Robot Gets Lost When Moving to unexplored area Move it Back to a wall
-            if(!loc.equals(start) && exploredMap.getExploredPercentage() < 100 && movable(Direction.getClockwise(robot.getDir()))) {
-                robot.setStatus("Lost. Finding the nearest virtual wall.");
-                LOGGER.info(robot.getStatus());
-
-                //Get direction of the nearest virtual wall
-                Direction dir = nearestVirtualWall(robot.getPos());
-                System.out.println(dir);
-
-                //If not at a virtual wall
-                if (movable(dir))
-                {
-                    System.out.println("ininin");
-                    //Orient the robot to face the wall
-                    while(dir != robot.getDir()) {
-                        //Check the difference in the direction enum
-                        if(dir.ordinal() - robot.getDir().ordinal()==1)
-                            robot.turn(Command.TURN_LEFT, stepPerSecond);
-                        else
-                            robot.turn(Command.TURN_RIGHT, stepPerSecond);
-                    }
-                    //Move Towards the wall till unable to move
-                    while(movable(robot.getDir())) {
-                        robot.move(Command.FORWARD, RobotConstants.MOVE_STEPS, exploredMap, stepPerSecond);
-//                        if (sim) {
-//                            try {
-//                                TimeUnit.MILLISECONDS.sleep(RobotConstants.WAIT_TIME / stepPerSecond);
-//                            } catch (InterruptedException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-                        robot.sense(exploredMap, realMap);
-                    }
-                }
-                //Orient the robot to make its right side hug the wall
-                while(Direction.getAntiClockwise(dir) != robot.getDir()) {
-                    robot.turn(Command.TURN_LEFT, stepPerSecond);
-//                    if (sim) {
-//                        try {
-//                            TimeUnit.MILLISECONDS.sleep(RobotConstants.WAIT_TIME / stepPerSecond);
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-                    robot.sense(exploredMap, realMap);
-                }
-
-            }
-        }
-
-//        /* TODO: temporarily disable
-        //Moving back to Start multiple moves
-        else {
-            int moves = 0;
-            Command c = null;
-            for (int i = 0; i < commands.size(); i++) {
-                c = commands.get(i);
-//                if (sim) {
-//                    try {
-//                        TimeUnit.MILLISECONDS.sleep(RobotConstants.WAIT_TIME / stepPerSecond);
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//
-//                }
-
-//                if ((c == Command.FORWARD) && !movable(robot.getDir())) {
-                // checking sensorRes reading instead since only sensorRes is updated
-                if ((c == Command.FORWARD) &&
-                        (robot.getSensorRes().get("F1") == 1 ||
-                                robot.getSensorRes().get("F2") == 1 ||
-                                robot.getSensorRes().get("F3") == 1)
-                    ) {
-
-                // System.out.println("moves "+moves);
-                    System.out.println("Not Executing Forward Not Movable");
-                    // update map (sensorRes is updated)
-                    robot.updateMap(exploredMap, realMap, robot.getSensorRes());
-                    goToPoint(loc);
-                    break;
-                } else {
-                    if (c == Command.FORWARD && moves < 1) {
-//                    if (c == Command.FORWARD && moves < RobotConstants.MAX_MOVE) {
-                        moves++;
-                        // If last command
-                        if (i == (commands.size() - 1)) {
-                            robot.move(c, moves, exploredMap, stepPerSecond);
-                            robot.senseWithoutMapUpdateAndAlignment(exploredMap, realMap);
-                        }
-                    } else {
-                        if (moves > 0) {
-                            robot.move(Command.FORWARD, moves, exploredMap, stepPerSecond);
-                            robot.senseWithoutMapUpdateAndAlignment(exploredMap, realMap);
-
-
-                        }
-                        if (c == Command.TURN_RIGHT || c == Command.TURN_LEFT) {
-                            robot.turn(c, stepPerSecond);
-                        } else {
-                            robot.move(c, RobotConstants.MOVE_STEPS, exploredMap, stepPerSecond);
-                        }
-                        robot.senseWithoutMapUpdateAndAlignment(exploredMap, realMap);
-                        moves = 0;
-                    }
+                    //Sense and update map
+                    robot.senseWithoutMapUpdateAndAlignment(exploredMap, realMap);
+                    //Reset move to 0
+                    moves = 0;
                 }
             }
         }
-//        */
+    }
 
-        //TODO: temp code
-        if (loc.equals(start)) {
-            // Orient robot to face UP
-            if (loc.equals(start)) {
 
-                // TODO: Changed - orient the robot to face down for caliberation
-//                while (robot.getDir() != Direction.UP) {
-                while (robot.getDir() != Direction.DOWN) {
-                    // TODO: check - arduino dont want
-                    // align if possible
-//                    if (!sim) {
-//                        robot.align_front(exploredMap, realMap);
-//                        robot.align_right(exploredMap, realMap);
-//                    }
 
-//                    robot.turn(Command.TURN_RIGHT, stepPerSecond);
-                    robot.turn(Command.TURN_LEFT, stepPerSecond);
-//                    if (sim) {
-//                        try {
-//                            TimeUnit.MILLISECONDS.sleep(RobotConstants.WAIT_TIME / stepPerSecond);
-//                        } catch (InterruptedException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
+    /**
+     * Moves the robot to a specific point in the arena
+     * @param loc Coordinates of the point intended for robot to move to
+     * @return True if movement is successful, false otherwise
+     * @throws InterruptedException Will throw exception if parameter is null
+     */
+    private boolean goToPoint(Point loc) throws InterruptedException {
+        robot.setStatus("Go to point: " + loc.toString());
+        LOGGER.info(robot.getStatus());
+        if (!robotAndTargetAtStartPos(loc)) {
 
-                    System.out.println(robot.getDir());
+            ArrayList<Command> commands;
+            ArrayList<Cell> path;
+            FastestPath fp = new FastestPath(exploredMap, robot, sim);
+            //Run aStar algorithm for robot to reach target location
+            path = fp.runAStar(robot.getPos(), loc, robot.getDir());
+            //Return false if no viable path from robot's current position to target location
+            if (path == null)
+                return false;
+            fp.displayFastestPath(path, true);
+            commands = fp.getPathCommands(path);
+            System.out.println("Exploration Fastest Commands: " + commands);
 
-                    // since it is alr at start, do not update sensor reading just incase the position is wrong and phantom blocks
-                    if (sim) {
-                        robot.sense(exploredMap, realMap);
-                    }
-                    else {
-                        NetMgr.getInstance().receive();
-                    }
-                    // actual to be added later
-//                    if(!sim && !movable(robot.getDir())) {
-//                        NetMgr.getInstance().send("Alg|Ard|"+Command.ALIGN_FRONT.ordinal()+"|0");
-//                        NetMgr.getInstance().receive();
-//                        if(!movable(Direction.getPrevious(robot.getDir()))) {
-//                            NetMgr.getInstance().send("Alg|Ard|"+Command.ALIGN_RIGHT+"|0");
-//                            NetMgr.getInstance().receive();
-//                        }
-//                    }
+            //Not moving back to start single moves
+            if (!loc.equals(start)) {
+                executeCommandsMoveToTarget(commands, loc);
+                //Sense environment after movement
+                //If robot moved to nearest unexplored area and still not finished exploration; find nearest virtual wall and continue exploration
+                if (exploredMap.getExploredPercentage() < 100 && movable(Direction.getClockwise(robot.getDir()))) {
+                    continueExplorationUponNearestUnexplored();
                 }
             }
-        }
 
+            //Return to start position
+            else {
+                executeCommandsMoveToStartPoint(commands, loc);
+            }
+            //TODO: Might have problems when returning true/false from recursion call
+        }
+        //Robot successfully reached target location; return true
         return true;
     }
 
-    // TODO: clean this
+    /**
+     * Checks cell in up,down,left,right direction w.r.t robot in straight line; returns direction to nearest virtual
+     * wall
+     * @param pos Coordinates of robot's postion
+     * @return Direction to nearest virtual wall
+     */
     //Returns the direction to the nearest virtual wall
-    public Direction nearestVirtualWall(Point pos) {
-        int rowInc, colInc, lowest = 1000, lowestIter = 0, curDist = 0;
-        //Distance to wall Evaluation order: right, up, left, down
+    private Direction nearestVirtualWall(Point pos) {
+        int rowInc, colInc, lowest = 1000, lowestIter = 0, curDist;
+        //Priority of direction of wall; right, up, left, down
         Direction dir = Direction.RIGHT;
         //Evaluate the distance to nearest virtualwall
         System.out.println("Nearest Wall");
         for (int i=0; i<4; i++) {
+            //Row and column increment for up, right, left, right direction
             rowInc = (int)Math.sin(Math.PI/2*i);
             colInc = (int)Math.cos(Math.PI/2*i);
             curDist = 0;
+            //Circularly check for nearest virtual wall, incrementing distance for each iteration
             for (int j = 1; j < MapConstants.MAP_HEIGHT; j++) {
                 if(exploredMap.checkValidCell(pos.y+rowInc*j, pos.x+colInc*j)) {
-                    //Keep Looping till reached a virtual wall
                     if(exploredMap.clearForRobot(pos.y+rowInc*j, pos.x+colInc*j))
                         curDist++;
+                        //Upon finding virtual wall; break
                     else
                         break;
                 }
-                //Reached the end of the wall
+                //Upon reaching bordering walls; break
                 else
                     break;
             }
+
             System.out.println("Direction: "+i+" "+curDist);
-            //Evaluate the distance to previous lowest
+            //Evaluate closest distance for all direction and direction
             if (curDist<lowest)
             {
                 lowest = curDist;
@@ -1011,7 +1030,7 @@ public class Exploration {
             }
         }
         System.out.println("Direction "+dir);
-        //Choose the direction based on the result
+        //Identify direction using lowestIter (right,up,left,right)
         for (int c=0; c<lowestIter; c++)
         {
             dir = Direction.getAntiClockwise(dir);
@@ -1021,3 +1040,4 @@ public class Exploration {
     }
 
 }
+

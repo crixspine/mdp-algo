@@ -1,62 +1,81 @@
 package Robot;
-
 import Map.Map;
 import Map.Direction;
 import Map.MapDescriptor;
 import Map.MapConstants;
 import Map.Cell;
 import Map.ObsSurface;
+
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
-import Helper.*;
+
 import Network.NetMgr;
 import Network.NetworkConstants;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-
 public class Robot {
-
+    /**
+     * logger to print log information on robot status, movement, position, etc.
+     * Sim to show simulation mode (true) or real run (false)
+     * FindingFP to show fastest path (true) or exploration/image recognition (false)
+     * ReachGoal to show whether robot has reached Goal (true) or not (false)
+     * Pos to reflect position of robot in x,y coordinates
+     * Direction to reflect direction that robot is facing
+     * Status to show latest successful/unsucessful operation of robot
+     * PreMove to show last move of robot
+     * SensorMap to show the sensors attached to the robot, identified by unique ID
+     * SensorResult to hold the last result obtained from all sensors attached to robot, represented by integer
+     * TempStartTime, TempEndTime,TempDiff are variables used to compute delay to simulate steps per second
+     * MapDescriptor used to convert maps to appropriate formats
+     * ImageCount to keep tack of no of images captured during image recognition
+     * ImageHashSet to keep track of images captured with their location and details
+     * SurfaceTaken to keep track of all surfaces taken during image recognition
+     * AlignCount, TurnAndAlignCount, hasTurnAndAlign to track when to execute calibration
+     * DoingImage to show image recognition mode (true) or not (false)
+     */
     private static final Logger LOGGER = Logger.getLogger(Robot.class.getName());
-
-    private boolean sim;            // true if in simulator mode, false otherwise (actual)
-    private boolean findingFP;      // true if doing fastest path, false otherwise (exploration)
+    private boolean sim;
+    private boolean findingFP;
     private boolean reachedGoal;
     private Point pos;
     private Direction dir;
     private String status;
-
     private Command preMove = Command.FORWARD;
 
     private ArrayList<String> sensorList;
     private HashMap<String, Sensor> sensorMap;
     private HashMap<String, Integer> sensorRes;
-//    private static PrintManager printer = new PrintManager();
 
-    // for delay in sim
     private long tempStartTime, tempEndTime, tempDiff;
 
-    // for converting map to send to android
     private MapDescriptor MDF = new MapDescriptor();
 
-    // for image taking
     private int imageCount = 0;
     private HashSet<String> imageHashSet = new HashSet<String>();
     private HashMap<String, ObsSurface> surfaceTaken = new HashMap<String, ObsSurface>();
-    
-    // for alignment
+
     private int alignCount = 0;
     private int turnAndAlignCount = 0;
     private boolean hasTurnAndAlign = false;
 
     private boolean doingImage = false;
 
-
+    /**
+     *
+     * @param sim Whether robot is in simulation or real run
+     * @param findingFP Whether robot is doing fastest path or exploration/image recognition
+     * @param row Robot's initial position
+     * @param col Robot's initial column
+     * @param dir Robot's initial direction
+     * Initiate robot
+     */
     public Robot(boolean sim, boolean findingFP, int row, int col, Direction dir) {
         this.sim = sim;
         this.findingFP = findingFP;
@@ -67,19 +86,23 @@ public class Robot {
         this.sensorMap = new HashMap<String, Sensor>();
         this.sensorRes = new HashMap<String, Integer>();
         initSensors();
-        this.status = String.format("Initialization completed.\n");
-//        printer.setText(printer.getText() + this.status + "\n");
-        // remember to set start position outside
+        this.status = "Initialization completed.\n";
+
     }
 
+    /**
+     * Convert to string method for robot
+     */
     @Override
     public String toString() {
-        String s = String.format("Robot at %s facing %s\n", pos.toString(), dir.toString());
-        return s;
+        return String.format("Robot at %s facing %s\n", pos.toString(), dir.toString());
     }
 
-    // Getters and setters
+    /**
+     * Getters and setters for all attributes
+     */
 
+    // Getters and setters
     public boolean getSim() {
         return this.sim;
     }
@@ -160,103 +183,173 @@ public class Robot {
     }
 
     /**
-     * Initialization of the Sensors
-     *
-     * ID for the sensors: XX
-     * 1st Letter: F - Front, L - Left, R - Right
-     * 2nd Letter: Identifier
-     * L1 is long IR, the rest is short IR
-     *
-     * Sensor list includes:
-     * Front: 3 short range sensors
-     * Right: 2 short range sensors
-     * Left: 1 long range sensors
-     *
+     * Create and set sensors in position and add it to robot's sensorMap
      */
     private void initSensors() {
-        int row = pos.y;
-        int col = pos.x;
+        int row = this.pos.y;
+        int col = this.pos.x;
 
-        // Front Sensors
-        Sensor SF1 = new Sensor("F1", RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row + 1, col - 1,
-                Direction.UP);
-        Sensor SF2 = new Sensor("F2", RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row + 1, col, Direction.UP);
-        Sensor SF3 = new Sensor("F3", RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row + 1, col + 1,
-                Direction.UP);
+        //Initialize all 6 sensors (5 short range, 1 long range)
+        Sensor[] createdSensors = createSensorsStartPos(row, col);
 
-        // RIGHT Sensor
-        Sensor SR1 = new Sensor("R1", RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row - 1, col + 1,
-                Direction.RIGHT);
-        Sensor SR2 = new Sensor("R2", RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row + 1, col + 1,
-                Direction.RIGHT);
+        //TODO: Remove sensorList
+        addSensorsToRobot();
 
-        // LEFT Sensor
-        Sensor LL1 = new Sensor("L1", RobotConstants.LONG_MIN, RobotConstants.LONG_MAX, row + 1, col - 1,
-                Direction.LEFT);
+        //Add all sensors to robot's sensorMap
+        createSensorMap(createdSensors);
 
-        sensorList.add(SF1.getId());
-        sensorList.add(SF2.getId());
-        sensorList.add(SF3.getId());
-        sensorList.add(SR1.getId());
-        sensorList.add(SR2.getId());
-        sensorList.add(LL1.getId());
-        sensorMap.put(SF1.getId(), SF1);
-        sensorMap.put(SF2.getId(), SF2);
-        sensorMap.put(SF3.getId(), SF3);
-        sensorMap.put(SR1.getId(), SR1);
-        sensorMap.put(SR2.getId(), SR2);
-        sensorMap.put(LL1.getId(), LL1);
-
+        //Ensure sensors position is correct w.r.t robot
         if (dir != Direction.UP) {
             rotateSensors(dir);
         }
 
         this.status = "Sensor initialized\n";
-//        printer.setText(printer.getText() + this.status + "\n");
 
     }
 
+    /**
+     * Initialization of the Sensors
+     *
+     *           ^   ^   ^
+     *          SR  SR  SR
+     *    < LR [X] [X] [X] SR >
+     *         [X] [X] [X]
+     *         [X] [X] [X] SR >
+     *
+     *  LR: Long range sensor
+     *  SR: Short range sensor
+     *
+     *  ID representation:
+     *  First letter:   "F" - Forward direction (w.r.t robot)
+     *                  "L" - Left direction(w.r.t robot)
+     *                  "R" - Right direction (w.r.t robot)
+     *
+     *  Second letter:  Position of sensor w.r.t other sensors facing that direction
+     *                  1 - Leftmost
+     *                  2 - Middle
+     *                  3 - Rightmost
+     *
+     *                  (1 will always be closest the forward direction of the robot, followed by 2 and 3)
+     *
+     * @param row Row coordinates of sensor
+     * @param col Col coordinates of sensor
+     *
+     */
+
+    private Sensor[] createSensorsStartPos(int row, int col){
+        //Create 3 x SR front facing sensors
+        Sensor[] sensorsCreated = new Sensor[6];
+        sensorsCreated[0] = new Sensor(RobotConstants.SENSOR_ID[0], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row + 1, col - 1,
+                Direction.UP);
+        sensorsCreated[1] =new Sensor(RobotConstants.SENSOR_ID[1], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row + 1, col, Direction.UP);
+        sensorsCreated[2] =new Sensor(RobotConstants.SENSOR_ID[2], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row + 1, col + 1,
+                Direction.UP);
+
+        //Create 2 x SR right facing sensors
+        sensorsCreated[3] =new Sensor(RobotConstants.SENSOR_ID[3], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row - 1, col + 1,
+                Direction.RIGHT);
+        sensorsCreated[4] =new Sensor(RobotConstants.SENSOR_ID[4], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row + 1, col + 1,
+                Direction.RIGHT);
+
+        //Create 1 x LR left facing sensor
+        sensorsCreated[5] =new Sensor(RobotConstants.SENSOR_ID[5], RobotConstants.LONG_MIN, RobotConstants.LONG_MAX, row + 1, col - 1,
+                Direction.LEFT);
+
+        return sensorsCreated;
+    }
+
+    //TODO: Delete this and replace with Robot constants
+    private void addSensorsToRobot(){
+        this.sensorList.add(RobotConstants.SENSOR_ID[0]);
+        this.sensorList.add(RobotConstants.SENSOR_ID[1]);
+        this.sensorList.add(RobotConstants.SENSOR_ID[2]);
+        this.sensorList.add(RobotConstants.SENSOR_ID[3]);
+        this.sensorList.add(RobotConstants.SENSOR_ID[4]);
+        this.sensorList.add(RobotConstants.SENSOR_ID[5]);
+    }
+
+    /**
+     * Add sensors to robot
+     * @param sensors Sensors to add to robot
+     */
+    private void createSensorMap(Sensor[] sensors){
+        for(Sensor s: sensors){
+            sensorMap.put(s.getId(), s);
+        }
+    }
+
+    /**
+     * Update sensor's direction when robot moves
+     * @param rowDiff Net displacement in row coordinates
+     * @param colDiff Net displacement in col coordinates
+     */
     private void setSensorPos(int rowDiff, int colDiff) {
-        int row, col;
         Sensor s;
-        for (String sname: sensorList) {
-            s = sensorMap.get(sname);
+        for (int i=0; i< RobotConstants.SENSOR_ID.length; i++) {
+            s= sensorMap.get(RobotConstants.SENSOR_ID[i]);
             s.setPos(s.getRow() + rowDiff, s.getCol() + colDiff);
         }
     }
 
+    /**
+     * @return True when is real exploration, false otherwise
+     */
 
-    private void locateSensorAfterRotation(Sensor s, double angle) {
-        // pos
+    private boolean isRealExploration(){
+
+        return (!this.sim && !this.findingFP);
+    }
+
+
+    /**
+     * Update sensor position when robot turns left or right
+     * @param s Sensor whose position is to be updated
+     * @param turn_dir Direction of the turn
+     */
+    private void locateSensorAfterRotation(Sensor s, Direction turn_dir){
         int newCol, newRow;
-        newCol = (int) Math.round((Math.cos(angle) * (s.getCol() - pos.x) - Math.sin(angle) * (s.getRow() - pos.y) + pos.x));
-        newRow = (int) Math.round((Math.sin(angle) * (s.getCol() - pos.x) - Math.cos(angle) * (s.getRow() - pos.y) + pos.y));
-        s.setPos(newRow, newCol);
+
+        switch (turn_dir){
+            case LEFT:
+                newCol = pos.x + pos.y - s.getRow();
+                newRow = s.getCol() - pos.x + pos.y;
+                s.setPos(newRow, newCol);
+                break;
+            case RIGHT:
+                newCol =  s.getRow() - pos.y + pos.x;
+                newRow = pos.x +  pos.y - s.getCol();
+                s.setPos(newRow, newCol);
+                break;
+            default:
+                LOGGER.warning("No rotation done. Wrong input direction: " + dir);
+
+
+        }
+
     }
 
     /**
-     * Change sensor var (dir, pos) when the robot turns
-     * @param turn_dir turning direction of the robot (left or right only)
+     * Update all sensors' position when robot turns left or right
+     * @param turn_dir Direction of the turn
      */
     private void internalRotateSensor(Direction turn_dir) {
-        double angle = 0;
-
-        // turn_dir
         switch (turn_dir) {
             case LEFT:
-                angle = Math.PI / 2;
-                for (String sensorId : sensorList) {
-                    Sensor s = sensorMap.get(sensorId);
+                for (int i = 0; i< RobotConstants.NO_OF_SENSORS; i++) {
+                    Sensor s = sensorMap.get(RobotConstants.SENSOR_ID[i]);
+                    //Change sensor direction
                     s.setSensorDir(Direction.getAntiClockwise(s.getSensorDir()));
-                    locateSensorAfterRotation(s, angle);
+                    //Change sensor position
+                    locateSensorAfterRotation(s, turn_dir);
                 }
                 break;
             case RIGHT:
-                angle = -Math.PI / 2;
-                for (String sensorId : sensorList) {
-                    Sensor s = sensorMap.get(sensorId);
+                for (int i = 0; i< RobotConstants.NO_OF_SENSORS; i++) {
+                    //Change sensor direction
+                    Sensor s = sensorMap.get(RobotConstants.SENSOR_ID[i]);
+                    //Change sensor position
                     s.setSensorDir(Direction.getClockwise(s.getSensorDir()));
-                    locateSensorAfterRotation(s, angle);
+                    locateSensorAfterRotation(s, turn_dir);
                 }
                 break;
             default:
@@ -264,10 +357,9 @@ public class Robot {
         }
     }
 
-
     /**
-     * Change sensor var (dir, pos) when the robot turns
-     * @param turn_dir turning direction of the robot (left, right, down)
+     * Update all sensors' position when robot turns left, right or u-turn (abstraction of internalRotateSensor)
+     * @param turn_dir Direction of the turn
      */
     private void rotateSensors(Direction turn_dir) {
         switch (turn_dir) {
@@ -285,89 +377,195 @@ public class Robot {
                 break;
         }
     }
-
+    /**
+     * Updates the alignCount when robot moves (represent how many steps robot moved w/o alignment)
+     */
+    private void updateAlignCount(int steps){
+        alignCount += steps;
+    }
 
     /**
-     * Robot movement with direction (forward, backward) and steps) and Map updated.
-     * @param cmd FORWARD or BACKWARD
-     * @param steps number of steps moved by the robot
-     * @param exploredMap current explored environment of the robot
+     * Converts the movement command (move forward, move back, etc) to string and sends to Arduino for execution
+     * @param cmd Command to be converted
+     * @param steps No of steps to be taken in integer form
      */
-    public void move(Command cmd, int steps, Map exploredMap, int stepsPerSecond) throws InterruptedException {
+    private void sendCommandToArduino(Command cmd, int steps){
 
-        tempStartTime = System.currentTimeMillis();
+        String cmdStr = getCommand(cmd, steps);
+        NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
 
-        if (!sim && !findingFP) {
-            // TODO to send fast forward
-            // send command to Arduino
-            String cmdStr = getCommand(cmd, steps);
-//            LOGGER.info("Command String: " + cmdStr);
-            NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
-            // TODO if can delete if
-            if (!findingFP) {
-                alignCount += steps;
-//                LOGGER.info(String.format("alignCount: %d", alignCount));
-            }
-        }
+    }
 
-        int rowInc = 0, colInc = 0;
+    /**
+     * Evaluate multiplier of row increment when robot moves (forward or backward) in the direction it is facing
+     * @param cmd Command of either forward or backward movement
+     * @return Row multiplier to be used in calculation of robot's new position
+     */
+    private int getRowIncrementForMovement(Command cmd){
+        int rowInc = 0;
 
-        switch(dir) {
+        switch(this.dir) {
             case UP:
                 rowInc = 1;
-                colInc = 0;
                 break;
             case DOWN:
                 rowInc = -1;
-                colInc = 0;
                 break;
-            case LEFT:
-                rowInc = 0;
-                colInc = -1;
-                break;
-            case RIGHT:
-                rowInc = 0;
-                colInc = 1;
+            default:
                 break;
         }
-
-        switch (cmd) {
+        switch(cmd){
             case FORWARD:
                 break;
             case BACKWARD:
                 rowInc *= -1;
+                break;
+            default:
+                status = String.format("Invalid command: %s! No movement executed.\n", cmd.toString());
+//                printer.setText(printer.getText() + status + "\n");
+                LOGGER.warning(status);
+        }
+        return rowInc;
+
+    }
+
+    /**
+     * Evaluate multiplier of column increment when robot moves (forward or backward) in the direction it is facing
+     * @param cmd Command of either forward or backward movement
+     * @return Column multiplier to be used in calculation of robot's new position
+     */
+    private int getColIncrementForMovement(Command cmd){
+        int colInc = 0;
+        //Determines
+        switch(this.dir) {
+            case LEFT:
+                colInc = -1;
+                break;
+            case RIGHT:
+                colInc = 1;
+                break;
+            default:
+                break;
+        }
+        switch(cmd){
+            case FORWARD:
+                break;
+            case BACKWARD:
                 colInc *= -1;
                 break;
             default:
                 status = String.format("Invalid command: %s! No movement executed.\n", cmd.toString());
 //                printer.setText(printer.getText() + status + "\n");
                 LOGGER.warning(status);
-                return;
         }
+        return colInc;
+
+    }
+    /**
+     * Evaluate multiplier of row increment of sensor when sensing
+     * @param dir Direction that sensor is facing
+     * @return Row multiplier to be used in evaluation during sensing
+     */
+    private int getRowIncrementForSensor(Direction dir){
+        int rowInc = 0;
+        switch(dir) {
+            case UP:
+                rowInc = 1;
+                break;
+            case DOWN:
+                rowInc = -1;
+                break;
+            default:
+                break;
+        }
+        return rowInc;
+
+    }
+
+    /**
+     * Evaluate multiplier of column increment of sensor when sensing
+     * @param dir Direction that sensor is facing
+     * @return Column multiplier to be used in evaluation during sensing
+     */
+    private int getColIncrementForSensor(Direction dir){
+        int colInc = 0;
+        switch(dir) {
+            case LEFT:
+                colInc = -1;
+                break;
+            case RIGHT:
+                colInc = 1;
+                break;
+            default:
+                break;
+        }
+        return colInc;
+
+    }
+
+    /**
+     * Simulate delay in simulated exploration to match the steps per second of the robot (preset variable)
+     * @param stepsPerSecond No of steps (forward or backward movement) taken per second
+     * @param steps No of steps to be taken
+     * @throws InterruptedException Will throw exception if parameter is null
+     */
+    private void simulateDelay(int stepsPerSecond,int steps) throws InterruptedException{
+        if (this.sim) {
+            this.tempEndTime = System.currentTimeMillis();
+            this.tempDiff = RobotConstants.WAIT_TIME / stepsPerSecond * steps - (this.tempEndTime - this.tempStartTime);
+            if (this.tempDiff > 0) {
+                TimeUnit.MILLISECONDS.sleep(this.tempDiff);
+            }
+        }
+    }
+
+    /**
+     * @return Returns true if robot is executing exploration, false otherwise
+     */
+    private boolean isExploration(){
+        return !(this.findingFP);
+    }
+
+
+    /**
+     * Moves robot in either forward or backward direction with the specified number of steps, and updates exploration map
+     * @param cmd Command of either forward or backward movement
+     * @param steps Number of steps robot is supposed to move
+     * @param exploredMap Map of explored part of arena
+     * @exception InterruptedException Throws exception when parameter is null
+     */
+
+    public void move(Command cmd, int steps, Map exploredMap, int stepsPerSecond) throws InterruptedException {
+
+        this.tempStartTime = System.currentTimeMillis();
+
+        //Send command to Arduino and update calibration variable if robot is executing real exploration
+        if (isRealExploration()) {
+            sendCommandToArduino(cmd,steps);
+            updateAlignCount(steps);
+        }
+
+        //Determines increment of row and column coordinates with each step depending on direction of robot
+        int rowInc = getRowIncrementForMovement(cmd);
+        int colInc = getColIncrementForMovement(cmd);
 
         int newRow = pos.y + rowInc * steps;
         int newCol = pos.x + colInc * steps;
 
         if(exploredMap.checkValidMove(newRow, newCol)) {
-
             preMove = cmd;
             status = String.format("%s for %d steps\n", cmd.toString(), steps);
-            //printer.setText(printer.getText() + status + "\n" + pos.toString() + "\n");
             LOGGER.info(status);
             LOGGER.info("row = " + newRow + ", col = " + newCol);
-//            logSensorInfo();
 
-            // delay for sim
-            if (sim) {
-                tempEndTime = System.currentTimeMillis();
-                tempDiff = RobotConstants.WAIT_TIME / stepsPerSecond * steps - (tempEndTime - tempStartTime);
-                if (tempDiff > 0) {
-//                System.out.println(tempDiff);
-                    TimeUnit.MILLISECONDS.sleep(tempDiff);
-                }
-            }
+            //Simulate delay to match preset variable of steps per second
+            simulateDelay(stepsPerSecond,steps);
+
+            //Update robot's position
             this.setPosition(newRow, newCol);
-            if(!findingFP) {
+
+            //Update explored map
+            if(isExploration()) {
                 for (int i = 0; i < steps; i++) {
                     exploredMap.setPassThru(newRow - rowInc * i, newCol - colInc * i);
                 }
@@ -375,66 +573,58 @@ public class Robot {
         }
     }
 
+    /**
+     * Updates robot direction and all sensors' direction when robot turns
+     * @param cmd Command of either turn left or turn right
+     */
+
+    private void changeRobotAndSensorDirection(Command cmd){
+        switch(cmd) {
+            case TURN_LEFT:
+                this.dir = Direction.getAntiClockwise(dir);
+                rotateSensors(Direction.LEFT);
+                break;
+            case TURN_RIGHT:
+                this.dir = Direction.getClockwise(dir);
+                rotateSensors(Direction.RIGHT);
+                break;
+            default:
+                this.status = "Invalid command! No movement executed.\n";
+                LOGGER.warning(status);
+        }
+    }
 
     /**
-     * move method when cmd is about turning (TURN_LEFT, TURN RIGHT)
-     * @param cmd
+     * Turns robot in either left or right direction, speed adjusted to preset steps per second of robot
+     * @param cmd Command of either turn left or right
+     * @param stepsPerSecond Number of steps robot is set to take per second
+     * @throws InterruptedException If cannot connect to Arduino
      */
     public void turn(Command cmd, int stepsPerSecond) throws InterruptedException {
 
         tempStartTime = System.currentTimeMillis();
-//        if (!sim) {
-        if (!sim && !findingFP) {
-            // send command to Arduino
-            // TODO: add turning degree
-            String cmdStr = getCommand(cmd, 1);
-//            LOGGER.info("Command String: " + cmdStr);
-            NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
-            // TODO if can delete if
-            if(!findingFP) {
-                alignCount++;
-//                LOGGER.info(String.format("alignCount: %d", alignCount));
-            }
+        //Send command to Arduino and update calibration variable if robot is executing real exploration
+        if(isRealExploration()){
+            sendCommandToArduino(cmd,1);
+            updateAlignCount(1);
         }
-        switch(cmd) {
-            case TURN_LEFT:
-                dir = Direction.getAntiClockwise(dir);
-                rotateSensors(Direction.LEFT);
-                break;
-            case TURN_RIGHT:
-                dir = Direction.getClockwise(dir);
-                rotateSensors(Direction.RIGHT);
-                break;
-            default:
-                status = "Invalid command! No movement executed.\n";
-//                printer.setText(printer.getText() + status + "\n");
-                LOGGER.warning(status);
-                return;
-        }
+
+        changeRobotAndSensorDirection(cmd);
+
         preMove = cmd;
         status = cmd.toString() + "\n";
-        //printer.setText(printer.getText() + status + "\n" + pos.toString() + "\n");
         LOGGER.info(status);
         LOGGER.info(pos.toString());
-//        logSensorInfo();
 
-        // delay for simulator
-        if (sim) {
-            tempEndTime = System.currentTimeMillis();
-            tempDiff = RobotConstants.WAIT_TIME / stepsPerSecond - (tempEndTime - tempStartTime);
-            if (tempDiff > 0) {
-                TimeUnit.MILLISECONDS.sleep(tempDiff);
-            }
-        }
+        simulateDelay(stepsPerSecond,1);
 
     }
 
-
     /**
-     * Set starting position, assuming direction unchanged
-     * @param col
-     * @param row
-     * @param exploredMap
+     * Updates robot's position and cells of starting position on explored map
+     * @param row Row that robot is set in
+     * @param col Column that robot is set in
+     * @param exploredMap Map of explored part of the arena
      */
     public void setStartPos(int row, int col, Map exploredMap) {
         setPosition(row, col);
@@ -449,48 +639,40 @@ public class Robot {
     }
 
     /**
-     * Set robot position, assuming direction unchanged
-     * @param col
-     * @param row
+     * Updates robot position and sensor's position when robot changes position (due to movement, etc)
+     * @param row Row coordinates of robot's updated position
+     * @param col Column coordinates of robot's updated position
      */
-    public void setPosition(int row, int col) {
-        int colDiff = col - pos.x;
-        int rowDiff = row - pos.y;
-        pos.setLocation(col, row);
+
+    private void setPosition(int row, int col) {
+        int colDiff = col - this.pos.x;
+        int rowDiff = row - this.pos.y;
+        this.pos.setLocation(col, row);
         setSensorPos(rowDiff, colDiff);
     }
 
-    public void logSensorInfo() {
-        for (String sname : sensorList) {
+    /**
+     * Display robot's current coordinates and direction and sensor's direction in log
+     */
+
+    private void logSensorInfo() {
+        for (String sname : RobotConstants.SENSOR_ID) {
             Sensor s = sensorMap.get(sname);
             String info = String.format("id: %s\trow: %d; col: %d\tdir: %s\n", s.getId(), s.getRow(), s.getCol(), s.getSensorDir());
             LOGGER.info(info);
         }
     }
 
+    /**
+     * Parse start point sent from Android
+     * @param jsonMsg Message containing start point
+     * @return Coordinates of start point
+     */
     public Point parseStartPointJson(String jsonMsg) {
-        System.out.println(jsonMsg);
-        // double check to make sure that it is a start msg
         if (jsonMsg.contains(NetworkConstants.START_POINT_KEY)) {
-            // parse json
             JSONObject startPointJson = new JSONObject(new JSONTokener(jsonMsg));
-            Point startPoint = new Point((int) startPointJson.get("x") - 1, (int) startPointJson.get("y") - 1);
-            return startPoint;
-        }
-        else {
-            LOGGER.warning("Not a start point msg. Return null.");
-            return null;
-        }
-    }
-
-    public Point parseWayPointJson(String jsonMsg) {
-
-        // double check to make sure that it is a start msg
-        if (jsonMsg.contains(NetworkConstants.WAY_POINT_KEY)) {
-            // parse json
-            JSONObject wayPointJson = new JSONObject(new JSONTokener(jsonMsg));
-            Point wayPoint = new Point((int) wayPointJson.get("x") - 1, (int) wayPointJson.get("y") - 1);
-            return wayPoint;
+            //TODO: Might need adjustment based on message format
+            return (new Point((int) startPointJson.get("x") - 1, (int) startPointJson.get("y") - 1));
         }
         else {
             LOGGER.warning("Not a start point msg. Return null.");
@@ -499,24 +681,43 @@ public class Robot {
     }
 
     /**
-     * Getting sensor result from RPI/Arduino
-     * @return HashMap<SensorId, ObsBlockDis>
+     * Parse way point sent from Android
+     * @param jsonMsg Message containing way point
+     * @return Coordinates of waypoint
      */
-    public HashMap<String, Integer> updateSensorRes(String msg) {
-        int obsBlock;
-        if (msg.charAt(0) != 'F') {
-            // TODO
-            // not sensor info sent from arduino
+    public Point parseWayPointJson(String jsonMsg) {
+
+        //Confirm message is specified as way point message
+        if (jsonMsg.contains(NetworkConstants.WAY_POINT_KEY)) {
+            JSONObject wayPointJson = new JSONObject(new JSONTokener(jsonMsg));
+            return (new Point((int) wayPointJson.get("x") - 1, (int) wayPointJson.get("y") - 1));
+        }
+        else {
+            LOGGER.warning("Not a start point msg. Return null.");
             return null;
         }
+    }
+
+    /**
+     * Obtain sensor result from Arduino (through Rasberry Pi) and updates sensor result in robot
+     * @return HashMap<SensorId, ObsBlockDis>
+     */
+
+    private HashMap<String, Integer> updateSensorRes(String msg) {
+        //TODO: Check again what is the character for Arduino to Algo
+        if (msg.charAt(0) != 'F') {
+            return null;
+        }
+
         else {
             String[] sensorStrings = msg.split("\\|");
             for (String sensorStr: sensorStrings) {
                 String[] sensorInfo = sensorStr.split("\\:");
                 String sensorID = sensorInfo[0];
-                int grid = Integer.parseInt(sensorInfo[1]);
-                if (grid >= sensorMap.get(sensorID).getMinRange() && grid <= sensorMap.get(sensorID).getMaxRange()) {
-                    sensorRes.put(sensorID, grid);
+                int result = Integer.parseInt(sensorInfo[1]);
+                //Validate that result obtain is within sensor range, otherwise set as -1
+                if (result >= sensorMap.get(sensorID).getMinRange() && result <= sensorMap.get(sensorID).getMaxRange()) {
+                    sensorRes.put(sensorID, result);
                 }
                 else {
                     sensorRes.put(sensorID, -1);
@@ -526,93 +727,131 @@ public class Robot {
         }
     }
 
+    /**
+     * Evaluate multiplier of row increment of camera during image recognition
+     * @return Returns row multiplier
+     */
 
-    public ArrayList<ObsSurface> imageRecognitionRight(Map exploredMap) {
-        int rowInc = 0, colInc = 0;
-        int camera_row, camera_col, temp_row, temp_col;
-        int camInc = 0;
-
+    private int getRowIncrementForCamera(){
+        int rowInc=0;
         switch (dir) {
-            case UP:
-                rowInc = 0;
-                colInc = 1;
-                break;
-            case DOWN:
-                rowInc = 0;
-                colInc = -1;
-                break;
             case LEFT:
-                colInc = 0;
                 rowInc = 1;
                 break;
             case RIGHT:
-                colInc = 0;
                 rowInc = -1;
                 break;
         }
+        return rowInc;
+    }
 
-        camera_row = pos.y + rowInc;
-        camera_col = pos.x + colInc;
+    /**
+     * Evaluate multiplier of column increment of camera during image recognition
+     * @return Returns col multiplier
+     */
+    private int getColIncrementForCamera(){
+        int colInc=0;
+        switch (dir) {
+            case UP:
+                colInc = 1;
+                break;
+            case DOWN:
+                colInc = -1;
+                break;
+        }
+        return colInc;
 
-        boolean sendRPI = false, hasObsAtCamAxis = false;
+    }
 
-        // send RPI if sensor reading within the camera range
+    /**
+     * Determine whether image is detected on right side of robot for image recognition
+     * @return True if image is detected
+     */
+
+    private boolean checkIfRightImageDetected(){
         if ((sensorRes.get("R1") > 0 && sensorRes.get("R1") <= RobotConstants.CAMERA_MAX)
                 || (sensorRes.get("R2") > 0 && sensorRes.get("R2") <= RobotConstants.CAMERA_MAX)) {
-            if (!isRightHuggingWall()) {
-                sendRPI = true;
-
-            }
+            return !isRightHuggingWall();
         }
-//        }
-        // else check for middle obstacles - removing else for image
-//            LOGGER.info("In else");
+        return false;
 
+    }
+
+
+    /**
+     * Detects if there are possible image surfaces on the right of the robot that have not been detected before
+     * Signals RPi for image recognition if so, and updates memory of captured surfaces
+     * @param exploredMap Map of explored part of the arena
+     * @return Array of obstacle surfaces that have been taken (might or might not have images on them)
+     */
+    public ArrayList<ObsSurface> imageRecognitionRight(Map exploredMap) {
+
+        int rowInc, colInc;
+        int camera_row, camera_col, temp_row, temp_col;
+        int camInc;
+
+        rowInc = getRowIncrementForCamera();
+        colInc = getColIncrementForCamera();
+        camera_row = this.pos.y + rowInc;
+        camera_col = this.pos.x + colInc;
+
+        boolean sendRPI, hasObsAtCamAxis = false;
+
+        //Right sensor to check if image is detected; send RPI command for image recognition if detected
+        sendRPI = checkIfRightImageDetected();
+
+        //Check for all values within camera detection range
         for (camInc = RobotConstants.CAMERA_MIN; camInc <= RobotConstants.CAMERA_MAX; camInc++) {
             temp_row = camera_row + rowInc * camInc;
             temp_col = camera_col + colInc * camInc;
 
+            //If obstacle is obstacle and explored , do image recognition
             if (exploredMap.checkValidCell(temp_row, temp_col)) {
                 Cell temp_cell = exploredMap.getCell(temp_row, temp_col);
+                //Check if cell has been explored and is obstacle
                 if (temp_cell.isExplored() && temp_cell.isObstacle()) {
-                    // send to RPI to do image recognition
+                    // Images can only be on obstacle surfaces; send RPi signal for image recognition
                     sendRPI = true;
                     hasObsAtCamAxis = true;
                     break;
                 }
-            } else {      // invalid cell
+            } else {
                 break;
             }
         }
 
-
-        // imageCount reset to 0 if preMov is turning but not the turning in turnRightAndAlign
+        //TODO: Not sure what is this
         if (!hasTurnAndAlign && (preMove == Command.TURN_LEFT || preMove == Command.TURN_RIGHT)) {
             imageCount = 0;
         }
 
+        //Initialize array of surfaces to return
         ArrayList<ObsSurface> surfaceTakenList = new ArrayList<ObsSurface>();
         ObsSurface tempObsSurface;
 
         if (sendRPI) {
             if (imageCount == 0) {
+                //TODO: Check again what is the character for Algo to RPi
+                //Send position of camera and intended direction of camera
                 String to_send = String.format("I%d|%d|%s", camera_col + 1, camera_row + 1, Direction.getClockwise(dir).toString());
+                //Check if image has already been detected
                 if (!imageHashSet.contains(to_send)) {
+                    //Append image to sent image
                     imageHashSet.add(to_send);
                     NetMgr.getInstance().send(to_send);
 
-                    // update surfaceTaken
-                    // R1
+                    //Add surface to robot memory and return surface object if sensor detects valid surface
                     tempObsSurface = addToSurfaceTaken("R1", rowInc, colInc);
                     if (tempObsSurface != null) {
                         surfaceTakenList.add(tempObsSurface);
                     }
-                    // R2
+
                     tempObsSurface = addToSurfaceTaken("R2", rowInc, colInc);
                     if (tempObsSurface != null) {
                         surfaceTakenList.add(tempObsSurface);
                     }
-                    // camera //TODO
+
+                    //Adds to surface list if sensor previously detected obstacle at axis of camera; will return if its valid
                     if (hasObsAtCamAxis) {
                         tempObsSurface = internalAddToSurfaceTaken(camera_row, camera_col, rowInc, colInc, camInc);
                         if (tempObsSurface != null) {
@@ -622,7 +861,7 @@ public class Robot {
 
                 }
             }
-//            imageCount = (imageCount + 1) % 3;
+            //TODO: Not sure what this is for
             imageCount = (imageCount + 1) % 2;
 
         }
@@ -634,15 +873,24 @@ public class Robot {
         return surfaceTakenList;
     }
 
-    public ObsSurface addToSurfaceTaken(String sensorName, int rowInc, int colInc) {
+    /**
+     * Checks if obstacle surface detected by sensor is a valid reading; appends to array of surfaces taken if true
+     * @param sensorName Sensor ID
+     * @param rowInc Row increment of surface position from camera
+     * @param colInc Col increment of surface position from camera
+     * @return Object of ObstacleSurface if the reading is valid, null otherwise
+     */
+
+    private ObsSurface addToSurfaceTaken(String sensorName, int rowInc, int colInc) {
         int tempSensorRow, tempSensorCol, tempSensorReading;
 
         tempSensorReading = sensorRes.get(sensorName);
+
+        //Check if detected result is valid
         if (tempSensorReading > 0 && tempSensorReading <= RobotConstants.CAMERA_MAX) {
             tempSensorRow = sensorMap.get(sensorName).getRow();
             tempSensorCol = sensorMap.get(sensorName).getCol();
-            ObsSurface tempObsSurface = internalAddToSurfaceTaken(tempSensorRow, tempSensorCol, rowInc, colInc, tempSensorReading);
-            return tempObsSurface;
+            return internalAddToSurfaceTaken(tempSensorRow, tempSensorCol, rowInc, colInc, tempSensorReading);
         }
         else {
             return null;
@@ -650,7 +898,17 @@ public class Robot {
 
     }
 
-    public ObsSurface internalAddToSurfaceTaken(int tempRow, int tempCol, int rowInc, int colInc, int incStep) {
+    /**
+     * Append surfaces captured by RPi to the robot's memory
+     * @param tempRow Row coordinates of camera
+     * @param tempCol Column coordinates of camera
+     * @param rowInc Row increment multiplier (dependent on robot direction)
+     * @param colInc Column increment multiplier (dependent on robot direction)
+     * @param incStep Distance from camera
+     * @return Obstacle surface that is captured
+     */
+
+    private ObsSurface internalAddToSurfaceTaken(int tempRow, int tempCol, int rowInc, int colInc, int incStep) {
         int tempObsRow, tempObsCol;
         ArrayList<ObsSurface> surfaceTakenList = new ArrayList<ObsSurface>();
         ObsSurface tempObsSurface;
@@ -669,6 +927,7 @@ public class Robot {
      * if yes, send to RPI
      * format: I|X|Y|RobotDirection
      */
+    //TODO: REMOVE IF NOT USED
     public void imageRecognitionFront() {
         if (sensorRes.get("F1") == 2 || sensorRes.get("F2") == 2 || sensorRes.get("F3") == 2) {
             // TODO: check using android index or algo index
@@ -680,14 +939,16 @@ public class Robot {
 
 
     /**
-     * Getting sensor result for simulator
-     * @param exploredMap
-     * @param realMap
-     * @return HashMap<SensorId, ObsBlockDis>
+     * Obtain sensor result from realMap in simulation mode (no real sensor needed)
+     * @param realMap Map of entire arena with obstacles
+     * @return HashMap<SensorId, ObsBlockDis> Array of sensor and their corresponding detected result
      */
-    public HashMap<String, Integer> updateSensorRes(Map exploredMap, Map realMap) {
+
+    //Overloaded method
+    //Checks results of all sensors and updates sensor result
+    public HashMap<String, Integer> updateSensorRes(Map realMap) {
         int obsBlock;
-        for(String sname: sensorList) {
+        for(String sname: RobotConstants.SENSOR_ID) {
             obsBlock = sensorMap.get(sname).detect(realMap);
             sensorRes.put(sname, obsBlock);
         }
@@ -695,38 +956,41 @@ public class Robot {
     }
 
     /**
-     * Robot sensing surrounding obstacles for simulator
-     * @param exploredMap
-     * @param realMap
+     * Sensing surrounding cells for obstacles in simulation mode
+     * @param exploredMap Map of explored part of the arena
+     * @param realMap Map obstacles of the arena
+     * @return Array of surface of obstacles
      */
+
     public ArrayList<ObsSurface> sense(Map exploredMap, Map realMap) {
         ArrayList<ObsSurface> surfTaken = new ArrayList<ObsSurface>();
-        HashMap<String, Integer> sensorResult = completeUpdateSensorResult(exploredMap, realMap);
-        updateMap(exploredMap, realMap, sensorResult);
+        HashMap<String, Integer> sensorResult = completeUpdateSensorResult(realMap);
+        updateMap(exploredMap, sensorResult);
 
-        // send to Android
-        if (!sim && !findingFP) {
 
+        if (isRealExploration()) {
+            //Send updated map to Android
             send_android(exploredMap);
 
-            // Realignment for right
+            //Check for calibration
             if (alignCount > RobotConstants.CALIBRATE_AFTER) {
-                // TODO: Alignment
-//                align_front(exploredMap, realMap);    // unnecessary, align_front is already added when front not movable
                 align_right(exploredMap, realMap);
             }
 
-            // Realignment for front - turn right and align when it is not hugging the wall but R1 and R2 == 1 and turnAndAlignCount > CalibrationConstant
+            //No need alignment if right hugging wall; calibration done when at the start of right wall hug
             if (isRightHuggingWall()) {
                 turnAndAlignCount = 0;
             }
+
             else {
                 turnAndAlignCount++;
             }
-            if (hasTurnAndAlign) {
-                hasTurnAndAlign = false;
-            }
+            //TODO: What does this do?
+            hasTurnAndAlign = false;
 
+
+            //Calibrate after exceeding no of steps threshold before calibration and if it is hugging and obstacle/wall
+            // on the right
             if ((turnAndAlignCount > RobotConstants.TURN_AND_CALIBRATE) &&
                     (sensorRes.get("R1") == 1 && sensorRes.get("R2") == 1)) {
 
@@ -737,7 +1001,7 @@ public class Robot {
                     e.printStackTrace();
                 }
             }
-            // TODO: Camera facing right - check whether img is needed to be detected and send RPI if needed
+            // Capture surface of obstacle on the right of the robot
             surfTaken = imageRecognitionRight(exploredMap);
         }
         return surfTaken;
@@ -745,41 +1009,41 @@ public class Robot {
 
     /** TODO: want alignment for image?
      * Update sensorRes but not the map. No alignment as well. Send image as well.
-     * @param exploredMap
-     * @param realMap
+     * @param exploredMap Map of explored part of the arena
+     * @param realMap Map obstacles of the arena
      */
+
     public void senseWithoutMapUpdateAndAlignment(Map exploredMap, Map realMap) {
 
-        HashMap<String, Integer> sensorResult = completeUpdateSensorResult(exploredMap, realMap);
+        HashMap<String, Integer> sensorResult = completeUpdateSensorResult(realMap);
         // send to Android
-        if (!sim && !findingFP) {
+        if (isRealExploration()) {
             send_android(exploredMap);
         }
 
     }
 
 
-    /** TODO: want alignment for image?
-     * Update sensorRes but not the map. No alignment as well. Send image as well. // alignment not updating the map
-     * @param exploredMap
-     * @param realMap
+    /**
+     * Update sensorRes but does not update the map nor calibrate (for image recognition, not exploration)
+     * @param exploredMap Map of explored part of the arena
+     * @param realMap Map obstacles of the arena
      */
     public ArrayList<ObsSurface> senseWithoutMapUpdate(Map exploredMap, Map realMap) {
 
-        HashMap<String, Integer> sensorResult = completeUpdateSensorResult(exploredMap, realMap);
+        //get all sensor to update
+        HashMap<String, Integer> sensorResult = completeUpdateSensorResult(realMap);
         ArrayList<ObsSurface> surfTaken = new ArrayList<ObsSurface>();
-        // send to Android
-        if (!sim && !findingFP) {
+        //For real exploration, send exploredMap to android
+        if (isRealExploration()) {
             send_android(exploredMap);
 
-            // Realignment for right
+            //Calibrate if exceed steps w/o calibration limit
             if (alignCount > RobotConstants.CALIBRATE_AFTER) {
                 // TODO: Alignment
-//                align_front(exploredMap, realMap);    // unnecessary, align_front is already added when front not movable
                 align_right(exploredMap, realMap);
             }
-
-            // Realignment for front - turn right and align when it is not hugging the wall but R1 and R2 == 1 and turnAndAlignCount > CalibrationConstant
+            // Robot is calibrated at the start of any right wall hug; no need for turn and align count
             if (isRightHuggingWall()) {
                 turnAndAlignCount = 0;
             }
@@ -790,49 +1054,51 @@ public class Robot {
                 hasTurnAndAlign = false;
             }
 
+            //Calibrate after exceeding no of steps threshold before calibration and if it is hugging and obstacle/wall
+            // on the right
             if ((turnAndAlignCount > RobotConstants.TURN_AND_CALIBRATE) &&
                     (sensorRes.get("R1") == 1 && sensorRes.get("R2") == 1)) {
 
                 try {
+                    //Calibration only; no update of map
                     turnRightAndAlignMethodWithoutMapUpdate(exploredMap, realMap);
 
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-            // TODO: Camera facing right - check whether img is needed to be detected and send RPI if needed
+            //Capture surface of obstacles on the right side of the robot
             surfTaken = imageRecognitionRight(exploredMap);
 
         }
-        // TODO: add alignment
         return surfTaken;
     }
 
     /**
-     * Turn right, align front, turn left, align right
-     * Condition checking is not in the method
-     * @param exploredMap
-     * @param realMap
-     * @throws InterruptedException
+     * Turn right and calibrate front sensors to align with obstacle/wall; turn left and calibrate right sensors to
+     * align with obstacle/wall
+     * @param exploredMap Map of explored part of the arena
+     * @param realMap Map obstacles of the arena
+     * @throws InterruptedException If cannot sense
      */
     public void turnRightAndAlignMethod(Map exploredMap, Map realMap) throws InterruptedException {
+        //
         turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
         senseWithoutAlign(exploredMap, realMap);
         align_front(exploredMap, realMap);
         turn(Command.TURN_LEFT, RobotConstants.STEP_PER_SECOND);
         senseWithoutAlign(exploredMap, realMap);
         align_right(exploredMap, realMap);
-//        imageRecognitionRight(exploredMap);   // try to do before alignment, if cannot, see how
         hasTurnAndAlign = true;
         turnAndAlignCount = 0;
     }
 
     /**
-     * Turn right, align front, turn left, align right
-     * Condition checking is not in the method
-     * @param exploredMap
-     * @param realMap
-     * @throws InterruptedException
+     * Turn right and calibrate front sensors to align with obstacle/wall; turn left and calibrate right sensors to
+     * align with obstacle/wall, without updating of map
+     * @param exploredMap Map of explored part of the arena
+     * @param realMap Map obstacles of the arena
+     * @throws InterruptedException If cannot sense
      */
     public void turnRightAndAlignMethodWithoutMapUpdate(Map exploredMap, Map realMap) throws InterruptedException {
         turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
@@ -841,119 +1107,93 @@ public class Robot {
         turn(Command.TURN_LEFT, RobotConstants.STEP_PER_SECOND);
         senseWithoutMapUpdateAndAlignment(exploredMap, realMap);
         align_right(exploredMap, realMap);
-//        imageRecognitionRight(exploredMap);   // try to do before alignment, if cannot, see how
+
         hasTurnAndAlign = true;
         turnAndAlignCount = 0;
     }
 
     /**
-     * Robot sensing surrounding obstacles for simulator
-     * @param exploredMap
-     * @param realMap
+     * Robot sensing surrounding obstacles in simulator mode
+     * @param exploredMap Map of explored part of the arena
+     * @param realMap Map obstacles of the entire arena
      */
-    public void senseWithoutAlign(Map exploredMap, Map realMap) {
-        HashMap<String, Integer> sensorResult = completeUpdateSensorResult(exploredMap, realMap);
-        updateMap(exploredMap, realMap,sensorResult);
+    private void senseWithoutAlign(Map exploredMap, Map realMap) {
+        HashMap<String, Integer> sensorResult = completeUpdateSensorResult(realMap);
+        updateMap(exploredMap, sensorResult);
 
-        // send to Android
-        if (!sim && !findingFP) {
-
-//            // TODO: Camera facing right - check whether img is needed to be detected and send RPI if needed
-//            imageRecognitionRight(exploredMap);  // do not repeat taking
-
+        // Send updated map to android
+        if (isRealExploration()) {
             send_android(exploredMap);
 
         }
     }
 
-    public HashMap<String, Integer> completeUpdateSensorResult(Map exploredMap, Map realMap) {
+    /**
+     * Updates results from sensor in both simulated and real exploration
+     * @param realMap Map of Map of entire arena with obstacles
+     * @return HashMap of sensor result
+     */
+    private HashMap<String, Integer> completeUpdateSensorResult(Map realMap) {
         HashMap<String, Integer> sensorResult;
 
         if(sim) {
-            sensorResult = updateSensorRes(exploredMap, realMap);
+            sensorResult = updateSensorRes(realMap);
         }
         else {
-            // TODO: add in case arduino send
-//            String temp = NetMgr.getInstance().receive();
-//            String temp2 = NetMgr.getInstance().receive();
+            //Receive sensor result from Arduino
             String msg = NetMgr.getInstance().receive();
-//            while (msg.charAt(0) == 'L') {
-//                LOGGER.warning("Unknow character received. Get sensor again.");
-//                NetMgr.getInstance().send(NetworkConstants.ARDUINO + getCommand(Command.SEND_SENSORS, RobotConstants.MOVE_STEPS));
-//                msg = NetMgr.getInstance().receive();
 //
 //            }
             sensorResult = updateSensorRes(msg);
-
-            // TODO: Camera facing front - check whether img is needed to be detected and send RPI if needed
-//            imageRecognitionFront();
-//            try {
-//                TimeUnit.MILLISECONDS.sleep(10);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
         }
         return sensorResult;
     }
 
-    public void updateMap(Map exploredMap, Map realMap, HashMap<String, Integer> sensorResult) {
+    /**
+     * Update the map with result obtained from sensor
+     * @param exploredMap Map of explored part of the arena
+     * @param sensorResult Hashmap of the sensor result obtained from sensors
+     */
+    public void updateMap(Map exploredMap, HashMap<String, Integer> sensorResult) {
         int obsBlock;
-        int rowInc=0, colInc=0, row, col;
+        int rowInc, colInc, tempRow, tempCol;
 
         if(sensorResult == null) {
             LOGGER.warning("Invalid msg. Map not updated");
             return;
         }
 
-        for(String sname: sensorList) {
+        for(String sname: RobotConstants.SENSOR_ID) {
             Sensor s = sensorMap.get(sname);
             obsBlock = sensorResult.get(sname);
 
-            // Assign the rowInc and colInc based on sensor Direction
-            switch (s.getSensorDir()) {
-                case UP:
-                    rowInc = 1;
-                    colInc = 0;
-                    break;
+            // Assign the rowInc and colInc based on sensor direction
+            rowInc = getRowIncrementForSensor(s.getSensorDir());
+            colInc = getColIncrementForSensor(s.getSensorDir());
 
-                case LEFT:
-                    rowInc = 0;
-                    colInc = -1;
-                    break;
-
-                case RIGHT:
-                    rowInc = 0;
-                    colInc = 1;
-                    break;
-
-                case DOWN:
-                    rowInc = -1;
-                    colInc = 0;
-                    break;
-            }
-
+            //Check for every block within sensor's valid range
             for (int j = s.getMinRange(); j <= s.getMaxRange(); j++) {
 
-                row = s.getRow() + rowInc * j;
-                col = s.getCol() + colInc * j;
+                tempRow = s.getRow() + rowInc * j;
+                tempCol = s.getCol() + colInc * j;
 
-                // check whether the block is valid otherwise exit (Edge of Map)
-                if(exploredMap.checkValidCell(row, col)) {
-                    exploredMap.getCell(row, col).setExplored(true);
+                // Check whether the block is a valid block
+                if(exploredMap.checkValidCell(tempRow, tempCol)) {
+                    exploredMap.getCell(tempRow, tempCol).setExplored(true);
 
-                    if(j == obsBlock && !exploredMap.getCell(row, col).isMoveThru()) {
-                        exploredMap.getCell(row, col).setObstacle(true);
-                        exploredMap.setVirtualWall(exploredMap.getCell(row, col), true);
+                    //Update specified cell when identified as obstacle
+                    if(j == obsBlock && !exploredMap.getCell(tempRow, tempCol).isMoveThru()) {
+                        exploredMap.getCell(tempRow, tempCol).setObstacle(true);
+                        //TODO: Find out what the virtual wall is for
+                        exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), true);
                         exploredMap.reinitVirtualWall();
                         break;
                     }
-                    // if not in if
-                    // (1) j != obsBlock && cell isMoveThru     // do not need to update
-                    // (2) j == obsBlock && cell isMoveThru     // cannot be the case
-                    // (3) j != obsBlock && cell !isMoveThru    // need to check
-                    else if (j != obsBlock && exploredMap.getCell(row, col).isObstacle()) {      // (3)
-                        exploredMap.getCell(row, col).setObstacle(false);
-                        exploredMap.setVirtualWall(exploredMap.getCell(row, col), false);
+
+                    //Previous detected obstacle is wrongly detected; reset the cell and virtual walls
+                    else if (j != obsBlock && exploredMap.getCell(tempRow, tempCol).isObstacle()) {      // (3)
+                        exploredMap.getCell(tempRow, tempCol).setObstacle(false);
+                        exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), false);
                         exploredMap.reinitVirtualWall();
                     }
                 }
@@ -966,7 +1206,11 @@ public class Robot {
         }
     }
 
-    public JSONArray getRobotArray() {
+    /**
+     * Translate direction and position of robot into JSON for transmission
+     * @return JSONArray of robot's information
+     */
+    private JSONArray getRobotArray() {
 
         JSONArray robotArray = new JSONArray();
         JSONObject robotJson = new JSONObject()
@@ -977,7 +1221,12 @@ public class Robot {
         return robotArray;
     }
 
-    public JSONArray getMapArray(Map exploredMap) {
+    /**
+     * Translate map into JSON array for transmission
+     * @param exploredMap Map of explored part of the arena
+     * @return JSONArray of map information
+     */
+    private JSONArray getMapArray(Map exploredMap) {
         String obstacleString = MDF.generateMDFString2(exploredMap);
         JSONArray mapArray = new JSONArray();
         JSONObject mapJson = new JSONObject()
@@ -988,16 +1237,21 @@ public class Robot {
         return mapArray;
     }
 
-    public JSONArray getStatusArray() {
+    /**
+     * Translate status of robot into JSONArray
+     * @return JSONArray of robot's latest operation
+     */
+    private JSONArray getStatusArray() {
         JSONArray statusArray = new JSONArray();
         JSONObject statusJson = new JSONObject()
                 .put("status", status.replaceAll("\\n",""));
         statusArray.put(statusJson);
         return statusArray;
     }
+    //TODO: Find out why this is not used or there is an alternative of this function
 
     /**
-     * Send the current robot position/direction and status (if uncomment) to android
+     * Send robot's information to Androind in JSONArray
      */
     public void send_android() {
         JSONObject androidJson = new JSONObject();
@@ -1009,8 +1263,8 @@ public class Robot {
     }
 
     /**
-     * Send the current explored map and robot position/direciton, status (if uncomment) to android
-     * @param exploredMap
+     * Send robot's direction and postion, current explored environment of arena to Android
+     * @param exploredMap Map of explored part of the arena
      */
     public void send_android(Map exploredMap) {
         JSONObject androidJson = new JSONObject();
@@ -1020,23 +1274,20 @@ public class Robot {
         androidJson.put("status", getStatusArray());
         NetMgr.getInstance().send(NetworkConstants.ANDROID + androidJson.toString() + "\n");
 
-//            try {
-//                TimeUnit.MILLISECONDS.sleep(10);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
     }
 
-
-
-    public void align_front(Map exploredMap, Map realMap) { // realMap is null just to call sense
-
+    /**
+     * Calibrate robot's direction using front sensors
+     * @param exploredMap Map of explored part of the arena
+     * @param realMap Map of obstacles in arena
+     */
+    public void align_front(Map exploredMap, Map realMap) {
+        //Robot directly in front of obstacle/wall
         if (sensorRes.get("F1") == 1 && sensorRes.get("F3") == 1) {
-            // send align front
+            // Send align front command to Arduino
             String cmdStr = getCommand(Command.ALIGN_FRONT, 1);  // steps set to 0 to avoid appending to cmd
-//            LOGGER.info("Command String: " + cmdStr);
+
             NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
-//            alignCount = 0;
             status = "Aligning Front\n";
             LOGGER.info(status);
             if (doingImage) {
@@ -1050,8 +1301,14 @@ public class Robot {
 
     }
 
-    public void align_right(Map exploredMap, Map realMap) { // realMap is null just to call sense
-        int aligning_index = 0;
+    /**
+     * Calibrate robot's direction using right sensors
+     * @param exploredMap Map of explored part of the arena
+     * @param realMap Map of obstacles in arena
+     */
+    public void align_right(Map exploredMap, Map realMap) {
+        int aligning_index ;
+        //Determine number of right turns
         switch(preMove) {
             case FORWARD:
                 aligning_index = 1;
@@ -1070,10 +1327,11 @@ public class Robot {
                 aligning_index = 1;
                 break;
         }
+
+        //Sense robot hugging right wall (long), can align
         if (sensorRes.get("R1") == 1 && sensorRes.get("R2") == 1) {
             // send align right
             String cmdStr = getCommand(Command.ALIGN_RIGHT, aligning_index);
-//            LOGGER.info("Command String: " + cmdStr);
             NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
             alignCount = 0;
             status = String.format("Aligning Right: %d\n", aligning_index);
@@ -1091,23 +1349,25 @@ public class Robot {
     /**
      * Robot is right hugging the wall if the right sensor position is equal to
      * the lowest or highest possible row or col number
-     * @return
+     * @return True if right hugging the wall; false otherwise
      */
     public boolean isRightHuggingWall() {
         Point R1_pos = sensorMap.get("R1").getPos();
         Point R2_pos = sensorMap.get("R2").getPos();
 
-        if ((R1_pos.x == 0 && R2_pos.x == 0)
-                || (R1_pos.x == MapConstants.MAP_WIDTH - 1 && R2_pos.x == MapConstants.MAP_WIDTH - 1)
-                || (R1_pos.y == 0 && R2_pos.y == 0)
-                || (R1_pos.y == MapConstants.MAP_HEIGHT - 1 && R2_pos.y == MapConstants.MAP_HEIGHT - 1)) {
+        if (R1_pos.x == 0 && R2_pos.x == 0){
             return true;
         }
-        else {
-            return false;
+        if(R1_pos.x == MapConstants.MAP_WIDTH - 1 && R2_pos.x == MapConstants.MAP_WIDTH - 1){
+            return true;
         }
-
+        if(R1_pos.y == 0 && R2_pos.y == 0){
+            return true;
+        }
+        return R1_pos.y == MapConstants.MAP_HEIGHT - 1 && R2_pos.y == MapConstants.MAP_HEIGHT - 1;
     }
+
+
 
     public int getAlignCount() {
         return alignCount;
@@ -1141,59 +1401,29 @@ public class Robot {
         this.imageCount = count;
     }
 
-
-    //    /**
-//     * Robot sensing surrounding obstacles for actual run
-//     * @param exploredMap
-//     */
-//    public void sense(Map exploredMap){
-//        // TODO
-//        // build JSON
-//        // Take note of setting obstacles on and off (different from simulator)
-//    }
-
     /**
-     * Get the turn Command(s) for the robot to face the newDir
-     * @param newDir Direction robot should face after the command(s) being executed
-     * @return
+     * Convert the command to a string format for sending to RPi/Arduino
+     * @param cmd Command of move/turn
+     * @param steps No of steps to move in that direction
+     * @return String format of the command for transmission
      */
-    public ArrayList<Command> getTurn(Direction newDir) {
-        ArrayList<Command> commands = new ArrayList<Command>();
-
-        if (newDir == Direction.getAntiClockwise(dir)) {
-            commands.add(Command.TURN_LEFT);
-        }
-        else if (newDir == Direction.getClockwise(dir)) {
-            commands.add(Command.TURN_RIGHT);
-        }
-        else if (newDir == Direction.getOpposite(dir)) {
-            commands.add(Command.TURN_LEFT);
-            commands.add(Command.TURN_LEFT);
-        }
-        return commands;
-    }
-
     public String getCommand(Command cmd, int steps) {
         StringBuilder cmdStr = new StringBuilder();
 
         cmdStr.append(Command.ArduinoMove.values()[cmd.ordinal()]);
-//        if (steps > 1) {
-//            cmdStr.append(steps);
-//        }
+
         cmdStr.append(steps);
         cmdStr.append('|');
 
         return cmdStr.toString();
     }
 
-    public boolean isDoingImage() {
-        return doingImage;
-    }
 
     public void setDoingImage(boolean img) {
         this.doingImage = img;
     }
 
+    // TODO: Remove when done
     public static void main(String[] args) throws InterruptedException{
         Robot robot = new Robot(true, true,1, 1, Direction.UP);
         System.out.println(robot.status);
@@ -1202,13 +1432,12 @@ public class Robot {
         robot.logSensorInfo();
         LOGGER.info(robot.status);
         LOGGER.info(robot.toString());
-//        printer.setText(printer.getText() + robot.status + "\n" + robot.toString() + "\n");
 
         robot.move(Command.FORWARD, 1, null, 1);
-//        robot.logSensorInfo();
-//        LOGGER.info(robot.status);
-//        LOGGER.info(robot.toString());
+
 
     }
 
 }
+
+
