@@ -18,10 +18,10 @@ public class FastestPath {
     private static final Logger LOGGER = Logger.getLogger(FastestPath.class.getName());
 
     private boolean sim;
-    private Map exploredMap;
+    private Map exploredMap; //map after exploration
     private Robot robot;
-    private HashMap<Point, Double> costGMap;
-    private HashMap<Cell, Cell> prevCellMap = new HashMap<Cell, Cell>();
+    private HashMap<Point, Double> gCostMap; //map of g cost for every cell
+    private HashMap<Cell,Cell> pathMap = new HashMap<Cell, Cell>();
 
     public FastestPath(Map exploredMap, Robot robot, boolean sim) {
         this.exploredMap = exploredMap;
@@ -31,95 +31,88 @@ public class FastestPath {
     }
 
     public void initCostMap() {
-        costGMap = new HashMap<Point, Double>();
+        gCostMap = new HashMap<Point, Double>();
         for (int row = 0; row < MapConstants.MAP_HEIGHT; row ++) {
             for (int col = 0; col < MapConstants.MAP_WIDTH; col ++) {
                 Cell cell = exploredMap.getCell(row, col);
-                if (cell.movableCell()) {
-                    costGMap.put(cell.getPos(), 0.0);
+                if (cell.movableCell()) { // Cell is movable if explored, and not obstacle or virtual wall
+                    gCostMap.put(cell.getPos(), 0.0); //init costs of all cells as 0
                 }
                 else {
-                    costGMap.put(cell.getPos(), RobotConstants.INFINITE_COST);
+                    gCostMap.put(cell.getPos(), RobotConstants.INFINITE_COST); //if cell not movable set infinite to avoid
                 }
             }
         }
     }
 
     public ArrayList<Cell> runAStar(Point start, Point goal, Direction initDir) {
-        ArrayList<Cell> toVisit = new ArrayList<Cell>();
-        ArrayList<Cell> visited = new ArrayList<Cell>();
-        ArrayList<Cell> neighbours;
+        ArrayList<Cell> openList = new ArrayList<Cell>(); //not yet visited cells; "open" list
+        ArrayList<Cell> closedList = new ArrayList<Cell>(); //visited cells; "closed" list
+        ArrayList<Cell> neighbours; //neighbouring cells list
         double newGtemp, curGtemp;
 
         // init
-        String status = String.format("Finding fastest path from %s to %s, initial direction: %s", start.toString(), goal.toString(), initDir.toString());
+        String status = String.format("Finding fastest path from %s to %s, initial direction: %s", start.toString().substring(14), goal.toString().substring(14), initDir.toString());
         robot.setStatus(status);
         LOGGER.info(status);
-        Cell cur = exploredMap.getCell(start);
-        toVisit.add(cur);
+        Cell curCell = exploredMap.getCell(start);
+        openList.add(curCell);
         Direction curDir = initDir;
 
-        while(!toVisit.isEmpty()) {
-            cur = getMinCostCell(toVisit, goal);
-            if (prevCellMap.containsKey(cur)) {
-                curDir = exploredMap.getCellDir(prevCellMap.get(cur).getPos(), cur.getPos());
+        while (!openList.isEmpty()) { //while there are cells not yet visited
+            curCell = getMinCostCell(openList, goal); //get cell with lowest cost in open list
+            if (pathMap.containsKey(curCell)) {
+                curDir = exploredMap.getCellDir(pathMap.get(curCell).getPos(), curCell.getPos());
             }
-            visited.add(cur);
-            toVisit.remove(cur);
-            // Check whether the goal has been reached
-            if(visited.contains(exploredMap.getCell(goal))) {
-                LOGGER.info("Path found");
+            closedList.add(curCell);
+            openList.remove(curCell);
+            if (closedList.contains(exploredMap.getCell(goal))) { //if goal is reached
+                LOGGER.info("Fastest path found");
                 return getPath(start, goal);
             }
             else {
-                neighbours = exploredMap.getNeighbours(cur);
+                neighbours = exploredMap.getNeighbours(curCell);
                 for (Cell n: neighbours) {
-                    if (visited.contains(n)) {
+                    if (closedList.contains(n)) { //if neighbour already visited, ignore
                         continue;
                     }
                     else {
-                        newGtemp = costGMap.get(cur.getPos()) + getG(cur.getPos(), n.getPos(), curDir);
-                        if (toVisit.contains(n)) {
-                            curGtemp = costGMap.get(n.getPos());
+                        newGtemp = gCostMap.get(curCell.getPos()) + calculateG(curCell.getPos(), n.getPos(), curDir); //calculate new G value
+                        if (openList.contains(n)) { //if current cell already in open list, i.e. was a neighbour of a previous cell before
+                            curGtemp = gCostMap.get(n.getPos());
                             if (newGtemp < curGtemp) {
-                                costGMap.replace(n.getPos(), newGtemp);
-                                prevCellMap.replace(n, cur);
+                                gCostMap.replace(n.getPos(), newGtemp); //update the G value if the new path to current cell has lower G value
+                                pathMap.replace(n, curCell); //update path with lower G value
                             }
                         }
-                        else {
-                            prevCellMap.put(n, cur);
-                            costGMap.put(n.getPos(), newGtemp);
-                            toVisit.add(n);
+                        else { //if neighbour not yet visited
+                            pathMap.put(n, curCell); //set new path to current cell
+                            gCostMap.put(n.getPos(), newGtemp); //set new G value of current cell
+                            openList.add(n); //add current cell to open list, i.e. it has been a neighbour cell
                         }
                     }
                 }
             }
-
         }
-
-        LOGGER.warning(String.format("Cannot find a fastest path from %s to %s, dir: %s", start.toString(), goal.toString(), initDir.toString()));
+        LOGGER.warning(String.format("Cannot find a fastest path from %s to %s, dir: %s", start.toString().substring(14), goal.toString().substring(14), initDir.toString()));
         return null;
     }
 
-    //returns the path from the prevCell hashmap, moving backwards from goal to start
+    //Returns the path from the prevCell hashmap, moving backwards from goal to start
     public ArrayList<Cell> getPath(Point start, Point goal) {
-        Cell cur = exploredMap.getCell(goal);
+        Cell curCell = exploredMap.getCell(goal); //set current cell as goal
         Cell startCell = exploredMap.getCell(start);
         ArrayList<Cell> path = new ArrayList<Cell>();
-        while(cur != startCell) {
-            path.add(cur);
-            cur = prevCellMap.get(cur);
+        while(curCell != startCell) { //while current cell is not start cell
+            path.add(curCell); //add current cell to final path
+            curCell = pathMap.get(curCell); //iterate until start cell is reached
         }
-        Collections.reverse(path);
+        Collections.reverse(path); //reverse the goal -> start to make it start -> goal
         System.out.println(path);
         return path;
     }
 
-    /**
-     * To display the fastest path found on the simulator
-     * @param path
-     * @param display
-     */
+    //To display fastest path on simulator
     public void displayFastestPath(ArrayList<Cell> path, boolean display) {
         Cell temp;
         System.out.println("Path:");
@@ -130,18 +123,20 @@ public class FastestPath {
             System.out.println(exploredMap.getCell(temp.getPos()).toString());
 
             //Output Path on console
-            if(i != (path.size()-1))
+            if(i != (path.size()-1)) {
                 System.out.print("(" + temp.getPos().y + ", " + temp.getPos().x + ") --> ");
-            else
+            }
+            else {
                 System.out.print("(" + temp.getPos().y + ", " + temp.getPos().x + ")");
+            }
         }
         System.out.println("\n");
     }
 
     //Returns the movements required to execute the path
-    //TODO modify?
+    //MODIFY??
     public ArrayList<Command> getPathCommands(ArrayList<Cell> path) throws InterruptedException {
-        Robot tempRobot = new Robot(true, true, robot.getPos().y, robot.getPos().x, robot.getDir());
+        Robot tempRobot = new Robot(true, true, robot.getPos().y, robot.getPos().x, robot.getDir()); //sim:false for actual run?
         ArrayList<Command> moves = new ArrayList<Command>();
 
         Command move;
@@ -185,58 +180,41 @@ public class FastestPath {
         return moves;
     }
 
-    /**
-     * Get the cell with min cost from toVisit ArrayList
-     * @param toVisit
-     * @param goal
-     * @return
-     */
-    private Cell getMinCostCell(ArrayList<Cell> toVisit, Point goal) {
+    //To get cell with the lowest F cost in the open list; F = G + H
+    private Cell getMinCostCell(ArrayList<Cell> openList, Point goal) {
         Cell cell = null;
         Point pos;
         double minCost = RobotConstants.INFINITE_COST;
 
-        for (Cell cellTemp : toVisit) {
+        for (Cell cellTemp : openList) {
             pos = cellTemp.getPos();
-            double totalCost = costGMap.get(pos) + getH(pos, goal);
-            if(totalCost < minCost) {
-                minCost = totalCost;
+            double fCost = gCostMap.get(pos) + calculateH(pos, goal);
+            if(fCost < minCost) {
+                minCost = fCost;
                 cell = cellTemp;
             }
         }
         return cell;
     }
 
-    /**
-     * Calculate the cost from Cell A to Cell B given the direction dir
-     * @param A
-     * @param B
-     * @param dir
-     * @return  cost from A to B
-     */
-    private double getG(Point A, Point B, Direction dir) {
-        return getMoveCost(A, B) + getTurnCost(dir, exploredMap.getCellDir(A, B));
+    // Calculate G cost from point A to point B in a given direction
+    private double calculateG(Point A, Point B, Direction dir) {
+        return calculateMoveCost(A, B) + calculateTurnCost(dir, exploredMap.getCellDir(A, B));
     }
 
-    /**
-     * Calculate the heuristic from a point to the goal;
-     * Heuristic - straight line distance
-     *
-     * @param pt
-     * @param goal
-     * @return heuristic from pt to goal
-     */
-    private double getH(Point pt, Point goal) {
+    //Calculate H cost (heuristics) from a point to the goal; using Manhattan distance
+    private double calculateH(Point pt, Point goal) {
         return pt.distance(goal);
     }
-    //https://www.geeksforgeeks.org/a-search-algorithm/
-    //using Manhattan Distance
-    private double getMoveCost(Point A, Point B) {
+
+    //Calculate cost to move from point A to point B
+    private double calculateMoveCost(Point A, Point B) {
         double steps =  abs(A.x - B.x) + abs(A.y - B.y);
         return RobotConstants.MOVE_COST * steps;
     }
 
-    private double getTurnCost(Direction dirA, Direction dirB) {
+    //calculate cost to turn from direction A to direction B
+    private double calculateTurnCost(Direction dirA, Direction dirB) {
 
         //Max of 2 turns in either direction, same direction will get 0
         int turns = abs(dirA.ordinal() - dirB.ordinal());
