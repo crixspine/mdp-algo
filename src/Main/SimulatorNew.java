@@ -70,7 +70,7 @@ public class SimulatorNew extends Application {
 
     private static final NetMgr netMgr = NetMgr.getInstance();
 
-//    private boolean setObstacle = false;
+    //    private boolean setObstacle = false;
     private boolean setWaypoint = false;
     private boolean setRobot = false;
 
@@ -99,11 +99,11 @@ public class SimulatorNew extends Application {
             setObstacleBtn, cancelBtn, confirmBtn;
     private RadioButton expRB, fastPathRB, imageRB, simRB, realRB, upRB, downRB, leftRB, rightRB;
     private ToggleGroup mode, task, startDir;
-    private TextArea debugOutput;
+    private TextArea debugOutput, mapOutput;
     private ScrollBar timeLimitSB, coverageLimitSB, stepsSB;
     private TextField startPosTxt, wayPointTxt, timeLimitTxt, coverageLimitTxt, stepsTxt, mapTxt;
     private Label genSetLbl, simSetLbl, arenaSetLbl, startPosLbl, startDirLbl, wayPointLbl, timeLimitLbl, coverageLimitLbl, stepsLbl;
-    private Label modeChoiceLbl, taskChoiceLbl, mapChoiceLbl, statusLbl, timerLbl;
+    private Label modeChoiceLbl, taskChoiceLbl, mapChoiceLbl, statusLbl, timerLbl, mapLbl;
     private Label timerTextLbl;
     private FileChooser fileChooser;
 //    private VBox timerVBox;
@@ -129,7 +129,7 @@ public class SimulatorNew extends Application {
         // Threads
 
         // Setting the Title and Values for the Window
-        primaryStage.setTitle("MDP Group 09: Awesome Algorithm Simulator");
+        primaryStage.setTitle("AY 2019/2020 Semester 1 MDP Group 4");
         GridPane grid = new GridPane();
         GridPane controlGrid = new GridPane();
         GridPane debugGrid = new GridPane();
@@ -165,6 +165,8 @@ public class SimulatorNew extends Application {
                 drawMap(expMapDraw);
                 drawRobot();
                 debugOutput.setText(robot.getStatus() + "\n" + robot.toString());
+                //mapOutput.setText("hello");
+
                 timerTextLbl.setText(displayTimer.getTimerLbl());
                 if (startedTask != null) {
                     if (!startedTask.isAlive()) {
@@ -200,9 +202,9 @@ public class SimulatorNew extends Application {
         genSetLbl = new Label("General Settings");
         arenaSetLbl = new Label("Arena Settings");
         simSetLbl = new Label("Simulator Settings");
-        genSetLbl.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
-        arenaSetLbl.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
-        simSetLbl.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+        genSetLbl.setBackground(new Background(new BackgroundFill(Color.BURLYWOOD, CornerRadii.EMPTY, Insets.EMPTY)));
+        arenaSetLbl.setBackground(new Background(new BackgroundFill(Color.BURLYWOOD, CornerRadii.EMPTY, Insets.EMPTY)));
+        simSetLbl.setBackground(new Background(new BackgroundFill(Color.BURLYWOOD, CornerRadii.EMPTY, Insets.EMPTY)));
         genSetLbl.setMaxWidth(MAX_WIDTH);
         arenaSetLbl.setMaxWidth(MAX_WIDTH);
         simSetLbl.setMaxWidth(MAX_WIDTH);
@@ -239,12 +241,16 @@ public class SimulatorNew extends Application {
         mapTxt.setMaxWidth(MAX_WIDTH);
 
         statusLbl = new Label("Robot Status");
-        statusLbl.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+        statusLbl.setBackground(new Background(new BackgroundFill(Color.BURLYWOOD, CornerRadii.EMPTY, Insets.EMPTY)));
         statusLbl.setMaxWidth(MAX_WIDTH);
 
         timerLbl = new Label("Timer");
-        timerLbl.setBackground(new Background(new BackgroundFill(Color.LIGHTGRAY, CornerRadii.EMPTY, Insets.EMPTY)));
+        timerLbl.setBackground(new Background(new BackgroundFill(Color.BURLYWOOD, CornerRadii.EMPTY, Insets.EMPTY)));
         timerLbl.setMaxWidth(MAX_WIDTH);
+
+        mapLbl = new Label("Map Descriptor");
+        mapLbl.setBackground(new Background(new BackgroundFill(Color.BURLYWOOD, CornerRadii.EMPTY, Insets.EMPTY)));
+        mapLbl.setMaxWidth(MAX_WIDTH);
 
         // Buttons Init
         connectBtn = new Button("Connect");
@@ -358,9 +364,12 @@ public class SimulatorNew extends Application {
             }
         });
 
-                // TextArea
+        // TextArea
         debugOutput = new TextArea();
         debugOutput.setMaxHeight(100);
+        mapOutput = new TextArea();
+        mapOutput.setMaxHeight(100);
+
 
         // File Chooser
         fileChooser = new FileChooser();
@@ -385,16 +394,16 @@ public class SimulatorNew extends Application {
 
         //load default variables
         double coverageLimit = 100;
-        int timeLimit = (int) 240000;
-        int steps = (int) 5;
+        int timeLimit = 240000;
+        int steps = 5;
 
         coverageLimitTxt.setText("" + (int) coverageLimit + " %");
         coverageLimitSB.setValue(coverageLimit);
 
-        timeLimitTxt.setText("" + (int) timeLimit / 1000 + " s");
+        timeLimitTxt.setText("" + timeLimit / 1000 + " s");
         timeLimitSB.setValue(timeLimit);
 
-        stepsTxt.setText("" + (int) steps + " steps per seconds");
+        stepsTxt.setText("" + steps + " steps per seconds");
         stepsSB.setValue(steps);
 
         // load default map from defaultMapPath
@@ -567,8 +576,8 @@ public class SimulatorNew extends Application {
 
         // TIMER
         timerTextLbl = new Label();
-        timerTextLbl.setTextFill(Color.RED);
-        timerTextLbl.setStyle("-fx-font-size: 4em;");
+        timerTextLbl.setTextFill(Color.BLACK);
+        timerTextLbl.setStyle("-fx-font-size: 3em;");
         timerTextLbl.setMaxWidth(MAX_WIDTH);
         timerTextLbl.setTextAlignment(TextAlignment.LEFT);
         timerTextLbl.setAlignment(Pos.CENTER);
@@ -585,7 +594,7 @@ public class SimulatorNew extends Application {
 //        controlGrid.setGridLinesVisible(true);
 //        grid.setGridLinesVisible(true);
         //type, colindex, rowindex, colspan, rowspan
-        controlGrid.add(genSetLbl, 0, 0, 5, 1);
+        controlGrid.add(genSetLbl, 0, 0, 4, 1);
         controlGrid.add(modeChoiceLbl, 0, 1);
         controlGrid.add(simRB, 1, 1);
         controlGrid.add(realRB, 2, 1);
@@ -594,45 +603,45 @@ public class SimulatorNew extends Application {
         controlGrid.add(expRB, 1, 2);
         controlGrid.add(fastPathRB, 2, 2);
         controlGrid.add(imageRB, 3, 2);
-        controlGrid.add(startBtn, 4, 2);
+        controlGrid.add(startBtn, 0, 3, 4,1 );
 
-        controlGrid.add(arenaSetLbl, 0, 3, 5, 1);
+        controlGrid.add(arenaSetLbl, 0, 4, 4, 1);
 
-        controlGrid.add(startPosLbl, 0, 4);
-        controlGrid.add(startPosTxt, 1, 4, 2, 1);
-        controlGrid.add(setRobotBtn, 3, 4, 2, 1);
+        controlGrid.add(startPosLbl, 0, 5);
+        controlGrid.add(startPosTxt, 1, 5, 1, 1);
+        controlGrid.add(setRobotBtn, 2, 5, 2, 1);
 
-        controlGrid.add(startDirLbl, 0, 5);
-        controlGrid.add(upRB, 1, 5);
-        controlGrid.add(downRB, 2, 5);
-        controlGrid.add(leftRB, 3, 5);
-        controlGrid.add(rightRB, 4, 5);
+        controlGrid.add(startDirLbl, 0, 6);
+        controlGrid.add(upRB, 1, 6);
+        controlGrid.add(downRB, 2, 6);
+        controlGrid.add(leftRB, 1, 7);
+        controlGrid.add(rightRB, 2, 7);
 
-        controlGrid.add(wayPointLbl, 0, 6);
-        controlGrid.add(wayPointTxt, 1, 6, 2, 1);
-        controlGrid.add(setWaypointBtn, 3, 6, 2, 1);
+        controlGrid.add(wayPointLbl, 0, 8);
+        controlGrid.add(wayPointTxt, 1, 8, 1, 1);
+        controlGrid.add(setWaypointBtn, 2, 8, 2, 1);
 
-        controlGrid.add(simSetLbl, 0, 7, 5, 1);
+        controlGrid.add(simSetLbl, 0, 9, 4, 1);
 
-        controlGrid.add(timeLimitLbl, 0, 8, 1, 1);
-        controlGrid.add(timeLimitSB, 1, 8, 3, 1);
-        controlGrid.add(timeLimitTxt, 4, 8, 1, 1);
+        controlGrid.add(timeLimitLbl, 0, 10, 1, 1);
+        controlGrid.add(timeLimitSB, 1, 10, 2, 1);
+        controlGrid.add(timeLimitTxt, 3, 10, 1, 1);
 
-        controlGrid.add(coverageLimitLbl, 0, 9, 1, 1);
-        controlGrid.add(coverageLimitSB, 1, 9, 3, 1);
-        controlGrid.add(coverageLimitTxt, 4, 9, 1, 1);
+        controlGrid.add(coverageLimitLbl, 0, 11, 1, 1);
+        controlGrid.add(coverageLimitSB, 1, 11, 2, 1);
+        controlGrid.add(coverageLimitTxt, 3, 11, 1, 1);
 
-        controlGrid.add(stepsLbl, 0, 10, 1, 1);
-        controlGrid.add(stepsSB, 1, 10, 3, 1);
-        controlGrid.add(stepsTxt, 4, 10, 1, 1);
+        controlGrid.add(stepsLbl, 0, 12, 1, 1);
+        controlGrid.add(stepsSB, 1, 12, 2, 1);
+        controlGrid.add(stepsTxt, 3, 12, 1, 1);
 
-        controlGrid.add(mapChoiceLbl, 0, 11);
-        controlGrid.add(mapTxt, 1, 11);
-        controlGrid.add(loadMapBtn, 2, 11);
-        controlGrid.add(newMapBtn, 3, 11);
-        controlGrid.add(saveMapBtn, 4, 11);
+        controlGrid.add(mapChoiceLbl, 0, 13);
+        controlGrid.add(mapTxt, 1, 13);
+        controlGrid.add(loadMapBtn, 2, 13,2,1);
+        controlGrid.add(newMapBtn, 0, 14,2,1);
+        controlGrid.add(saveMapBtn, 2, 14,2,1);
 
-        controlGrid.add(resetMapBtn, 0, 12, 5, 1);
+        controlGrid.add(resetMapBtn, 0, 15, 4, 1);
 
 //        // Layer 2
 //        controlGrid.add(startBtn, 0, 11, 6, 1);
@@ -645,11 +654,14 @@ public class SimulatorNew extends Application {
 //        // Layer 5
 //        controlGrid.add(setObstacleBtn, 2, 12, 4, 1);
 
-        controlGrid.add(statusLbl, 0, 13, 3, 1);
-        controlGrid.add(debugOutput, 0, 14, 3, 1);
+        controlGrid.add(statusLbl, 0, 16, 2, 1);
+        controlGrid.add(debugOutput, 0, 17, 2, 1);
 
-        controlGrid.add(timerLbl, 3, 13, 2, 1);
-        controlGrid.add(timerTextLbl, 3, 14, 2, 1);
+        controlGrid.add(mapLbl, 2, 16, 1, 1);
+        controlGrid.add(mapOutput, 2,17, 1,1 );
+
+        controlGrid.add(timerLbl, 3, 16, 1, 1);
+        controlGrid.add(timerTextLbl, 3, 17, 1, 1);
 //		controlGrid.setFillWidth(startBtn, true);
 //		controlGrid.setFillWidth(loadMapBtn, true);
 //		controlGrid.setFillWidth(saveMapBtn, true);
@@ -666,9 +678,10 @@ public class SimulatorNew extends Application {
         ColumnConstraints col2 = new ColumnConstraints();
         col2.setPercentWidth(60);
         ColumnConstraints col3 = new ColumnConstraints();
-        col3.setPercentWidth(20);
+        col3.setPercentWidth(25);
         grid.getColumnConstraints().setAll(col1, col2);
-        controlGrid.getColumnConstraints().setAll(col3, col3, col3, col3, col3);
+        controlGrid.getColumnConstraints().setAll(col3, col3, col3, col3);
+
 
 
         grid.add(mapGrid, 0, 0);
@@ -740,7 +753,7 @@ public class SimulatorNew extends Application {
     private void drawMap(boolean explored) {
         // Basic Init for the Cells
         gc.setStroke(MapConstants.CW_COLOR);
-        gc.setLineWidth(2);
+        gc.setLineWidth(5);
         // Draw the Cells on the Map Canvas
         for (int row = 0; row < MapConstants.MAP_HEIGHT; row++) {
             for (int col = 0; col < MapConstants.MAP_WIDTH; col++) {
@@ -890,14 +903,14 @@ public class SimulatorNew extends Application {
             System.out.println(map.getCell(selectedRow, selectedCol).toString() + " validMove:"
                     + map.checkValidMove(selectedRow, selectedCol));
 
-                if (setWaypoint) {
-                    System.out.println(setWayPoint(selectedRow, selectedCol)
-                            ? "New WayPoint set at row: " + selectedRow + " col: " + selectedCol
-                            : "Unable to put waypoint at obstacle or virtual wall!");
-                }
-                if (setRobot)
-                    System.out.println(setRobotLocation(selectedRow, selectedCol) ? "Robot Position has changed"
-                            : "Unable to put Robot at obstacle or virtual wall!");
+            if (setWaypoint) {
+                System.out.println(setWayPoint(selectedRow, selectedCol)
+                        ? "New WayPoint set at row: " + selectedRow + " col: " + selectedCol
+                        : "Unable to put waypoint at obstacle or virtual wall!");
+            }
+            if (setRobot)
+                System.out.println(setRobotLocation(selectedRow, selectedCol) ? "Robot Position has changed"
+                        : "Unable to put Robot at obstacle or virtual wall!");
 
 //                if (setObstacle) {
 //                    if (event.getButton() == MouseButton.PRIMARY)
@@ -933,14 +946,14 @@ public class SimulatorNew extends Application {
             System.out.println(newExploredMap.getCell(selectedRow, selectedCol).toString() + " validMove:"
                     + newExploredMap.checkValidMove(selectedRow, selectedCol));
 
-                    if (event.getButton() == MouseButton.PRIMARY)
-                        System.out.println(setObstacle(newExploredMap, selectedRow, selectedCol)
-                                ? "New Obstacle Added at row: " + selectedRow + " col: " + selectedCol
-                                : "Obstacle at location alredy exists!");
-                    else
-                        System.out.println(removeObstacle(newExploredMap, selectedRow, selectedCol)
-                                ? "Obstacle removed at row: " + selectedRow + " col: " + selectedCol
-                                : "Obstacle at location does not exists!");
+            if (event.getButton() == MouseButton.PRIMARY)
+                System.out.println(setObstacle(newExploredMap, selectedRow, selectedCol)
+                        ? "New Obstacle Added at row: " + selectedRow + " col: " + selectedCol
+                        : "Obstacle at location alredy exists!");
+            else
+                System.out.println(removeObstacle(newExploredMap, selectedRow, selectedCol)
+                        ? "Obstacle removed at row: " + selectedRow + " col: " + selectedCol
+                        : "Obstacle at location does not exists!");
 
         }
 
@@ -1147,6 +1160,8 @@ public class SimulatorNew extends Application {
                 displayTimer.pause();
                 taskStarted = false;
                 taskPaused = true;
+                //mapOutput.setText(mapDescriptor.generateMDFString(exploredMap));
+                mapOutput.setText(mapDescriptor.generateMDFString(exploredMap));
             }
 
             // resume a task
@@ -1166,7 +1181,7 @@ public class SimulatorNew extends Application {
         protected Integer call() throws Exception {
 //            Command c;
 
-            double coverageLimit = (double) (coverageLimitSB.getValue());
+            double coverageLimit = coverageLimitSB.getValue();
             int timeLimit = (int) (timeLimitSB.getValue() * 1000);
             int steps = (int) (stepsSB.getValue());
 
@@ -1180,7 +1195,7 @@ public class SimulatorNew extends Application {
             displayTimer.stop();
 
 
-          // Prepare for fastest path and wait for command from arduino
+            // Prepare for fastest path and wait for command from arduino
             if(!sim) {
                 calibrate_and_start_fp();
             }
@@ -1497,7 +1512,7 @@ public class SimulatorNew extends Application {
         protected Integer call() throws Exception {
 //            Command c;
 
-            double coverageLimit = (double) (coverageLimitSB.getValue());
+            double coverageLimit = coverageLimitSB.getValue();
             int timeLimit = (int) (timeLimitSB.getValue() * 1000);
             int steps = (int) (stepsSB.getValue());
 
