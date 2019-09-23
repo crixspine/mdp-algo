@@ -2,12 +2,79 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="488caee9-81d5-485a-bbd5-4e6442a4a240" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/map-descriptor.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Map/MapSamples/MDFexample.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/defaultMap.txt" beforeDir="false" afterPath="$PROJECT_DIR$/defaultMap.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/FastestPath.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/FastestPath.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Helper/DisplayTimer.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Helper/DisplayTimer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Helper/PrintManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Helper/PrintManager.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$10.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$10.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$11.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$11.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$12.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$12.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$13.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$13.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$14.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$14.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$15.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$15.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$16.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$16.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$17.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$17.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$18.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$18.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$19.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$19.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$3.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$4.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$4.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$5.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$5.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$6.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$6.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$7.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$7.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$8.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$8.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$9.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$9.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$ExplorationTask.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$ExplorationTask.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$FastTask.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$FastTask.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$ImageTask.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$ImageTask.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/Cell.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/Cell.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/Direction.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/Direction.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/Map$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/Map$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/Map.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/Map.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/MapDescriptor.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/MapDescriptor.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/ObsSurface.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/ObsSurface.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetMgr.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetMgr.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetworkConstants.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetworkConstants.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Network/RequestHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Network/RequestHandler.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Network/ServerSim.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Network/ServerSim.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command$AndroidMove.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command$AndroidMove.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command$ArduinoMove.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command$ArduinoMove.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/RobotData.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/RobotData.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Sensor$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Sensor$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Sensor.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Sensor.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Main/SimulatorNew.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main/SimulatorNew.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Map/Cell.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Map/Cell.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Map/MapDescriptor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Map/MapDescriptor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Robot/Robot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Robot/Robot.java" afterDir="false" />
     </list>
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectId" id="1RERrf63VOiAjvCHX8fep04g1uS" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="restartRequiresConfirmation" value="false" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -45,6 +112,36 @@
     <configuration />
   </component>
   <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="488caee9-81d5-485a-bbd5-4e6442a4a240" name="Default Changelist" comment="" />
+      <created>1569230470056</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1569230470056</updated>
+      <workItem from="1569230475957" duration="9419000" />
+    </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/mdp_algo$SimulatorNew.ic" NAME="SimulatorNew Coverage Results" MODIFIED="1569233328247" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">
+      <FILTER>Main.*</FILTER>
+    </SUITE>
   </component>
 </project>

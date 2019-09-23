@@ -95,7 +95,7 @@ public class Robot {
      */
     @Override
     public String toString() {
-        return String.format("Robot at %s facing %s\n", pos.toString(), dir.toString());
+        return String.format("Robot at %s facing %s\n", pos.toString().substring(14), dir.toString());
     }
 
     /**

@@ -88,7 +88,7 @@ public class Cell {
 
     @Override
     public String toString() {
-        return "Cell [pos=" + pos + ", explored=" + explored + ", obstacle=" + obstacle + ", virtualWall=" + virtualWall
+        return "Cell [pos=" + pos.toString().substring(14) + ", explored=" + explored + ", obstacle=" + obstacle + ", virtualWall=" + virtualWall
                 + ", isWayPoint=" + wayPoint + ", moveThru=" + moveThru + ", path=" + path + "]";
     }
 }

@@ -1,0 +1,1 @@
+Cell [pos=[x=13,y=8], explored=true, obstacle=false, virtualWall=false, isWayPoint=false, moveThru=false, path=false] validMove:true

@@ -55,32 +55,8 @@ public class MapDescriptor {
         buf.close();
     }
 
-    /**
-     * Right pad "0" to the binary string so that its length is in multiple of 8 (as required)
-     * @param biStr
-     * @return
-     */
-    private String rightPadTo8(String biStr) {
-        int check = biStr.length() % 8;
-        if (check != 0) {
-            int to_pad = 8 - check;
-            LOGGER.log(Level.FINER, "Length of binary string not divisible by 8.");
-            LOGGER.log(Level.FINER, "Length of string: {0}, Right Padding: {1}", new Object[]{biStr.length(), to_pad});
-            StringBuilder padding = new StringBuilder();
-            for (int i = 0; i < to_pad; i++) {
-                padding.append('0');
-            }
-            biStr += padding.toString();
-        }
-        return biStr;
-    }
-
-    /**
-     * Right pad "0" to the binary string so that its length is in multiple of 4
-     * @param biStr
-     * @return
-     */
-    private String rightPadTo4(String biStr) {
+    //Right pad "0" to the binary string so that its length is in multiple of 4
+    private static String rightPadTo4(String biStr) {
         int check = biStr.length() % 4;
         if (check != 0) {
             int to_pad = 4 - check;
@@ -95,11 +71,7 @@ public class MapDescriptor {
         return biStr;
     }
 
-    /**
-     * Left pad "0" to the binary string until its length is multiple of 4 (one hex = 4 bits)
-     * @param biStr
-     * @return
-     */
+    //Left pad "0" to binary string if it is not a multiple of 4, for conversion to hex string
     private String leftPadTo4(String biStr) {
         int check = biStr.length() % 4;
         if (check != 0) {
@@ -115,26 +87,14 @@ public class MapDescriptor {
         return biStr;
     }
 
-    /**
-     * Convert 4-bit binary to 1-bit hex
-     * @param biStr 8-bit binary string
-     * @return 2-bit hex string
-     */
-    private String biToHex(String biStr) {
+    //Convert binary str to hex str
+    private static String biToHex(String biStr) {
         int dec = Integer.parseInt(biStr, 2);
         String hexStr = Integer.toHexString(dec);
-//        // pad left 0 if length is 1
-//        if (hexStr.length() < 2) {
-//            hexStr = "0" + hexStr;
-//        }
         return hexStr;
     }
 
-    /**
-     * Convert the entire hex string to binary string
-     * @param hexStr
-     * @return
-     */
+    //Convert hex str to binary str
     private String hexToBi(String hexStr) {
         String biStr = "";
         String tempBiStr = "";
@@ -146,29 +106,30 @@ public class MapDescriptor {
         }
         return biStr;
     }
-
-    public String generateMDFString1(Map map) {
+    //part 1: unexplored cells '0', explored cells '1'
+    public static String generateMDFString1(Map map) {
         StringBuilder MDFcreator1 = new StringBuilder();
         StringBuilder temp = new StringBuilder();
-        temp.append("11");
+        temp.append("11"); //pad '11' in front
         for (int r = 0; r < MapConstants.MAP_HEIGHT; r++) {
             for (int c = 0; c < MapConstants.MAP_WIDTH; c++) {
                 temp.append(map.getCell(r, c).isExplored() ? '1':'0');
-                // convert to hex every 8 bits to avoid overflow
+
+                //convert to hex every 8 bits to avoid overflow
                 if(temp.length() == 4) {
                     MDFcreator1.append(biToHex(temp.toString()));
                     temp.setLength(0);
                 }
             }
         }
-        // last byte
-        temp.append("11");
+        temp.append("11"); //pad '11' at the end
         MDFcreator1.append(biToHex(temp.toString()));
 
         return MDFcreator1.toString();
     }
 
-    public String generateMDFString2(Map map) {
+    //part 2: for explored cells: not obstacle '0', obstacle '0'
+    public static String generateMDFString2(Map map) {
         StringBuilder MDFcreator2 = new StringBuilder();
         StringBuilder temp = new StringBuilder();
         for (int r = 0; r < MapConstants.MAP_HEIGHT; r++) {
@@ -183,9 +144,8 @@ public class MapDescriptor {
             }
         }
 
-        // last byte
+        //Right pad to 4 for last byte
         if(temp.length() % 4 != 0) {
-            // right pad to 4 // previously 8
             String tempBiStr = rightPadTo4(temp.toString());
             MDFcreator2.append(biToHex(tempBiStr));
         }
@@ -194,7 +154,7 @@ public class MapDescriptor {
 
     }
 
-    public String generateMDFString(Map map) {
+ /**   public static String generateMDFString(Map map) {
         StringBuilder MDFcreator = new StringBuilder();
         StringBuilder temp = new StringBuilder();
         StringBuilder temp2 = new StringBuilder();
@@ -203,7 +163,7 @@ public class MapDescriptor {
         for (int r = 0; r < MapConstants.MAP_HEIGHT; r++) {
             for (int c = 0; c < MapConstants.MAP_WIDTH; c++) {
                 temp.append(map.getCell(r, c).isExplored() ? '1':'0');
-                // convert to hex every 8 bits to avoid overflow
+                //convert to hex every 8 bits to avoid overflow
                 if(map.getCell(r,c).isExplored()){
                     if(map.getCell(r,c).isObstacle()){
                         temp2.append('1');
@@ -230,12 +190,8 @@ public class MapDescriptor {
 
         return MDFcreator.toString();
     }
-
-    /**
-     * Load the explored arena in the Map
-     * @param MDFstr1
-     * @param map initialized empty Map
-     */
+**/
+    //load explored arena in map
     private void loadMDFString1(String MDFstr1, Map map) {
         String expStr = hexToBi(MDFstr1);
         int index = 2;
@@ -267,21 +223,7 @@ public class MapDescriptor {
         }
     }
 
-
-    /**
-     * Load real Map for simulator
-     * @param map initialized empty
-     */
-    public void loadRealMap(Map map) {
-        if(filename == "") {
-            LOGGER.warning("No MDF found! Map not loaded!\n");
-        }
-        else {
-            loadMDFString1(this.hexMapStr1, map);
-            loadMDFString2(this.hexMapStr2, map);
-        }
-    }
-
+    //load real map into simulator
     public void loadRealMap(Map map, String filename) {
         this.filename = filename;
         try {
@@ -294,6 +236,7 @@ public class MapDescriptor {
         loadMDFString2(this.hexMapStr2, map);
     }
 
+    //save map into txt file
     public void saveRealMap(Map map, String filename) {
         try {
 
@@ -311,29 +254,4 @@ public class MapDescriptor {
             e.printStackTrace();
         }
     }
-
-    // MDF Testing
-    public static void main(String[] args) {
-        Map m = new Map();
-        String str1 = "ffc07f80ffe1ffc3ffc7fff1fe03fc03f807f80ffe1ffc3ff87ff007e00fc01f803f003e007f";
-        String str2 = "0303000000007c07c0400001000000007c0000000000";
-
-        MapDescriptor mdfCoverter = new MapDescriptor();
-        mdfCoverter.loadMDFString1(str1, m);
-        mdfCoverter.loadMDFString2(str2, m);
-
-        String str1_test = mdfCoverter.generateMDFString1(m);
-        String str2_test = mdfCoverter.generateMDFString2(m);
-
-        LOGGER.info(str1);
-        LOGGER.info(str1_test);
-        LOGGER.info(str2);
-        LOGGER.info(str2_test);
-        mdfCoverter.biToHex("111");
-        LOGGER.info(mdfCoverter.biToHex("111"));
-
-
-
-    }
-
 }
