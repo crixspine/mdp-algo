@@ -3,8 +3,8 @@ package Network;
 public class NetworkConstants {
 
 //    public static final String IP = "127.0.0.1";
-    public static final String IP = "192.168.9.9";
-    public static final int PORT = 1273;
+    public static final String IP = "192.168.4.4";
+    public static final int PORT = 5005;
 
     // msg related
     public static final String START_EXP = "E";

@@ -712,7 +712,8 @@ public class Robot {
         else {
             String[] sensorStrings = msg.split("\\|");
             for (String sensorStr: sensorStrings) {
-                String[] sensorInfo = sensorStr.split("\\:");
+                String[] sensorInfo = sensorStr.split(",");
+                System.out.println(sensorStr);
                 String sensorID = sensorInfo[0];
                 int result = Integer.parseInt(sensorInfo[1]);
                 //Validate that result obtain is within sensor range, otherwise set as -1
@@ -1229,10 +1230,13 @@ public class Robot {
     private JSONArray getMapArray(Map exploredMap) {
         String obstacleString = MDF.generateMDFString2(exploredMap);
         JSONArray mapArray = new JSONArray();
-        JSONObject mapJson = new JSONObject()
-                .put("explored", MDF.generateMDFString1(exploredMap))
-                .put("obstacle", obstacleString)
-                .put("length", obstacleString.length() * 4);
+        JSONObject mapJson = new JSONObject();
+//                .put("explored", MDF.generateMDFString1(exploredMap))
+//                .put("obstacle", obstacleString)
+//                .put("length", obstacleString.length() * 4);
+        mapJson.put("explored", MDF.generateMDFString1(exploredMap));
+        mapJson.put("obstacle", obstacleString);
+        mapJson.put("length", obstacleString.length() * 4);
         mapArray.put(mapJson);
         return mapArray;
     }
@@ -1272,8 +1276,8 @@ public class Robot {
         androidJson.put("robot", getRobotArray());
         androidJson.put("map", getMapArray(exploredMap));
         androidJson.put("status", getStatusArray());
-        NetMgr.getInstance().send(NetworkConstants.ANDROID + androidJson.toString() + "\n");
-
+        //NetMgr.getInstance().send(NetworkConstants.ANDROID + androidJson.toString() + "\n");
+        System.out.println(NetworkConstants.ANDROID + androidJson.toString() + "\n");
     }
 
     /**
@@ -1427,13 +1431,15 @@ public class Robot {
     public static void main(String[] args) throws InterruptedException{
         Robot robot = new Robot(true, true,1, 1, Direction.UP);
         System.out.println(robot.status);
+        Map exploredMap = new Map();
 
-        robot.turn(Command.TURN_RIGHT, 1);
-        robot.logSensorInfo();
-        LOGGER.info(robot.status);
-        LOGGER.info(robot.toString());
+//        robot.turn(Command.TURN_RIGHT, 1);
+//        robot.logSensorInfo();
+//        LOGGER.info(robot.status);
+//        LOGGER.info(robot.toString());
 
-        robot.move(Command.FORWARD, 1, null, 1);
+        //robot.move(Command.FORWARD, 1, null, 1);
+        robot.send_android(exploredMap);
 
 
     }

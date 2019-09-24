@@ -59,7 +59,7 @@ public class SimulatorNew extends Application {
     private Point wayPoint = new Point(MapConstants.GOALZONE_COL, MapConstants.GOALZONE_ROW);
     private Point startPos = new Point(1, 1);
     private Robot robot;
-    private boolean sim = true;
+    private boolean sim = false;
     private boolean expMapDraw = true;
     private boolean newExpMapDraw = true;
     private AnimationTimer animateTimer1;
@@ -305,6 +305,14 @@ public class SimulatorNew extends Application {
                     netMgr.initConn();
                     sim = false;
                     stepsSB.setValue(30);   // set to max to avoid any delay
+
+//                    init_before_exploration();
+//                    expTask = new Thread(new ExplorationTask());
+//                    startedTask = expTask;
+//                    taskStarted = true;
+//                    taskPaused = false;
+//                    expTask.start();
+
                 }
             }
         });
@@ -885,7 +893,7 @@ public class SimulatorNew extends Application {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main (String[] args) {
         launch(args);
     }
 
@@ -1063,19 +1071,21 @@ public class SimulatorNew extends Application {
             if (!sim) {
                 do {
                     msg = netMgr.receive();
+                    LOGGER.info("Receiving test!");
+                    LOGGER.info(msg);
                     // set wayPoint
-                    if (msg.contains(NetworkConstants.WAY_POINT_KEY)) {
-                        wayPoint = robot.parseWayPointJson(msg);
-                        setWayPoint(wayPoint.y, wayPoint.x);
-                    }
-                    // set startPos
-                    if (msg.contains(NetworkConstants.START_POINT_KEY)) {
-                        startPos = robot.parseStartPointJson(msg);
-                        robot.setStartPos(startPos.y, startPos.x, exploredMap);
-                    }
-
-                } while (!msg.equals(NetworkConstants.START_EXP) || wayPoint == null || startPos == null);
-
+//                    if (msg.contains(NetworkConstants.WAY_POINT_KEY)) {
+//                        wayPoint = robot.parseWayPointJson(msg);
+//                        setWayPoint(wayPoint.y, wayPoint.x);
+//                    }
+//                    // set startPos
+//                    if (msg.contains(NetworkConstants.START_POINT_KEY)) {
+//                        startPos = robot.parseStartPointJson(msg);
+//                        robot.setStartPos(startPos.y, startPos.x, exploredMap);
+//                    }
+//
+//                } while (!msg.equals(NetworkConstants.START_EXP) || wayPoint == null || startPos == null);
+                }while (!msg.equals(NetworkConstants.START_EXP));
                 LOGGER.info("Receiving command to start exploration: " + msg);
                 displayTimer.start();
                 // initial sensing
@@ -1541,7 +1551,7 @@ public class SimulatorNew extends Application {
 
     private void calibrate_and_start_fp() throws InterruptedException {
         // Caliberation
-        // pause for 1s, initially facing down, after caliberation, should face up
+        // pause for 1s, initially facing down, after calibration, should face up
         TimeUnit.MILLISECONDS.sleep(1000);
         String calibrationCmd = robot.getCommand(Command.INITIAL_CALIBERATE, 1);    // steps 1 for consistency
         netMgr.send(NetworkConstants.ARDUINO + calibrationCmd);

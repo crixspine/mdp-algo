@@ -61,14 +61,14 @@ public class NetMgr {
 
     /**
      * Initiate a connection with RPI if there isn't already one
+     *
      * @return true if connection established with RPI
      */
     public boolean initConn() {
-        if(isConnect()) {
+        if (isConnect()) {
             LOGGER.info("Already connected with RPI");
             return true;
-        }
-        else {
+        } else {
             try {
                 LOGGER.info("Initiating Connection with RPI...");
                 socket = new Socket(ip, port);
@@ -92,15 +92,15 @@ public class NetMgr {
 
     /**
      * Close the connection with RPI
+     *
      * @return True if there is no more connection with RPI
      */
     public boolean closeConn() {
         LOGGER.info("Closing connection... ");
-        if(!isConnect()) {
+        if (!isConnect()) {
             LOGGER.warning("No connection with RPI");
             return true;
-        }
-        else {
+        } else {
             try {
                 socket.close();
                 out.close();
@@ -117,6 +117,7 @@ public class NetMgr {
 
     /**
      * Sending a String type msg through socket
+     *
      * @param msg
      * @return true if the message is sent out successfully
      */
@@ -127,18 +128,17 @@ public class NetMgr {
             out.newLine();
             out.flush();
             msgCounter++;
-            LOGGER.info(msgCounter +" Message Sent: " + msg);
+            LOGGER.info(msgCounter + " Message Sent: " + msg);
             prevMsg = msg;
             return true;
         } catch (IOException e) {
             LOGGER.info("Sending Message Failed (IOException)!");
-            if(socket.isConnected())
+            if (socket.isConnected())
                 LOGGER.info("Connection still Established!");
             else {
-                while(true)
-                {
+                while (true) {
                     LOGGER.info("Connection disrupted! Trying to Reconnect!");
-                    if(netMgr.initConn()) {
+                    if (netMgr.initConn()) {
                         break;
                     }
                 }
@@ -155,15 +155,15 @@ public class NetMgr {
         try {
             LOGGER.log(Level.FINE, "Receving Message...");
             String receivedMsg = in.readLine();
-            while(receivedMsg == null || receivedMsg.isEmpty()) {
+            while (receivedMsg == null || receivedMsg.isEmpty()) {
                 receivedMsg = in.readLine();
             }
             LOGGER.info("Received in receive(): " + receivedMsg);
             return receivedMsg;
-        } catch(IOException e) {
+        } catch (IOException e) {
             LOGGER.info("Receiving Message Failed (IOException)!");
             return receive();
-        } catch(Exception e) {
+        } catch (Exception e) {
             LOGGER.info("Receiving Message Failed!");
             e.printStackTrace();
         }
@@ -172,21 +172,20 @@ public class NetMgr {
 
     /**
      * Check if there are existing connection with RPI
+     *
      * @return
      */
     public boolean isConnect() {
-        if(socket == null) {
+        if (socket == null) {
             return false;
-        }
-        else {
+        } else {
             return true;
         }
     }
 
     public static void main(String[] args) throws InterruptedException {
-        String ip = "192.168.9.9";
-//        String ip = "127.0.0.1";
-        int port = 1273;
+        String ip = "192.168.4.4";
+        int port = 5005;
         Map exploredMap = new Map();
         MapDescriptor MDF = new MapDescriptor();
         MDF.loadRealMap(exploredMap, "defaultMap.txt");
@@ -194,28 +193,43 @@ public class NetMgr {
         NetMgr netMgr = new NetMgr(ip, port);
         netMgr.initConn();
 
+        //test send
+//        while (true) {
+//            netMgr.send(NetworkConstants.ARDUINO + "w");
+//            Thread.sleep(2500);
+//            netMgr.send(NetworkConstants.ARDUINO + "a");
+//            Thread.sleep(2500);
+//            netMgr.send(NetworkConstants.ARDUINO + "d");
+//            Thread.sleep(2500);
+//        }
 
-        while(true){
-//            String msg = Command.FORWARD.toString();
+        while (true) {
+
             do {
                 data = netMgr.receive();
-            } while(data == null);
-//            data = netMgr.receive();
-//            System.out.println("\nReceived: " + data);
+                System.out.println("\nReceived: " + data);
+            } while (data == null);
+
+
+            data = netMgr.receive();
+            System.out.println("\nReceived: " + data);
             String msg = "AW3|D|W3|D|W3|D|W3|D|";
             if (data.equals("checklist")) {
                 netMgr.send(msg);
             }
+        }
+    }
+}
 
 //            netMgr.closeConn();
-        }
+
 
 //        JSONObject androidJson = new JSONObject();
 //
 //        // robot
 //        JSONArray robotArray = new JSONArray();
 //        JSONObject robotJson = new JSONObject()
-//                .put("x", 1+ 1)
+//                .put("x", 1 + 1)
 //                .put("y", 1 + 1)
 //                .put("direction", Direction.LEFT.toString().toLowerCase());
 //        robotArray.put(robotJson);
@@ -231,6 +245,4 @@ public class NetMgr {
 //
 //        androidJson.put("map", mapArray).put("robot", robotArray);
 //        netMgr.send(androidJson.toString());
-    }
-
-}
+//    }
