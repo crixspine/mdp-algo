@@ -344,7 +344,7 @@ public class Exploration {
      */
     private void calibrate_at_start_before_going_out() throws InterruptedException {
         //Send command to Arduino for initial calibration
-        String calibrationCmd = robot.getCommand(Command.INITIAL_CALIBERATE, 1);
+        String calibrationCmd = robot.getCommand(Command.INITIAL_CALIBRATE, 1);
         NetMgr.getInstance().send(NetworkConstants.ARDUINO + calibrationCmd);
 
         //robot.setFindingFP(true);
