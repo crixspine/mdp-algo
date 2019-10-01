@@ -246,9 +246,9 @@ public class Robot {
                 Direction.UP);
 
         //Create 2 x SR right facing sensors
-        sensorsCreated[3] =new Sensor(RobotConstants.SENSOR_ID[3], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row - 1, col + 1,
+        sensorsCreated[3] =new Sensor(RobotConstants.SENSOR_ID[3], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row + 1, col + 1,
                 Direction.RIGHT);
-        sensorsCreated[4] =new Sensor(RobotConstants.SENSOR_ID[4], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row + 1, col + 1,
+        sensorsCreated[4] =new Sensor(RobotConstants.SENSOR_ID[4], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row - 1, col + 1,
                 Direction.RIGHT);
 
         //Create 1 x LR left facing sensor
@@ -536,7 +536,7 @@ public class Robot {
      */
 
     public void move(Command cmd, int steps, Map exploredMap, int stepsPerSecond) throws InterruptedException {
-
+        LOGGER.info("Robot.move");
         this.tempStartTime = System.currentTimeMillis();
 
         //Send command to Arduino and update calibration variable if robot is executing real exploration
@@ -601,6 +601,7 @@ public class Robot {
      * @throws InterruptedException If cannot connect to Arduino
      */
     public void turn(Command cmd, int stepsPerSecond) throws InterruptedException {
+        LOGGER.info("Robot.turn");
 
         tempStartTime = System.currentTimeMillis();
         //Send command to Arduino and update calibration variable if robot is executing real exploration
@@ -786,6 +787,7 @@ public class Robot {
      * @return Array of obstacle surfaces that have been taken (might or might not have images on them)
      */
     public ArrayList<ObsSurface> imageRecognitionRight(Map exploredMap) {
+        LOGGER.info("Robot.imageRecognitionRight");
 
         int rowInc, colInc;
         int camera_row, camera_col, temp_row, temp_col;
@@ -964,6 +966,7 @@ public class Robot {
      */
 
     public ArrayList<ObsSurface> sense(Map exploredMap, Map realMap) {
+        LOGGER.info("Robot.sense");
         ArrayList<ObsSurface> surfTaken = new ArrayList<ObsSurface>();
         HashMap<String, Integer> sensorResult = completeUpdateSensorResult(realMap);
         updateMap(exploredMap, sensorResult);
@@ -1015,6 +1018,7 @@ public class Robot {
      */
 
     public void senseWithoutMapUpdateAndAlignment(Map exploredMap, Map realMap) {
+        LOGGER.info("Robot.senseWithoutMapUpdateAndAlignment");
 
         HashMap<String, Integer> sensorResult = completeUpdateSensorResult(realMap);
         // send to Android
@@ -1031,6 +1035,7 @@ public class Robot {
      * @param realMap Map obstacles of the arena
      */
     public ArrayList<ObsSurface> senseWithoutMapUpdate(Map exploredMap, Map realMap) {
+        LOGGER.info("Robot.senseWithoutMapUpdate");
 
         //get all sensor to update
         HashMap<String, Integer> sensorResult = completeUpdateSensorResult(realMap);
@@ -1083,11 +1088,12 @@ public class Robot {
      * @throws InterruptedException If cannot sense
      */
     public void turnRightAndAlignMethod(Map exploredMap, Map realMap) throws InterruptedException {
-        //
-        turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
-        senseWithoutAlign(exploredMap, realMap);
-        align_front(exploredMap, realMap);
-        turn(Command.TURN_LEFT, RobotConstants.STEP_PER_SECOND);
+        LOGGER.info("Robot.turnRightAndAlignMethod");
+        //Convert to just align right
+//        turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
+//        senseWithoutAlign(exploredMap, realMap);
+//        align_front(exploredMap, realMap);
+//        turn(Command.TURN_LEFT, RobotConstants.STEP_PER_SECOND);
         senseWithoutAlign(exploredMap, realMap);
         align_right(exploredMap, realMap);
         hasTurnAndAlign = true;
@@ -1102,10 +1108,12 @@ public class Robot {
      * @throws InterruptedException If cannot sense
      */
     public void turnRightAndAlignMethodWithoutMapUpdate(Map exploredMap, Map realMap) throws InterruptedException {
-        turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
-        senseWithoutMapUpdateAndAlignment(exploredMap, realMap);
-        align_front(exploredMap, realMap);
-        turn(Command.TURN_LEFT, RobotConstants.STEP_PER_SECOND);
+        LOGGER.info("Robot.turnRightAndAlignMethodWithoutMapUpdate");
+        //Updated without right,left turn - will only align right
+//        turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
+//        senseWithoutMapUpdateAndAlignment(exploredMap, realMap);
+//        align_front(exploredMap, realMap);
+//        turn(Command.TURN_LEFT, RobotConstants.STEP_PER_SECOND);
         senseWithoutMapUpdateAndAlignment(exploredMap, realMap);
         align_right(exploredMap, realMap);
 
@@ -1119,6 +1127,7 @@ public class Robot {
      * @param realMap Map obstacles of the entire arena
      */
     private void senseWithoutAlign(Map exploredMap, Map realMap) {
+        LOGGER.info("Robot.senseWithoutAlign");
         HashMap<String, Integer> sensorResult = completeUpdateSensorResult(realMap);
         updateMap(exploredMap, sensorResult);
 
@@ -1156,6 +1165,7 @@ public class Robot {
      * @param sensorResult Hashmap of the sensor result obtained from sensors
      */
     public void updateMap(Map exploredMap, HashMap<String, Integer> sensorResult) {
+        LOGGER.info("Robot.updateMap");
         int obsBlock;
         int rowInc, colInc, tempRow, tempCol;
 
@@ -1215,8 +1225,8 @@ public class Robot {
 
         JSONArray robotArray = new JSONArray();
         JSONObject robotJson = new JSONObject()
-                .put("x", pos.x + 1)
-                .put("y", pos.y + 1)
+                .put("x", pos.x)
+                .put("y", pos.y)
                 .put("direction", dir.toString().toLowerCase());
         robotArray.put(robotJson);
         return robotArray;
@@ -1278,6 +1288,12 @@ public class Robot {
         androidJson.put("status", getStatusArray());
         //NetMgr.getInstance().send(NetworkConstants.ANDROID + androidJson.toString() + "\n");
         System.out.println(NetworkConstants.ANDROID + androidJson.toString() + "\n");
+        //Print out sensor location and direction after every move
+        for(int i=0;i<RobotConstants.SENSOR_ID.length;i++){
+            Sensor sensor = sensorMap.get(RobotConstants.SENSOR_ID[i]);
+            String s = sensor.getId() + ": " + sensor.getPos().toString() + " " + sensor.getSensorDir();
+            System.out.println(s + "\n");
+        }
     }
 
     /**

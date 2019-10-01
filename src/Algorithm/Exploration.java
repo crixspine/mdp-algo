@@ -10,6 +10,7 @@ import Network.NetworkConstants;
 import Robot.Robot;
 import Robot.Command;
 import Robot.RobotConstants;
+import sun.rmi.runtime.Log;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -136,6 +137,7 @@ public class Exploration {
      */
 
     public void imageExploration(Point start) throws InterruptedException {
+        LOGGER.info("Image Exploration");
         long imageStartTime = System.currentTimeMillis();
         //Time taken for right wall hug execution
         int exp_timing = explorationAllRightWallHug(start);
@@ -170,6 +172,7 @@ public class Exploration {
      * @throws InterruptedException Will throw exception if parameter is null
      */
     private void imageLoop() throws InterruptedException {
+        LOGGER.info("Image Loop");
         boolean doingImage = true;
         ArrayList<ObsSurface> surfTaken;
         ObsSurface nearestObstacle;
@@ -226,6 +229,7 @@ public class Exploration {
      * @param surfTaken Array of Obstacle surface that has been captured
      */
     private void updateNotYetTaken(ArrayList<ObsSurface> surfTaken) {
+        LOGGER.info("Update not yet taken");
         for (ObsSurface obsSurface : surfTaken) {
             if (notYetTaken.containsKey(obsSurface.toString())) {
                 notYetTaken.remove(obsSurface.toString());
@@ -239,6 +243,7 @@ public class Exploration {
      * @param obsSurface Obstacle surface that has been captured
      */
     private void removeFromNotYetTaken(ObsSurface obsSurface) {
+        LOGGER.info("Remove from not yet taken");
         notYetTaken.remove(obsSurface.toString());
         LOGGER.info("Remove from not yet taken: " + obsSurface.toString());
 
@@ -252,6 +257,7 @@ public class Exploration {
      * @throws InterruptedException Will throw exception if parameter is null
      */
     private boolean goToPointForImage(Point loc, ObsSurface obsSurface) throws InterruptedException {
+        LOGGER.info("Go to point for image");
         robot.setStatus("Go to point: " + loc.toString());
         LOGGER.info(robot.getStatus());
         ArrayList<Command> commands;
@@ -282,6 +288,7 @@ public class Exploration {
      * @return HashMap of remaining untaken surfaces
      */
     private HashMap<String, ObsSurface> getUntakenSurfaces() {
+        LOGGER.info("Get untaken surfaces");
         HashMap<String, ObsSurface> notYetTaken;
 
         // Obtain all obstacle surfaces after exploration
@@ -305,6 +312,8 @@ public class Exploration {
      * @return HashMap of ObstacleSurfaces
      */
     private HashMap<String, ObsSurface> getAllObsSurfaces() {
+        LOGGER.info("Get all obstacle surfaces");
+
         // TODO
         Cell tempCell;
         Cell temp;
@@ -343,6 +352,8 @@ public class Exploration {
      * @throws InterruptedException Will throw exception if parameter is null
      */
     private void calibrate_at_start_before_going_out() throws InterruptedException {
+        LOGGER.info("Calibrate at start before going out");
+
         //Send command to Arduino for initial calibration
         String calibrationCmd = robot.getCommand(Command.INITIAL_CALIBRATE, 1);
         NetMgr.getInstance().send(NetworkConstants.ARDUINO + calibrationCmd);
@@ -363,6 +374,8 @@ public class Exploration {
      * @throws InterruptedException Will throw exception if parameter is null
      */
     private int explorationAllRightWallHug(Point start) throws InterruptedException {
+        LOGGER.info("Exploration all right wall hug (image)");
+
         boolean doingImage = false;
         areaExplored = exploredMap.getExploredPercentage();
         startTime = System.currentTimeMillis();
@@ -456,6 +469,7 @@ public class Exploration {
      * @throws InterruptedException Will throw exception if parameters is null
      */
     public int exploration(Point start) throws InterruptedException {
+        LOGGER.info("Exploration");
         areaExplored = exploredMap.getExploredPercentage();
         startTime = System.currentTimeMillis();
         endTime = startTime + timeLimit;
@@ -494,8 +508,9 @@ public class Exploration {
                         goToPoint(start);
                         //Calibrate robot at start point before moving out again
                         if (!sim) {
-                            robot.turnRightAndAlignMethodWithoutMapUpdate(exploredMap, realMap);
-                            robot.align_front(exploredMap, realMap);
+                            LOGGER.info("Changed turnRightAndAlign -> alignRight");
+//                            robot.turnRightAndAlignMethodWithoutMapUpdate(exploredMap, realMap);
+//                            robot.align_front(exploredMap, realMap);
                             robot.align_right(exploredMap, realMap);
                         }
                     }
@@ -533,6 +548,8 @@ public class Exploration {
      * reach this cell
      */
     private boolean goToUnexplored() throws InterruptedException {
+        LOGGER.info("Go to unexplored");
+
         robot.setStatus("Go to nearest unexplored\n");
         LOGGER.info(robot.getStatus());
 
@@ -558,6 +575,8 @@ public class Exploration {
      * @param doingImage True for image recognition, false otherwise
      */
     private void senseForExplorationOrImage(boolean doingImage){
+        LOGGER.info("Sense for exploration or image");
+
         ArrayList<ObsSurface> surfTaken;
         if (doingImage) {
             surfTaken = robot.senseWithoutMapUpdate(exploredMap, realMap);
@@ -578,14 +597,18 @@ public class Exploration {
      * @throws InterruptedException Will throw exception if parameter is null
      */
     private void rightWallHug(boolean doingImage) throws InterruptedException {
+        LOGGER.info("Right wall hug");
+
         //ArrayList<ObsSurface> surfTaken;
         Direction robotDir = robot.getDir();
         //Check if right movement is possible
         if (movable(Direction.getClockwise(robotDir))) {
+            LOGGER.info("Can turn right");
             //Calibration for real run
-            if (!sim) {
-                robot.align_front(exploredMap, realMap);
-            }
+            //Removed align front
+//            if (!sim) {
+//                robot.align_front(exploredMap, realMap);
+//            }
             robot.turn(Command.TURN_RIGHT, stepPerSecond);
 
             senseForExplorationOrImage(doingImage);
@@ -596,6 +619,8 @@ public class Exploration {
         }
         //Check if forward movement is possible
         else if (movable(robotDir)) {
+            LOGGER.info("Can move forward");
+
 
             robot.move(Command.FORWARD, RobotConstants.MOVE_STEPS, exploredMap, stepPerSecond);
             senseForExplorationOrImage(doingImage);
@@ -605,6 +630,8 @@ public class Exploration {
 
         //Check if can move in left direction
         else if (movable(Direction.getAntiClockwise(robotDir))) {
+            LOGGER.info("Can turn left");
+
             //Calibrate and capture image (if doing image recognition)
             turnRightAndAlignBeforeTurnLeft(doingImage);
             //TODO: Is it neccessary to do both
@@ -627,6 +654,8 @@ public class Exploration {
 
         //If all fails, u-turn
         else {
+            LOGGER.info("U-turn");
+
 
             turnRightAndAlignBeforeTurnLeft(doingImage);
             //Turn left first time, calibrate and capture images
@@ -640,7 +669,7 @@ public class Exploration {
             senseForExplorationOrImage(doingImage);
 
             if (!sim) {
-                robot.align_right(exploredMap, realMap);
+                robot.  align_right(exploredMap, realMap);
             }
         }
     }
@@ -652,6 +681,8 @@ public class Exploration {
      * @throws InterruptedException Will throw exception if parameter is null
      */
     private void turnRightAndAlignBeforeTurnLeft(boolean doingImage) throws InterruptedException {
+        LOGGER.info("Turn right and align before turn left");
+
 
         //If right obstacle/wall on right side of robot, real exploration and has not turned and aligned yet
         if ((robot.getSensorRes().get("R1") == 1 && robot.getSensorRes().get("R2") == 1) &&
@@ -677,9 +708,12 @@ public class Exploration {
      * @param doingImage True if doing image recognition, false otherwise
      */
     private void alignAndImageRecBeforeLeftTurn(boolean doingImage) {
+        LOGGER.info("Align and image rec before left turn");
+
         if (!sim) {
             //Calibrate robot
-            robot.align_front(exploredMap, realMap);
+            LOGGER.info("Removed alignFront before left turn");
+//            robot.align_front(exploredMap, realMap);
             robot.align_right(exploredMap, realMap);
             //Capture obstacle surface before turning left
             robot.setImageCount(0);
@@ -695,6 +729,8 @@ public class Exploration {
      * @param steps Number of steps to move forward
      */
     private void moveForward(int steps, int stepPerSecond, boolean doingImage) throws InterruptedException {
+        LOGGER.info("Move forward");
+
         if (movable(robot.getDir())) {       // for actual, double check in case of previous sensing error
 
 
@@ -716,6 +752,8 @@ public class Exploration {
      */
 
     private boolean movable(Direction dir) {
+        LOGGER.info("Movable");
+
 
         int rowInc = getRowIncrementForMovement(dir);
         int colInc = getColIncrementForMovement(dir);
@@ -730,6 +768,8 @@ public class Exploration {
      * @throws InterruptedException Will throw exception if parameter is null
      */
     private boolean robotAndTargetAtStartPos(Point loc) throws InterruptedException {
+        LOGGER.info("Robot and target at start pos");
+
         if (robot.getPos().equals(start) && loc.equals(start)) {
             while (robot.getDir() != Direction.DOWN) {
                 robot.turn(Command.TURN_LEFT, stepPerSecond);
@@ -753,6 +793,8 @@ public class Exploration {
      * @throws InterruptedException Will throw exception if parameter(s) is null
      */
     private void executeCommandsMoveToTarget(ArrayList<Command> commands, Point loc) throws InterruptedException{
+        LOGGER.info("Execute commands to target");
+
         for (Command c : commands) {
             System.out.println("Command: "+c);
             if ((c == Command.FORWARD) && !movable(robot.getDir())) {
@@ -789,6 +831,8 @@ public class Exploration {
      */
 
     private void executeCommandsMoveToTarget(ArrayList<Command> commands, Point loc, ObsSurface obsSurface) throws InterruptedException{
+        LOGGER.info("Execute commands move to target");
+
         ArrayList<ObsSurface> surfTaken;
         for (Command c : commands) {
             System.out.println("Command: " + c);
@@ -821,6 +865,8 @@ public class Exploration {
      */
 
     private void turnRobotToFaceDirectionDuringImage(Direction desiredDir) throws InterruptedException{
+        LOGGER.info("Turn robot to face direction during image");
+
         ArrayList<ObsSurface> surfTaken;
         //If robot already facing desired direction, return
         if (desiredDir != robot.getDir()) {
@@ -854,6 +900,8 @@ public class Exploration {
      * @throws InterruptedException Will throw exception if parameters is null
      */
     private void continueExplorationUponNearestUnexplored() throws InterruptedException{
+        LOGGER.info("Continue exploration upon nearest unexplored");
+
         robot.setStatus("Continue exploration, finding the nearest virtual wall.");
         LOGGER.info(robot.getStatus());
 
@@ -896,6 +944,8 @@ public class Exploration {
      * @throws InterruptedException Will throw exception if parameter(s) is null
      */
     private void executeCommandsMoveToStartPoint(ArrayList<Command> commands, Point loc) throws InterruptedException{
+        LOGGER.info("Execute commands to start point");
+
         //Moves to calculate no of steps to take forward
         int moves = 0;
         Command c;
@@ -953,6 +1003,8 @@ public class Exploration {
      * @throws InterruptedException Will throw exception if parameter is null
      */
     private boolean goToPoint(Point loc) throws InterruptedException {
+        LOGGER.info("Go to point");
+
         robot.setStatus("Go to point: " + loc.toString());
         LOGGER.info(robot.getStatus());
         if (!robotAndTargetAtStartPos(loc)) {
@@ -997,6 +1049,8 @@ public class Exploration {
      */
     //Returns the direction to the nearest virtual wall
     private Direction nearestVirtualWall(Point pos) {
+        LOGGER.info("nearest virtual wall");
+
         int rowInc, colInc, lowest = 1000, lowestIter = 0, curDist;
         //Priority of direction of wall; right, up, left, down
         Direction dir = Direction.RIGHT;
