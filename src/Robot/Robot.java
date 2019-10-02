@@ -246,9 +246,9 @@ public class Robot {
                 Direction.UP);
 
         //Create 2 x SR right facing sensors
-        sensorsCreated[3] =new Sensor(RobotConstants.SENSOR_ID[3], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row - 1, col + 1,
+        sensorsCreated[3] =new Sensor(RobotConstants.SENSOR_ID[3], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row + 1, col + 1,
                 Direction.RIGHT);
-        sensorsCreated[4] =new Sensor(RobotConstants.SENSOR_ID[4], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row + 1, col + 1,
+        sensorsCreated[4] =new Sensor(RobotConstants.SENSOR_ID[4], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row - 1, col + 1,
                 Direction.RIGHT);
 
         //Create 1 x LR left facing sensor
@@ -1215,8 +1215,8 @@ public class Robot {
 
         JSONArray robotArray = new JSONArray();
         JSONObject robotJson = new JSONObject()
-                .put("x", pos.x + 1)
-                .put("y", pos.y + 1)
+                .put("x", pos.x )
+                .put("y", pos.y)
                 .put("direction", dir.toString().toLowerCase());
         robotArray.put(robotJson);
         return robotArray;
