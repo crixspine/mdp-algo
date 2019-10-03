@@ -472,7 +472,7 @@ public class Exploration {
             if(areaExplored >= 100)
                 break;
             try {
-                System.out.println("DEBUG");
+                System.out.println("Right wall hug");
                 rightWallHug(false);
 
             } catch (InterruptedException e1) {
@@ -486,7 +486,9 @@ public class Exploration {
             else
                 moves=1;
 
-            LOGGER.info(Double.toString(areaExplored));
+            System.out.println("Area explored  = " + (areaExplored));
+
+//            LOGGER.info(Double.toString(areaExplored));
 
             //Prevent endless loop of moving right and forward in "cage-like" obstacle or no progression in
 
@@ -567,6 +569,7 @@ public class Exploration {
             updateNotYetTaken(surfTaken);
         }
         else {
+            System.out.println("Am I here?");
             robot.sense(exploredMap, realMap);
         }
     }
@@ -590,6 +593,7 @@ public class Exploration {
                 robot.align_front(exploredMap, realMap);
             }
             robot.turn(Command.TURN_RIGHT, stepPerSecond);
+            System.out.println("End here");
 
             senseForExplorationOrImage(doingImage);
 
