@@ -1003,7 +1003,8 @@ public class Robot {
                 }
             }
             // Capture surface of obstacle on the right of the robot
-            surfTaken = imageRecognitionRight(exploredMap);
+//            surfTaken = imageRecognitionRight(exploredMap);
+            surfTaken = null;
         }
         return surfTaken;
     }
@@ -1016,6 +1017,7 @@ public class Robot {
 
     public void senseWithoutMapUpdateAndAlignment(Map exploredMap, Map realMap) {
 
+        LOGGER.info("senseWithoutMapUpdateAndAlignment");
         HashMap<String, Integer> sensorResult = completeUpdateSensorResult(realMap);
         // send to Android
         if (isRealExploration()) {
@@ -1069,7 +1071,8 @@ public class Robot {
                 }
             }
             //Capture surface of obstacles on the right side of the robot
-            surfTaken = imageRecognitionRight(exploredMap);
+//            surfTaken = imageRecognitionRight(exploredMap);
+              surfTaken = null;
 
         }
         return surfTaken;
@@ -1102,6 +1105,7 @@ public class Robot {
      * @throws InterruptedException If cannot sense
      */
     public void turnRightAndAlignMethodWithoutMapUpdate(Map exploredMap, Map realMap) throws InterruptedException {
+        LOGGER.info("turnRightAndAlignMethodWithoutMapUpdate");
         turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
         senseWithoutMapUpdateAndAlignment(exploredMap, realMap);
         align_front(exploredMap, realMap);
@@ -1183,6 +1187,7 @@ public class Robot {
                     exploredMap.getCell(tempRow, tempCol).setExplored(true);
 
                     //Update specified cell when identified as obstacle
+                    //Will not update as obstacle if area has been moved through
                     if(j == obsBlock && !exploredMap.getCell(tempRow, tempCol).isMoveThru()) {
                         exploredMap.getCell(tempRow, tempCol).setObstacle(true);
                         //TODO: Find out what the virtual wall is for
