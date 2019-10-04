@@ -9,17 +9,17 @@ public class RobotConstants {
     public static final int TURN_COST = 3;
     public static final double INFINITE_COST = 10000000;
     public static final int CHECKSTEPS = 18;    // 4
-    public static final int CALIBRATE_AFTER = 999; //Calibrate After number of moves (for align_right)
-    public static final int TURN_AND_CALIBRATE = 999;
+    public static final int CALIBRATE_AFTER = 4; //Calibrate After number of moves (for align_right)
+    public static final int TURN_AND_CALIBRATE = 1000;
 
     //Maximum number of moves
     public static final int MAX_MOVE = 9;   //9
 
     //Target coverage
-    public static final int TARGETED_COVERAGE = 97;
+    public static final int TARGETED_COVERAGE = 100;
 
     // Best exploration timing for leaderboard in seconds
-    public static final int BEST_EXP_TIMING = 999;
+    public static final int BEST_EXP_TIMING = 1000;
 
     // To be adjusted
     public static final int MOVE_STEPS = 1;
@@ -31,7 +31,7 @@ public class RobotConstants {
     public static final int SHORT_MIN = 1;
     public static final int SHORT_MAX = 2;
 
-    public static final int LONG_MIN = 1;
+    public static final int LONG_MIN = 3;
     public static final int LONG_MAX = 4;
 
     // Camera default range (In grids)

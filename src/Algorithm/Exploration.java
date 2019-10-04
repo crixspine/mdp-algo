@@ -10,6 +10,7 @@ import Network.NetworkConstants;
 import Robot.Robot;
 import Robot.Command;
 import Robot.RobotConstants;
+import sun.rmi.runtime.Log;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -175,6 +176,7 @@ public class Exploration {
         ObsSurface nearestObstacle;
         Cell nearestCell;
         boolean success;
+        LOGGER.info("image Loop");
 
         //Find nearest obstacle surface that has not been captured
         nearestObstacle = exploredMap.nearestObsSurface(robot.getPos(), notYetTaken);
@@ -470,7 +472,7 @@ public class Exploration {
             if(areaExplored >= 100)
                 break;
             try {
-                System.out.println("DEBUG");
+                System.out.println("Right wall hug");
                 rightWallHug(false);
 
             } catch (InterruptedException e1) {
@@ -484,9 +486,12 @@ public class Exploration {
             else
                 moves=1;
 
-            LOGGER.info(Double.toString(areaExplored));
+            System.out.println("Area explored  = " + (areaExplored));
 
-            //Prevent endless loop of moving right and forward in "cage-like" obstacle or no progression in exploration
+//            LOGGER.info(Double.toString(areaExplored));
+
+            //Prevent endless loop of moving right and forward in "cage-like" obstacle or no progression in
+
             if (moves % checkingStep == 0 || right_move > 3 || (robot.getPos().distance(start)==0 && areaExplored < 100.00)) {
                 do{
                     //Go back to start point
@@ -588,6 +593,8 @@ public class Exploration {
             }
             robot.turn(Command.TURN_RIGHT, stepPerSecond);
 
+            robot.setR1count(0);
+
             senseForExplorationOrImage(doingImage);
 
             moveForward(RobotConstants.MOVE_STEPS, stepPerSecond, doingImage);
@@ -608,10 +615,11 @@ public class Exploration {
             //Calibrate and capture image (if doing image recognition)
             turnRightAndAlignBeforeTurnLeft(doingImage);
             //TODO: Is it neccessary to do both
-            alignAndImageRecBeforeLeftTurn(doingImage);
+//            alignAndImageRecBeforeLeftTurn(doingImage);
 
             robot.turn(Command.TURN_LEFT, stepPerSecond);
             //Use right sensor to record obstacle surface (turn right only if there is obstacle on robot's right)
+            robot.setR1count(0);
 
             senseForExplorationOrImage(doingImage);
 
@@ -630,12 +638,12 @@ public class Exploration {
 
             turnRightAndAlignBeforeTurnLeft(doingImage);
             //Turn left first time, calibrate and capture images
-            alignAndImageRecBeforeLeftTurn(doingImage);
+//            alignAndImageRecBeforeLeftTurn(doingImage);
             robot.turn(Command.TURN_LEFT, stepPerSecond);
             senseForExplorationOrImage(doingImage);
 
             //Turn left second time (complete u-turn), calibrate and capture images
-            alignAndImageRecBeforeLeftTurn(doingImage);
+//            alignAndImageRecBeforeLeftTurn(doingImage);
             robot.turn(Command.TURN_LEFT, stepPerSecond);
             senseForExplorationOrImage(doingImage);
 
@@ -683,10 +691,11 @@ public class Exploration {
             robot.align_right(exploredMap, realMap);
             //Capture obstacle surface before turning left
             robot.setImageCount(0);
-            ArrayList<ObsSurface> surfTaken = robot.imageRecognitionRight(exploredMap);
-            if (doingImage) {
-                updateNotYetTaken(surfTaken);
-            }
+            //TODO: Uncomment when doing image recognition
+    //            ArrayList<ObsSurface> surfTaken = robot.imageRecognitionRight(exploredMap);
+//            if (doingImage) {
+//                updateNotYetTaken(surfTaken);
+//            }
         }
     }
 
@@ -864,7 +873,6 @@ public class Exploration {
         //If can move in the direction of nearest virtual wall, turn robot to face direction
         if (movable(dir))
         {
-            System.out.println("ininin");
             while(dir != robot.getDir()) {
                 if(dir.ordinal() - robot.getDir().ordinal()==1)
                     robot.turn(Command.TURN_LEFT, stepPerSecond);

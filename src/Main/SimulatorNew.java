@@ -1113,6 +1113,7 @@ public class SimulatorNew extends Application {
                         if(sim) {
                             displayTimer.start();
                         }
+                        System.out.println("Waddup exploration complete");
                         break;
 
                     case FASTEST_PATH:

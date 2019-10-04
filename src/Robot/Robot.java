@@ -61,6 +61,9 @@ public class Robot {
     private HashSet<String> imageHashSet = new HashSet<String>();
     private HashMap<String, ObsSurface> surfaceTaken = new HashMap<String, ObsSurface>();
 
+    //To check how many consecutive immediate obstacles R1 and R2 senses
+    private int R1count = 0;
+    private int R2count = 0;
     private int alignCount = 0;
     private int turnAndAlignCount = 0;
     private boolean hasTurnAndAlign = false;
@@ -212,9 +215,9 @@ public class Robot {
      *
      *           ^   ^   ^
      *          SR  SR  SR
-     *    < LR [X] [X] [X] SR >
+     *    < SR [X] [X] [X] SR >
+     *    < LR [X] [X] [X]
      *         [X] [X] [X]
-     *         [X] [X] [X] SR >
      *
      *  LR: Long range sensor
      *  SR: Short range sensor
@@ -245,14 +248,15 @@ public class Robot {
         sensorsCreated[2] =new Sensor(RobotConstants.SENSOR_ID[2], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row + 1, col + 1,
                 Direction.UP);
 
-        //Create 2 x SR right facing sensors
+        //Create 1 x SR right facing sensors
         sensorsCreated[3] =new Sensor(RobotConstants.SENSOR_ID[3], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row + 1, col + 1,
                 Direction.RIGHT);
-        sensorsCreated[4] =new Sensor(RobotConstants.SENSOR_ID[4], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row - 1, col + 1,
-                Direction.RIGHT);
 
+        //Create 1 x SR left facing sensor
+        sensorsCreated[4] =new Sensor(RobotConstants.SENSOR_ID[4], RobotConstants.SHORT_MIN, RobotConstants.SHORT_MAX, row + 1, col - 1,
+                Direction.LEFT);
         //Create 1 x LR left facing sensor
-        sensorsCreated[5] =new Sensor(RobotConstants.SENSOR_ID[5], RobotConstants.LONG_MIN, RobotConstants.LONG_MAX, row + 1, col - 1,
+        sensorsCreated[5] =new Sensor(RobotConstants.SENSOR_ID[5], RobotConstants.LONG_MIN, RobotConstants.LONG_MAX, row , col - 1,
                 Direction.LEFT);
 
         return sensorsCreated;
@@ -950,10 +954,14 @@ public class Robot {
     public HashMap<String, Integer> updateSensorRes(Map realMap) {
         int obsBlock;
         for(String sname: RobotConstants.SENSOR_ID) {
+
             obsBlock = sensorMap.get(sname).detect(realMap);
             sensorRes.put(sname, obsBlock);
         }
         return sensorRes;
+    }
+    public void setR1count(int R1count){
+        this.R1count = R1count;
     }
 
     /**
@@ -969,14 +977,25 @@ public class Robot {
         updateMap(exploredMap, sensorResult);
 
 
+
         if (isRealExploration()) {
             //Send updated map to Android
             send_android(exploredMap);
 
             //Check for calibration
-            if (alignCount > RobotConstants.CALIBRATE_AFTER) {
+//            if (alignCount > RobotConstants.CALIBRATE_AFTER) {
+//                align_right(exploredMap, realMap);
+//            }
+//
+            if(R1count == 3){
                 align_right(exploredMap, realMap);
             }
+//            else if(R2count >= 3){
+//                turn(Command.TURN_LEFT,1);
+//                align_front(exploredMap, realMap);
+//                turn(Command.TURN_RIGHT,1);
+//                R2count = 0;
+//            }
 
             //No need alignment if right hugging wall; calibration done when at the start of right wall hug
             if (isRightHuggingWall()) {
@@ -993,7 +1012,7 @@ public class Robot {
             //Calibrate after exceeding no of steps threshold before calibration and if it is hugging and obstacle/wall
             // on the right
             if ((turnAndAlignCount > RobotConstants.TURN_AND_CALIBRATE) &&
-                    (sensorRes.get("R1") == 1 && sensorRes.get("R2") == 1)) {
+                    (sensorRes.get("R1") == 1) ){
 
                 try {
                     turnRightAndAlignMethod(exploredMap, realMap);
@@ -1003,7 +1022,8 @@ public class Robot {
                 }
             }
             // Capture surface of obstacle on the right of the robot
-            surfTaken = imageRecognitionRight(exploredMap);
+//            surfTaken = imageRecognitionRight(exploredMap);
+            surfTaken = null;
         }
         return surfTaken;
     }
@@ -1016,6 +1036,7 @@ public class Robot {
 
     public void senseWithoutMapUpdateAndAlignment(Map exploredMap, Map realMap) {
 
+        LOGGER.info("senseWithoutMapUpdateAndAlignment");
         HashMap<String, Integer> sensorResult = completeUpdateSensorResult(realMap);
         // send to Android
         if (isRealExploration()) {
@@ -1030,7 +1051,7 @@ public class Robot {
      * @param exploredMap Map of explored part of the arena
      * @param realMap Map obstacles of the arena
      */
-    public ArrayList<ObsSurface> senseWithoutMapUpdate(Map exploredMap, Map realMap) {
+        public ArrayList<ObsSurface> senseWithoutMapUpdate(Map exploredMap, Map realMap)  {
 
         //get all sensor to update
         HashMap<String, Integer> sensorResult = completeUpdateSensorResult(realMap);
@@ -1040,10 +1061,20 @@ public class Robot {
             send_android(exploredMap);
 
             //Calibrate if exceed steps w/o calibration limit
-            if (alignCount > RobotConstants.CALIBRATE_AFTER) {
-                // TODO: Alignment
+//            if (alignCount > RobotConstants.CALIBRATE_AFTER) {
+//                // TODO: Alignment
+//                align_right(exploredMap, realMap);
+//            }
+            if(R1count == 3){
                 align_right(exploredMap, realMap);
             }
+//            else if(R2count >= 3){
+//                turn(Command.TURN_LEFT,1);
+//                align_front(exploredMap, realMap);
+//                turn(Command.TURN_RIGHT,1);
+//                R2count = 0;
+//            }
+
             // Robot is calibrated at the start of any right wall hug; no need for turn and align count
             if (isRightHuggingWall()) {
                 turnAndAlignCount = 0;
@@ -1058,7 +1089,7 @@ public class Robot {
             //Calibrate after exceeding no of steps threshold before calibration and if it is hugging and obstacle/wall
             // on the right
             if ((turnAndAlignCount > RobotConstants.TURN_AND_CALIBRATE) &&
-                    (sensorRes.get("R1") == 1 && sensorRes.get("R2") == 1)) {
+                    (sensorRes.get("R1") == 1) ){
 
                 try {
                     //Calibration only; no update of map
@@ -1069,7 +1100,8 @@ public class Robot {
                 }
             }
             //Capture surface of obstacles on the right side of the robot
-            surfTaken = imageRecognitionRight(exploredMap);
+//            surfTaken = imageRecognitionRight(exploredMap);
+              surfTaken = null;
 
         }
         return surfTaken;
@@ -1084,10 +1116,10 @@ public class Robot {
      */
     public void turnRightAndAlignMethod(Map exploredMap, Map realMap) throws InterruptedException {
         //
-        turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
+//        turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
         senseWithoutAlign(exploredMap, realMap);
         align_front(exploredMap, realMap);
-        turn(Command.TURN_LEFT, RobotConstants.STEP_PER_SECOND);
+//        turn(Command.TURN_LEFT, RobotConstants.STEP_PER_SECOND);
         senseWithoutAlign(exploredMap, realMap);
         align_right(exploredMap, realMap);
         hasTurnAndAlign = true;
@@ -1102,6 +1134,7 @@ public class Robot {
      * @throws InterruptedException If cannot sense
      */
     public void turnRightAndAlignMethodWithoutMapUpdate(Map exploredMap, Map realMap) throws InterruptedException {
+        LOGGER.info("turnRightAndAlignMethodWithoutMapUpdate");
         turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
         senseWithoutMapUpdateAndAlignment(exploredMap, realMap);
         align_front(exploredMap, realMap);
@@ -1172,37 +1205,143 @@ public class Robot {
             rowInc = getRowIncrementForSensor(s.getSensorDir());
             colInc = getColIncrementForSensor(s.getSensorDir());
 
-            //Check for every block within sensor's valid range
-            for (int j = s.getMinRange(); j <= s.getMaxRange(); j++) {
+            if(s.getId() == "L1") {
+                LOGGER.info(s.getId());
+//                //Update cells as clear if first two blocks are already cleared
+//                if (obsBlock < s.getMinRange() || obsBlock > s.getMaxRange()) {
+//                    int cell1Row, cell2Row, cell1Col, cell2Col;
+//                    tempRow = s.getRow() + rowInc * s.getMinRange();
+//                    tempCol = s.getCol() + colInc * s.getMinRange();
+//                    if (exploredMap.checkValidCell(tempRow, tempCol)) {
+//                        System.out.println("Yikes");
+//                        cell1Row = s.getRow() + rowInc;
+//                        cell1Col = s.getCol() + colInc;
+//                        cell2Row = s.getRow() + rowInc * 2;
+//                        cell2Col = s.getCol() + colInc * 2;
+//                        //If first two cells are explored and not obstacle
+//                        if (exploredMap.getCell(cell1Row, cell1Col).isExplored() && !exploredMap.getCell(cell1Row, cell1Col).isObstacle()) {
+//                            System.out.println("Yokes");
+//                            if (exploredMap.getCell(cell2Row, cell2Col).isExplored() && !exploredMap.getCell(cell2Row, cell2Col).isObstacle()) {
+//                                System.out.println("Yeeks");
+//                                //Set remaining cells in line of sight as non obstacles
+//                                for (int i = s.getMinRange(); i <= s.getMaxRange(); i++) {
+//                                    tempRow = s.getRow() + rowInc * i;
+//                                    tempCol = s.getCol() + colInc * i;
+//                                    if(exploredMap.checkValidCell(tempRow, tempCol)) {
+//                                        exploredMap.getCell(tempRow, tempCol).setExplored(true);
+//                                        exploredMap.getCell(tempRow, tempCol).setObstacle(false);
+//                                        exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), false);
+//                                    }
+//                                    else{
+//                                        break;
+//                                    }
+//
+//                                }
+//                                exploredMap.reinitVirtualWall();
+//                            }
+//                        }
+//                    }
+//
+//
+//                } else {
+                    for (int j = s.getMinRange(); j <= s.getMaxRange(); j++) {
+                        tempRow = s.getRow() + rowInc * j;
+                        tempCol = s.getCol() + colInc * j;
+                        if (exploredMap.checkValidCell(tempRow, tempCol)) {
+//                        exploredMap.getCell(tempRow, tempCol).setExplored(true);
 
-                tempRow = s.getRow() + rowInc * j;
-                tempCol = s.getCol() + colInc * j;
+                            //Update specified cell when identified as obstacle
+                            //Will not update as obstacle if area has been moved through
+                            if (j == obsBlock && !exploredMap.getCell(tempRow, tempCol).isMoveThru()) {
+                                if (!sim) {
+                                    int tempRow1, tempCol1;
+                                    exploredMap.getCell(tempRow, tempCol).setObstacle(true);
+                                    for (int i = 1; i < obsBlock; i++) {
+                                        tempRow1 = s.getRow() + rowInc * i;
+                                        tempCol1 = s.getCol() + colInc * i;
+                                        exploredMap.getCell(tempRow1, tempCol1).setExplored(true);
+                                        exploredMap.getCell(tempRow1, tempCol1).setObstacle(false);
+                                        exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), false);
+                                    }
+                                } else {
+                                    int tempRow2, tempCol2;
+                                    boolean obstacleInLine = false;
+                                    for (int i = 1; i < obsBlock; i++) {
 
-                // Check whether the block is a valid block
-                if(exploredMap.checkValidCell(tempRow, tempCol)) {
-                    exploredMap.getCell(tempRow, tempCol).setExplored(true);
+                                        tempRow2 = s.getRow() + rowInc * i;
+                                        tempCol2 = s.getCol() + colInc * i;
+                                        if (exploredMap.getCell(tempRow2, tempCol2).isObstacle()) {
+                                            obstacleInLine = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!obstacleInLine) {
+                                        exploredMap.getCell(tempRow, tempCol).setObstacle(true);
+                                        for (int i = 1; i < obsBlock; i++) {
+                                            tempRow2 = s.getRow() + rowInc * i;
+                                            tempCol2 = s.getCol() + colInc * i;
+                                            exploredMap.getCell(tempRow2, tempCol2).setExplored(true);
+                                            exploredMap.getCell(tempRow2, tempCol2).setObstacle(false);
+                                            exploredMap.setVirtualWall(exploredMap.getCell(tempRow2, tempCol2), false);
+                                        }
+                                    }
+                                }
+                                exploredMap.reinitVirtualWall();
+                            }
+                        }
+                    }
+                }
+            else {
+                LOGGER.info(s.getId());
+                //Check for every block within sensor's valid range
+                for (int j = s.getMinRange(); j <= s.getMaxRange(); j++) {
 
-                    //Update specified cell when identified as obstacle
-                    if(j == obsBlock && !exploredMap.getCell(tempRow, tempCol).isMoveThru()) {
-                        exploredMap.getCell(tempRow, tempCol).setObstacle(true);
-                        //TODO: Find out what the virtual wall is for
-                        exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), true);
-                        exploredMap.reinitVirtualWall();
+                    tempRow = s.getRow() + rowInc * j;
+                    tempCol = s.getCol() + colInc * j;
+
+                    // Check whether the block is a valid block
+                    if (exploredMap.checkValidCell(tempRow, tempCol)) {
+                        exploredMap.getCell(tempRow, tempCol).setExplored(true);
+
+                        //Update specified cell when identified as obstacle
+                        //Will not update as obstacle if area has been moved through
+                        if (j == obsBlock && !exploredMap.getCell(tempRow, tempCol).isMoveThru()) {
+                            exploredMap.getCell(tempRow, tempCol).setObstacle(true);
+                            //TODO: Find out what the virtual wall is for
+                            exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), true);
+                            exploredMap.reinitVirtualWall();
+                            if(s.getId() == "R1"){
+                                R1count++;
+                            }
+                            if(s.getId() == "R2"){
+                                R2count++;
+                            }
+                            break;
+                        }
+
+                        //Previous detected obstacle is wrongly detected; reset the cell and virtual walls
+                        else if (j != obsBlock && exploredMap.getCell(tempRow, tempCol).isObstacle()) {      // (3)
+                            exploredMap.getCell(tempRow, tempCol).setObstacle(false);
+                            exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), false);
+                            exploredMap.reinitVirtualWall();
+                            if(s.getId() == "R1"){
+                                R1count=0;
+                            }
+                            if(s.getId() == "R2"){
+                                R2count=0;
+                            }
+                        }
+                    } else {
+                        if(s.getId() == "R1"){
+                            R1count=0;
+                        }
+                        if(s.getId() == "R2"){
+                            R2count=0;
+                        }
                         break;
                     }
 
-                    //Previous detected obstacle is wrongly detected; reset the cell and virtual walls
-                    else if (j != obsBlock && exploredMap.getCell(tempRow, tempCol).isObstacle()) {      // (3)
-                        exploredMap.getCell(tempRow, tempCol).setObstacle(false);
-                        exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), false);
-                        exploredMap.reinitVirtualWall();
-                    }
                 }
-                else  {
-
-                    break;
-                }
-
             }
         }
     }
@@ -1276,7 +1415,7 @@ public class Robot {
         androidJson.put("robot", getRobotArray());
         androidJson.put("map", getMapArray(exploredMap));
         androidJson.put("status", getStatusArray());
-        //NetMgr.getInstance().send(NetworkConstants.ANDROID + androidJson.toString() + "\n");
+        NetMgr.getInstance().send(NetworkConstants.ANDROID + androidJson.toString() + "\n");
         System.out.println(NetworkConstants.ANDROID + androidJson.toString() + "\n");
     }
 
@@ -1333,7 +1472,7 @@ public class Robot {
         }
 
         //Sense robot hugging right wall (long), can align
-        if (sensorRes.get("R1") == 1 && sensorRes.get("R2") == 1) {
+        if (sensorRes.get("R1") == 1) {
             // send align right
             String cmdStr = getCommand(Command.ALIGN_RIGHT, aligning_index);
             NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
@@ -1359,16 +1498,16 @@ public class Robot {
         Point R1_pos = sensorMap.get("R1").getPos();
         Point R2_pos = sensorMap.get("R2").getPos();
 
-        if (R1_pos.x == 0 && R2_pos.x == 0){
+        if (R1_pos.x == 0 && R1_pos.y == R2_pos.y){
             return true;
         }
-        if(R1_pos.x == MapConstants.MAP_WIDTH - 1 && R2_pos.x == MapConstants.MAP_WIDTH - 1){
+        if(R1_pos.x == MapConstants.MAP_WIDTH - 1 && R1_pos.y == R2_pos.y){
             return true;
         }
-        if(R1_pos.y == 0 && R2_pos.y == 0){
+        if(R1_pos.y == 0 && R1_pos.x == R2_pos.x){
             return true;
         }
-        return R1_pos.y == MapConstants.MAP_HEIGHT - 1 && R2_pos.y == MapConstants.MAP_HEIGHT - 1;
+        return R1_pos.y == MapConstants.MAP_HEIGHT - 1 && R1_pos.x == R2_pos.x;
     }
 
 

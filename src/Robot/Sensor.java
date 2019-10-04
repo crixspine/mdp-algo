@@ -98,24 +98,44 @@ public class Sensor {
             switch (sensorDir) {
                 case UP:
                     //Return value if sensor detects border or obstacle
+                    if(this.getId()== "L1"){
+                        if(pos.y + cur > MapConstants.MAP_HEIGHT){
+                            break;
+                        }
+                    }
                     if (pos.y + cur == MapConstants.MAP_HEIGHT)
                         return cur;
                     else if (map.getCell(pos.y + cur, pos.x).isObstacle())
                         return cur;
                     break;
                 case RIGHT:
+                    if(this.getId()== "L1"){
+                        if(pos.x + cur > MapConstants.MAP_WIDTH){
+                            break;
+                        }
+                    }
                     if (pos.x + cur == MapConstants.MAP_WIDTH)
                         return cur;
                     else if (map.getCell(pos.y, pos.x + cur).isObstacle())
                         return cur;
                     break;
                 case DOWN:
+                    if(this.getId()== "L1"){
+                        if(pos.y - cur < -1){
+                            break;
+                        }
+                    }
                     if (pos.y - cur == -1)
                         return cur;
                     else if (map.getCell(pos.y - cur, pos.x).isObstacle())
                         return cur;
                     break;
                 case LEFT:
+                    if(this.getId()== "L1"){
+                        if(pos.x - cur < -1){
+                            break;
+                        }
+                    }
                     if (pos.x - cur == -1)
                         return cur;
                     else if (map.getCell(pos.y, pos.x - cur).isObstacle())
