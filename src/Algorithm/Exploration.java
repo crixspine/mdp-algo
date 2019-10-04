@@ -569,7 +569,6 @@ public class Exploration {
             updateNotYetTaken(surfTaken);
         }
         else {
-            System.out.println("Am I here?");
             robot.sense(exploredMap, realMap);
         }
     }
@@ -593,7 +592,8 @@ public class Exploration {
                 robot.align_front(exploredMap, realMap);
             }
             robot.turn(Command.TURN_RIGHT, stepPerSecond);
-            System.out.println("End here");
+
+            robot.setR1count(0);
 
             senseForExplorationOrImage(doingImage);
 
@@ -619,6 +619,7 @@ public class Exploration {
 
             robot.turn(Command.TURN_LEFT, stepPerSecond);
             //Use right sensor to record obstacle surface (turn right only if there is obstacle on robot's right)
+            robot.setR1count(0);
 
             senseForExplorationOrImage(doingImage);
 
@@ -691,7 +692,7 @@ public class Exploration {
             //Capture obstacle surface before turning left
             robot.setImageCount(0);
             //TODO: Uncomment when doing image recognition
-//            ArrayList<ObsSurface> surfTaken = robot.imageRecognitionRight(exploredMap);
+    //            ArrayList<ObsSurface> surfTaken = robot.imageRecognitionRight(exploredMap);
 //            if (doingImage) {
 //                updateNotYetTaken(surfTaken);
 //            }
@@ -872,7 +873,6 @@ public class Exploration {
         //If can move in the direction of nearest virtual wall, turn robot to face direction
         if (movable(dir))
         {
-            System.out.println("ininin");
             while(dir != robot.getDir()) {
                 if(dir.ordinal() - robot.getDir().ordinal()==1)
                     robot.turn(Command.TURN_LEFT, stepPerSecond);

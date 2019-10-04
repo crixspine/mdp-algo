@@ -40,12 +40,12 @@ public class RequestHandler extends Thread {
 
     private Point wayPoint = new Point(MapConstants.GOALZONE_COL, MapConstants.GOALZONE_ROW);
 
-    public RequestHandler(Socket socket) throws IOException {
+    public RequestHandler(Socket socket) throws IOException{
         this.socket = socket;
         init();
     }
 
-    private void init() throws IOException {
+    private void init() throws IOException{
         out = new BufferedWriter(new OutputStreamWriter(this.socket.getOutputStream()));
         in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
         String path = System.getProperty("java.class.path");
@@ -253,7 +253,7 @@ public class RequestHandler extends Thread {
         return null;
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         RequestHandler handler = new RequestHandler(null);
     }
 }

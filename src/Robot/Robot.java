@@ -61,6 +61,9 @@ public class Robot {
     private HashSet<String> imageHashSet = new HashSet<String>();
     private HashMap<String, ObsSurface> surfaceTaken = new HashMap<String, ObsSurface>();
 
+    //To check how many consecutive immediate obstacles R1 and R2 senses
+    private int R1count = 0;
+    private int R2count = 0;
     private int alignCount = 0;
     private int turnAndAlignCount = 0;
     private boolean hasTurnAndAlign = false;
@@ -957,6 +960,9 @@ public class Robot {
         }
         return sensorRes;
     }
+    public void setR1count(int R1count){
+        this.R1count = R1count;
+    }
 
     /**
      * Sensing surrounding cells for obstacles in simulation mode
@@ -967,11 +973,8 @@ public class Robot {
 
     public ArrayList<ObsSurface> sense(Map exploredMap, Map realMap) {
         ArrayList<ObsSurface> surfTaken = new ArrayList<ObsSurface>();
-        System.out.println("Problem initializing?");
         HashMap<String, Integer> sensorResult = completeUpdateSensorResult(realMap);
-        System.out.println("Or am I here?");
         updateMap(exploredMap, sensorResult);
-        System.out.println("Or issit here?");
 
 
 
@@ -980,9 +983,19 @@ public class Robot {
             send_android(exploredMap);
 
             //Check for calibration
-            if (alignCount > RobotConstants.CALIBRATE_AFTER) {
+//            if (alignCount > RobotConstants.CALIBRATE_AFTER) {
+//                align_right(exploredMap, realMap);
+//            }
+//
+            if(R1count == 3){
                 align_right(exploredMap, realMap);
             }
+//            else if(R2count >= 3){
+//                turn(Command.TURN_LEFT,1);
+//                align_front(exploredMap, realMap);
+//                turn(Command.TURN_RIGHT,1);
+//                R2count = 0;
+//            }
 
             //No need alignment if right hugging wall; calibration done when at the start of right wall hug
             if (isRightHuggingWall()) {
@@ -999,7 +1012,7 @@ public class Robot {
             //Calibrate after exceeding no of steps threshold before calibration and if it is hugging and obstacle/wall
             // on the right
             if ((turnAndAlignCount > RobotConstants.TURN_AND_CALIBRATE) &&
-                    (sensorRes.get("R1") == 1 && sensorRes.get("R2") == 1)) {
+                    (sensorRes.get("R1") == 1) ){
 
                 try {
                     turnRightAndAlignMethod(exploredMap, realMap);
@@ -1038,7 +1051,7 @@ public class Robot {
      * @param exploredMap Map of explored part of the arena
      * @param realMap Map obstacles of the arena
      */
-    public ArrayList<ObsSurface> senseWithoutMapUpdate(Map exploredMap, Map realMap) {
+        public ArrayList<ObsSurface> senseWithoutMapUpdate(Map exploredMap, Map realMap)  {
 
         //get all sensor to update
         HashMap<String, Integer> sensorResult = completeUpdateSensorResult(realMap);
@@ -1048,10 +1061,20 @@ public class Robot {
             send_android(exploredMap);
 
             //Calibrate if exceed steps w/o calibration limit
-            if (alignCount > RobotConstants.CALIBRATE_AFTER) {
-                // TODO: Alignment
+//            if (alignCount > RobotConstants.CALIBRATE_AFTER) {
+//                // TODO: Alignment
+//                align_right(exploredMap, realMap);
+//            }
+            if(R1count == 3){
                 align_right(exploredMap, realMap);
             }
+//            else if(R2count >= 3){
+//                turn(Command.TURN_LEFT,1);
+//                align_front(exploredMap, realMap);
+//                turn(Command.TURN_RIGHT,1);
+//                R2count = 0;
+//            }
+
             // Robot is calibrated at the start of any right wall hug; no need for turn and align count
             if (isRightHuggingWall()) {
                 turnAndAlignCount = 0;
@@ -1066,7 +1089,7 @@ public class Robot {
             //Calibrate after exceeding no of steps threshold before calibration and if it is hugging and obstacle/wall
             // on the right
             if ((turnAndAlignCount > RobotConstants.TURN_AND_CALIBRATE) &&
-                    (sensorRes.get("R1") == 1 && sensorRes.get("R2") == 1)) {
+                    (sensorRes.get("R1") == 1) ){
 
                 try {
                     //Calibration only; no update of map
@@ -1093,10 +1116,10 @@ public class Robot {
      */
     public void turnRightAndAlignMethod(Map exploredMap, Map realMap) throws InterruptedException {
         //
-        turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
+//        turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
         senseWithoutAlign(exploredMap, realMap);
         align_front(exploredMap, realMap);
-        turn(Command.TURN_LEFT, RobotConstants.STEP_PER_SECOND);
+//        turn(Command.TURN_LEFT, RobotConstants.STEP_PER_SECOND);
         senseWithoutAlign(exploredMap, realMap);
         align_right(exploredMap, realMap);
         hasTurnAndAlign = true;
@@ -1148,7 +1171,6 @@ public class Robot {
         HashMap<String, Integer> sensorResult;
 
         if(sim) {
-            System.out.println("Wassup we here");
             sensorResult = updateSensorRes(realMap);
         }
         else {
@@ -1185,43 +1207,43 @@ public class Robot {
 
             if(s.getId() == "L1") {
                 LOGGER.info(s.getId());
-                //Update cells as clear if first two blocks are already cleared
-                if (obsBlock < s.getMinRange() || obsBlock > s.getMaxRange()) {
-                    int cell1Row, cell2Row, cell1Col, cell2Col;
-                    tempRow = s.getRow() + rowInc * s.getMinRange();
-                    tempCol = s.getCol() + colInc * s.getMinRange();
-                    if (exploredMap.checkValidCell(tempRow, tempCol)) {
-                        System.out.println("Yikes");
-                        cell1Row = s.getRow() + rowInc;
-                        cell1Col = s.getCol() + colInc;
-                        cell2Row = s.getRow() + rowInc * 2;
-                        cell2Col = s.getCol() + colInc * 2;
-                        //If first two cells are explored and not obstacle
-                        if (exploredMap.getCell(cell1Row, cell1Col).isExplored() && !exploredMap.getCell(cell1Row, cell1Col).isObstacle()) {
-                            System.out.println("Yokes");
-                            if (exploredMap.getCell(cell2Row, cell2Col).isExplored() && !exploredMap.getCell(cell2Row, cell2Col).isObstacle()) {
-                                System.out.println("Yeeks");
-                                //Set remaining cells in line of sight as non obstacles
-                                for (int i = s.getMinRange(); i <= s.getMaxRange(); i++) {
-                                    tempRow = s.getRow() + rowInc * i;
-                                    tempCol = s.getCol() + colInc * i;
-                                    if(exploredMap.checkValidCell(tempRow, tempCol)) {
-                                        exploredMap.getCell(tempRow, tempCol).setExplored(true);
-                                        exploredMap.getCell(tempRow, tempCol).setObstacle(false);
-                                        exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), false);
-                                    }
-                                    else{
-                                        break;
-                                    }
-
-                                }
-                                exploredMap.reinitVirtualWall();
-                            }
-                        }
-                    }
-
-
-                } else {
+//                //Update cells as clear if first two blocks are already cleared
+//                if (obsBlock < s.getMinRange() || obsBlock > s.getMaxRange()) {
+//                    int cell1Row, cell2Row, cell1Col, cell2Col;
+//                    tempRow = s.getRow() + rowInc * s.getMinRange();
+//                    tempCol = s.getCol() + colInc * s.getMinRange();
+//                    if (exploredMap.checkValidCell(tempRow, tempCol)) {
+//                        System.out.println("Yikes");
+//                        cell1Row = s.getRow() + rowInc;
+//                        cell1Col = s.getCol() + colInc;
+//                        cell2Row = s.getRow() + rowInc * 2;
+//                        cell2Col = s.getCol() + colInc * 2;
+//                        //If first two cells are explored and not obstacle
+//                        if (exploredMap.getCell(cell1Row, cell1Col).isExplored() && !exploredMap.getCell(cell1Row, cell1Col).isObstacle()) {
+//                            System.out.println("Yokes");
+//                            if (exploredMap.getCell(cell2Row, cell2Col).isExplored() && !exploredMap.getCell(cell2Row, cell2Col).isObstacle()) {
+//                                System.out.println("Yeeks");
+//                                //Set remaining cells in line of sight as non obstacles
+//                                for (int i = s.getMinRange(); i <= s.getMaxRange(); i++) {
+//                                    tempRow = s.getRow() + rowInc * i;
+//                                    tempCol = s.getCol() + colInc * i;
+//                                    if(exploredMap.checkValidCell(tempRow, tempCol)) {
+//                                        exploredMap.getCell(tempRow, tempCol).setExplored(true);
+//                                        exploredMap.getCell(tempRow, tempCol).setObstacle(false);
+//                                        exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), false);
+//                                    }
+//                                    else{
+//                                        break;
+//                                    }
+//
+//                                }
+//                                exploredMap.reinitVirtualWall();
+//                            }
+//                        }
+//                    }
+//
+//
+//                } else {
                     for (int j = s.getMinRange(); j <= s.getMaxRange(); j++) {
                         tempRow = s.getRow() + rowInc * j;
                         tempCol = s.getCol() + colInc * j;
@@ -1269,7 +1291,6 @@ public class Robot {
                         }
                     }
                 }
-            }
             else {
                 LOGGER.info(s.getId());
                 //Check for every block within sensor's valid range
@@ -1289,6 +1310,12 @@ public class Robot {
                             //TODO: Find out what the virtual wall is for
                             exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), true);
                             exploredMap.reinitVirtualWall();
+                            if(s.getId() == "R1"){
+                                R1count++;
+                            }
+                            if(s.getId() == "R2"){
+                                R2count++;
+                            }
                             break;
                         }
 
@@ -1297,9 +1324,20 @@ public class Robot {
                             exploredMap.getCell(tempRow, tempCol).setObstacle(false);
                             exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), false);
                             exploredMap.reinitVirtualWall();
+                            if(s.getId() == "R1"){
+                                R1count=0;
+                            }
+                            if(s.getId() == "R2"){
+                                R2count=0;
+                            }
                         }
                     } else {
-
+                        if(s.getId() == "R1"){
+                            R1count=0;
+                        }
+                        if(s.getId() == "R2"){
+                            R2count=0;
+                        }
                         break;
                     }
 
