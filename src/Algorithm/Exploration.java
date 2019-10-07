@@ -491,8 +491,8 @@ public class Exploration {
 //            LOGGER.info(Double.toString(areaExplored));
 
             //Prevent endless loop of moving right and forward in "cage-like" obstacle or no progression in
-
-            if (moves % checkingStep == 0 || right_move > 3 || (robot.getPos().distance(start)==0 && areaExplored < 100.00)) {
+            //TODO: Change back if required
+            if (moves % checkingStep == 0 || right_move > 7 || (robot.getPos().distance(start)==0 && areaExplored < 100.00)) {
                 do{
                     //Go back to start point
                     if (robot.getPos().equals(start)) {
@@ -625,7 +625,11 @@ public class Exploration {
 
             //Align right after turn
             if (!sim) {
-                robot.align_right(exploredMap, realMap);
+                int row = robot.getPos().x;
+                int col = robot.getPos().y;
+                if(exploredMap.getCell(row +1,col-1).isObstacle() && exploredMap.getCell(row +1,col+1).isObstacle() ) {
+                    robot.align_right(exploredMap, realMap);
+                }
             }
 
             moveForward(RobotConstants.MOVE_STEPS, stepPerSecond, doingImage);
