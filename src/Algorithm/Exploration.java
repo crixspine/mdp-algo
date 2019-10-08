@@ -617,6 +617,7 @@ public class Exploration {
                  robot.align_front(exploredMap, realMap);
              }
             robot.turn(Command.TURN_LEFT, stepPerSecond);
+
             //Use right sensor to record obstacle surface (turn right only if there is obstacle on robot's right)
             robot.setR1count(0);
 
@@ -630,18 +631,19 @@ public class Exploration {
         //If all fails, u-turn
         else {
 
-            turnRightAndAlignBeforeTurnLeft(doingImage);
+//            turnRightAndAlignBeforeTurnLeft(doingImage);
             //Turn left first time, calibrate and capture images
 //            alignAndImageRecBeforeLeftTurn(doingImage);
             robot.turn(Command.TURN_LEFT, stepPerSecond);
+            if (!sim) {
+                robot.align_front(exploredMap, realMap);
             senseForExplorationOrImage(doingImage);
             //Turn left second time (complete u-turn), calibrate and capture images
 //            alignAndImageRecBeforeLeftTurn(doingImage);
             robot.turn(Command.TURN_LEFT, stepPerSecond);
             senseForExplorationOrImage(doingImage);
 
-            if (!sim) {
-                robot.align_right(exploredMap, realMap);
+
             }
         }
     }

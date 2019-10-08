@@ -960,6 +960,7 @@ public class Robot {
         }
         return sensorRes;
     }
+
     public void setR1count(int R1count){
         this.R1count = R1count;
     }
@@ -987,13 +988,14 @@ public class Robot {
 //                align_right(exploredMap, realMap);
 //            }
 //
-            if(isRightHuggingWall() && alignCount> RobotConstants.CALIBRATE_AFTER){
+            if(isRightHuggingWall() && (alignCount == RobotConstants.CALIBRATE_AFTER)){
                 align_right(exploredMap, realMap);
                 R1count = 0;
             }
             else if(R1count == 3){
                 align_right(exploredMap, realMap);
             }
+
 //            else if(R2count >= 3){
 //                turn(Command.TURN_LEFT,1);
 //                align_front(exploredMap, realMap);
@@ -1072,6 +1074,8 @@ public class Robot {
             if(R1count == 3){
                 align_right(exploredMap, realMap);
             }
+            //align right after every X no. of forward steps
+
 //            else if(R2count >= 3){
 //                turn(Command.TURN_LEFT,1);
 //                align_front(exploredMap, realMap);
@@ -1121,10 +1125,8 @@ public class Robot {
     public void turnRightAndAlignMethod(Map exploredMap, Map realMap) throws InterruptedException {
         //
 //        turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
-        if((sensorRes.get("F1") == 1 && sensorRes.get("F3") == 1)) {
-            senseWithoutAlign(exploredMap, realMap);
-            align_front(exploredMap, realMap);
-        }
+        senseWithoutAlign(exploredMap, realMap);
+        align_front(exploredMap, realMap);
 //        turn(Command.TURN_LEFT, RobotConstants.STEP_PER_SECOND);
         senseWithoutAlign(exploredMap, realMap);
         align_right(exploredMap, realMap);

@@ -2,6 +2,55 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="488caee9-81d5-485a-bbd5-4e6442a4a240" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/FastestPath.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/FastestPath.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Helper/DisplayTimer.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Helper/DisplayTimer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Helper/PrintManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Helper/PrintManager.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$10.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$10.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$11.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$11.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$12.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$12.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$13.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$13.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$14.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$14.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$15.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$15.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$16.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$16.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$17.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$17.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$18.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$18.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$19.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$19.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$2.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$2.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$3.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$3.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$4.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$4.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$5.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$5.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$6.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$6.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$7.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$7.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$8.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$8.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$9.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$9.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$ExplorationTask.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$ExplorationTask.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$FastTask.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$FastTask.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$ImageTask.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$ImageTask.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/Cell.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/Cell.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/Direction.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/Direction.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/Map$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/Map$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/Map.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/Map.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/MapConstants.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/MapConstants.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/MapDescriptor.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/MapDescriptor.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/ObsSurface.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/ObsSurface.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetMgr.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetMgr.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetworkConstants.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetworkConstants.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Network/RequestHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Network/RequestHandler.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Network/ServerSim.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Network/ServerSim.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command$AndroidMove.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command$AndroidMove.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command$ArduinoMove.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command$ArduinoMove.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/RobotConstants.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/RobotConstants.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/RobotData.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/RobotData.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Sensor$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Sensor$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Sensor.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Sensor.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Algorithm/Exploration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Algorithm/Exploration.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Robot/Robot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Robot/Robot.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Robot/RobotConstants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Robot/RobotConstants.java" afterDir="false" />
@@ -51,7 +100,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Application.SimulatorNew">
+  <component name="RunManager" selected="Application.NetMgr">
     <configuration name="NetMgr" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="Network.NetMgr" />
       <module name="mdp_algo" />
@@ -106,8 +155,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.SimulatorNew" />
         <item itemvalue="Application.NetMgr" />
+        <item itemvalue="Application.SimulatorNew" />
         <item itemvalue="Application.RequestHandler" />
         <item itemvalue="Application.Robot" />
       </list>
@@ -131,7 +180,7 @@
       <workItem from="1570067183672" duration="2726000" />
       <workItem from="1570342534568" duration="8000" />
       <workItem from="1570409769645" duration="14216000" />
-      <workItem from="1570498835161" duration="299000" />
+      <workItem from="1570498835161" duration="13211000" />
     </task>
     <task id="LOCAL-00001" summary="updated sensor position and calibration constants">
       <created>1570000948504</created>
