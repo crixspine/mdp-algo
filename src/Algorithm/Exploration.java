@@ -10,7 +10,6 @@ import Network.NetworkConstants;
 import Robot.Robot;
 import Robot.Command;
 import Robot.RobotConstants;
-import sun.rmi.runtime.Log;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -592,11 +591,8 @@ public class Exploration {
                 robot.align_front(exploredMap, realMap);
             }
             robot.turn(Command.TURN_RIGHT, stepPerSecond);
-
             robot.setR1count(0);
-
             senseForExplorationOrImage(doingImage);
-
             moveForward(RobotConstants.MOVE_STEPS, stepPerSecond, doingImage);
             //Track if robot has turned 360 degrees
             right_move++;
@@ -613,24 +609,18 @@ public class Exploration {
         //Check if can move in left direction
         else if (movable(Direction.getAntiClockwise(robotDir))) {
             //Calibrate and capture image (if doing image recognition)
-            turnRightAndAlignBeforeTurnLeft(doingImage);
+//            turnRightAndAlignBeforeTurnLeft(doingImage);
             //TODO: Is it neccessary to do both
 //            alignAndImageRecBeforeLeftTurn(doingImage);
-
+             if (!sim) {
+                 robot.align_right(exploredMap, realMap);
+                 robot.align_front(exploredMap, realMap);
+             }
             robot.turn(Command.TURN_LEFT, stepPerSecond);
             //Use right sensor to record obstacle surface (turn right only if there is obstacle on robot's right)
             robot.setR1count(0);
 
             senseForExplorationOrImage(doingImage);
-
-            //Align right after turn
-            if (!sim) {
-                int row = robot.getPos().x;
-                int col = robot.getPos().y;
-                if(exploredMap.getCell(row +1,col-1).isObstacle() && exploredMap.getCell(row +1,col+1).isObstacle() ) {
-                    robot.align_right(exploredMap, realMap);
-                }
-            }
 
             moveForward(RobotConstants.MOVE_STEPS, stepPerSecond, doingImage);
             right_move = 0;
@@ -645,7 +635,6 @@ public class Exploration {
 //            alignAndImageRecBeforeLeftTurn(doingImage);
             robot.turn(Command.TURN_LEFT, stepPerSecond);
             senseForExplorationOrImage(doingImage);
-
             //Turn left second time (complete u-turn), calibrate and capture images
 //            alignAndImageRecBeforeLeftTurn(doingImage);
             robot.turn(Command.TURN_LEFT, stepPerSecond);
@@ -666,7 +655,7 @@ public class Exploration {
     private void turnRightAndAlignBeforeTurnLeft(boolean doingImage) throws InterruptedException {
 
         //If right obstacle/wall on right side of robot, real exploration and has not turned and aligned yet
-        if ((robot.getSensorRes().get("R1") == 1 && robot.getSensorRes().get("R2") == 1) &&
+        if ((robot.getSensorRes().get("R1") == 1) &&
                 (!robot.getHasTurnAndAlign()) &&
                 (!sim)) {
             //If doing image recognition, calibrate and capture obstacle surface without updating map
