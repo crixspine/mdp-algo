@@ -2,9 +2,28 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="488caee9-81d5-485a-bbd5-4e6442a4a240" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$18.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$18.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$19.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$19.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$ImageTask.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$ImageTask.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/MapDescriptor.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/MapDescriptor.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command$AndroidMove.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/RobotConstants.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/RobotConstants.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/RobotData.class" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Algorithm/Exploration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Algorithm/Exploration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Main/SimulatorNew.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main/SimulatorNew.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Map/MapDescriptor.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Map/MapDescriptor.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Robot/Command.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Robot/Command.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Robot/Robot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Robot/Robot.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Robot/RobotConstants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Robot/RobotConstants.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Robot/RobotData.java" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -15,7 +34,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="updated-change-sensor-pos" />
+        <entry key="$PROJECT_DIR$" value="updated-sensor-calibration-alignment" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -26,6 +45,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="Git.Branch.Popup.ShowAllRemotes" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
     <property name="node.js.detected.package.eslint" value="true" />

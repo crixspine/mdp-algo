@@ -154,43 +154,7 @@ public class MapDescriptor {
 
     }
 
- /**   public static String generateMDFString(Map map) {
-        StringBuilder MDFcreator = new StringBuilder();
-        StringBuilder temp = new StringBuilder();
-        StringBuilder temp2 = new StringBuilder();
-        StringBuilder temp2Hex = new StringBuilder();
-        temp.append("11");
-        for (int r = 0; r < MapConstants.MAP_HEIGHT; r++) {
-            for (int c = 0; c < MapConstants.MAP_WIDTH; c++) {
-                temp.append(map.getCell(r, c).isExplored() ? '1':'0');
-                //convert to hex every 8 bits to avoid overflow
-                if(map.getCell(r,c).isExplored()){
-                    if(map.getCell(r,c).isObstacle()){
-                        temp2.append('1');
-                    }
-                    else{
-                        temp2.append('0');
-                    }
-                }
-                if(temp.length() == 4) {
-                    MDFcreator.append(biToHex(temp.toString()));
-                    temp.setLength(0);
-                }
-                if (temp2.length() == 4){
-                    temp2Hex.append(biToHex(temp2.toString()));
-                    temp2.setLength(0);
-                }
-            }
-        }
-        // last byte
-        temp.append("11");
-        MDFcreator.append('\n');
-        MDFcreator.append(temp2Hex);
-        MDFcreator.append(biToHex(temp2.toString()));
 
-        return MDFcreator.toString();
-    }
-**/
     //load explored arena in map
     private void loadMDFString1(String MDFstr1, Map map) {
         String expStr = hexToBi(MDFstr1);

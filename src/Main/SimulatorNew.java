@@ -1537,8 +1537,9 @@ public class SimulatorNew extends Application {
             int steps = (int) (stepsSB.getValue());
 
             Exploration explore = new Exploration(exploredMap, map, robot, coverageLimit, timeLimit, steps, sim);
-            explore.imageExploration(new Point(MapConstants.STARTZONE_COL, MapConstants.STARTZONE_COL));
-
+//            TODO: Replace back with imageExploration when done
+//            explore.imageExploration(new Point(MapConstants.STARTZONE_COL, MapConstants.STARTZONE_COL));
+            explore.exploration(new Point(MapConstants.STARTZONE_COL, MapConstants.STARTZONE_COL));
             robot.setStatus("Done exploration\n");
             if (!sim) {
                 robot.send_android(exploredMap);
@@ -1556,9 +1557,13 @@ public class SimulatorNew extends Application {
     }
 
     private void calibrate_and_start_fp() throws InterruptedException {
+        String msg;
         // Caliberation
         // pause for 1s, initially facing down, after calibration, should face up
-        TimeUnit.MILLISECONDS.sleep(1000);
+        TimeUnit.MILLISECONDS.sleep(5000);
+        while(robot.getDir()!= Direction.LEFT){
+            robot.turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
+        }
         String calibrationCmd = robot.getCommand(Command.INITIAL_CALIBRATE, 1);    // steps 1 for consistency
         netMgr.send(NetworkConstants.ARDUINO + calibrationCmd);
 
@@ -1568,14 +1573,29 @@ public class SimulatorNew extends Application {
         // Orient the robot on laptop to face lap as after caliberation, it will face up
         // need to turn after setFindingFP(true) as it will not send command to arduino
         // TODO: Check original code if turn has if (findingfp)
-        robot.turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
-        robot.turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
+//        robot.turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
+
         exploredMap.removeAllPaths();
 
 //        do {
 //            msg = netMgr.receive();
 //        } while (!msg.equals(NetworkConstants.START_FP));
-
+        do {
+            msg = netMgr.receive();
+            LOGGER.info(msg);
+            //{"x":1,"y":1,"waypoint":"true"}
+//             Set wayPoint
+                    if (msg.contains(NetworkConstants.WAY_POINT_KEY)) {
+                        wayPoint = robot.parseWayPointJson(msg);
+                        setWayPoint(wayPoint.y, wayPoint.x);
+                    }
+            //{"x":1,"y":1,"waypoint":"true"}
+            // set startPos
+                    if (msg.contains(NetworkConstants.START_POINT_KEY)) {
+                        startPos = robot.parseStartPointJson(msg);
+                        robot.setStartPos(startPos.y, startPos.x, exploredMap);
+                    }
+        } while(!msg.equals(NetworkConstants.START_FP));
         fastTask = new Thread(new FastTask());
         startedTask = fastTask;
         taskStarted = true;
