@@ -987,7 +987,11 @@ public class Robot {
 //                align_right(exploredMap, realMap);
 //            }
 //
-            if(R1count == 3){
+            if(isRightHuggingWall() && alignCount> RobotConstants.CALIBRATE_AFTER){
+                align_right(exploredMap, realMap);
+                R1count = 0;
+            }
+            else if(R1count == 3){
                 align_right(exploredMap, realMap);
             }
 //            else if(R2count >= 3){
@@ -1117,11 +1121,14 @@ public class Robot {
     public void turnRightAndAlignMethod(Map exploredMap, Map realMap) throws InterruptedException {
         //
 //        turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
-        senseWithoutAlign(exploredMap, realMap);
-        align_front(exploredMap, realMap);
+        if((sensorRes.get("F1") == 1 && sensorRes.get("F3") == 1)) {
+            senseWithoutAlign(exploredMap, realMap);
+            align_front(exploredMap, realMap);
+        }
 //        turn(Command.TURN_LEFT, RobotConstants.STEP_PER_SECOND);
         senseWithoutAlign(exploredMap, realMap);
         align_right(exploredMap, realMap);
+
         hasTurnAndAlign = true;
         turnAndAlignCount = 0;
     }

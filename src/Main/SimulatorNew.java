@@ -1083,6 +1083,12 @@ public class SimulatorNew extends Application {
                 LOGGER.info("Receiving command to start exploration: " + msg);
                 displayTimer.start();
                 // initial sensing
+                String calibrationCmd = robot.getCommand(Command.INITIAL_CALIBRATE, 1);
+                netMgr.send(NetworkConstants.ARDUINO + calibrationCmd);
+                do {
+                    msg = netMgr.receive();
+                    LOGGER.info(msg);
+                } while(!msg.equals(NetworkConstants.START_FP));
                 netMgr.send(NetworkConstants.ARDUINO + robot.getCommand(Command.SEND_SENSORS, RobotConstants.MOVE_STEPS));
 //                netMgr.send(NetworkConstants.ANDROID + )
                 robot.sense(exploredMap, map);
@@ -1192,6 +1198,7 @@ public class SimulatorNew extends Application {
             int steps = (int) (stepsSB.getValue());
 
             Exploration explore = new Exploration(exploredMap, map, robot, coverageLimit, timeLimit, steps, sim);
+
             explore.exploration(new Point(MapConstants.STARTZONE_COL, MapConstants.STARTZONE_COL));
             System.out.println(Thread.currentThread().getName());
             robot.setStatus("Done exploration\n");
@@ -1203,6 +1210,8 @@ public class SimulatorNew extends Application {
 
 
             // Prepare for fastest path and wait for command from arduino
+            //TODO: Check if this triggers fastest path algo when android calls
+            //TODO: Remove duplicate condition test
             if(!sim) {
                 calibrate_and_start_fp();
             }
@@ -1558,9 +1567,14 @@ public class SimulatorNew extends Application {
         robot.setFindingFP(true);
         // Orient the robot on laptop to face lap as after caliberation, it will face up
         // need to turn after setFindingFP(true) as it will not send command to arduino
+        // TODO: Check original code if turn has if (findingfp)
         robot.turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
         robot.turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
         exploredMap.removeAllPaths();
+
+//        do {
+//            msg = netMgr.receive();
+//        } while (!msg.equals(NetworkConstants.START_FP));
 
         fastTask = new Thread(new FastTask());
         startedTask = fastTask;
