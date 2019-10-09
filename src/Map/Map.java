@@ -127,6 +127,7 @@ public class Map {
      * @return true if the cell is valid, explored and not a virtual wall or obstacle
      */
     public boolean checkValidMove(int row, int col) {
+
 //        System.out.println("DEBUG: " + getCell(row, col).isVirtualWall());
         return checkValidCell(row, col) && !getCell(row, col).isVirtualWall() && !getCell(row, col).isObstacle() && getCell(row,col).isExplored();
     }
