@@ -1361,17 +1361,17 @@ public class Robot {
      */
     public boolean isRightHuggingWall() {
         Point R1_pos = sensorMap.get("R1").getPos();
-
-        if (R1_pos.x == 0){
+        Point R2_pos = sensorMap.get("R2").getPos();
+        if (R1_pos.x == 0 && R2_pos.x ==2 ){
             return true;
         }
-        if(R1_pos.x == MapConstants.MAP_WIDTH - 1){
+        if(R1_pos.x == MapConstants.MAP_WIDTH - 1 && R2_pos.x == MapConstants.MAP_WIDTH - 3){
             return true;
         }
-        if(R1_pos.y == 0){
+        if(R1_pos.y == 0 && R2_pos.y == 2){
             return true;
         }
-        return R1_pos.y == MapConstants.MAP_HEIGHT - 1;
+        return (R1_pos.y == MapConstants.MAP_HEIGHT - 1 && R2_pos.y == MapConstants.MAP_HEIGHT- 3);
     }
 
 

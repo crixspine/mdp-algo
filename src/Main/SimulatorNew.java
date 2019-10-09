@@ -1589,9 +1589,7 @@ public class SimulatorNew extends Application {
                         wayPoint = robot.parseWayPointJson(msg);
                         setWayPoint(wayPoint.y, wayPoint.x);
                     }
-            //{"x":1,"y":1,"waypoint":"true"}
-            // set startPos
-                    if (msg.contains(NetworkConstants.START_POINT_KEY)) {
+            if (msg.contains(NetworkConstants.START_POINT_KEY)) {
                         startPos = robot.parseStartPointJson(msg);
                         robot.setStartPos(startPos.y, startPos.x, exploredMap);
                     }
