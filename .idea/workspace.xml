@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="488caee9-81d5-485a-bbd5-4e6442a4a240" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/defaultMap.txt" beforeDir="false" afterPath="$PROJECT_DIR$/defaultMap.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Robot/Robot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Robot/Robot.java" afterDir="false" />
     </list>
@@ -137,7 +136,7 @@
       <workItem from="1570515996495" duration="2510000" />
       <workItem from="1570584352322" duration="8569000" />
       <workItem from="1570602930829" duration="28936000" />
-      <workItem from="1570693011866" duration="27722000" />
+      <workItem from="1570693011866" duration="29806000" />
     </task>
     <task id="LOCAL-00001" summary="updated sensor position and calibration constants">
       <created>1570000948504</created>
@@ -195,7 +194,14 @@
       <option name="project" value="LOCAL" />
       <updated>1570720506582</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="updated condition prior to calling align right, updated logic for L1 sensor to update map">
+      <created>1570725664645</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1570725664645</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
