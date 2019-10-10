@@ -495,11 +495,11 @@ public class Exploration {
                     if (robot.getPos().equals(start)) {
                         goToPoint(start);
                         //Calibrate robot at start point before moving out again
-                        if (!sim) {
-                            robot.turnRightAndAlignMethodWithoutMapUpdate(exploredMap, realMap);
-//                            robot.align_front(exploredMap, realMap);
-//                            robot.align_right(exploredMap, realMap);
-                        }
+//                        if (!sim) {
+////                            robot.turnRightAndAlignMethodWithoutMapUpdate(exploredMap, realMap);
+////                            robot.align_front(exploredMap, realMap);
+////                            robot.align_right(exploredMap, realMap);
+//                        }
                     }
                     prevArea = areaExplored;
                     //If cannot move to nearest unexplored cell, break

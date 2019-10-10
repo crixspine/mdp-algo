@@ -1340,8 +1340,27 @@ public class Robot {
             senseWithoutAlign(exploredMap, realMap);
             turnAndAlignCount = 0;
         }
+        else{
+            align_front1(exploredMap,realMap);
+        }
 
     }
+    /**
+     * Calibrate robot's direction using one of front sensors
+     * @param exploredMap Map of explored part of the arena
+     * @param realMap Map of obstacles in arena
+     */
+    public void align_front1(Map exploredMap, Map realMap) {
+        //Robot directly in front of obstacle/wall
+            // Send align front command to Arduino
+            String cmdStr = getCommand(Command.ALIGN_FRONT1, 1);  // steps set to 0 to avoid appending to cmd
+
+            NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
+            status = "Aligning Front 1\n";
+            LOGGER.info(status);
+            senseWithoutAlign(exploredMap, realMap);
+            turnAndAlignCount = 0;
+        }
 
     /**
      * Calibrate robot's direction using right sensors
