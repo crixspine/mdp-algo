@@ -1185,6 +1185,7 @@ public class Robot {
                             if (j == obsBlock && !exploredMap.getCell(tempRow, tempCol).isMoveThru()) {
                                 if (!sim) {
                                     int tempRow1, tempCol1;
+                                    exploredMap.getCell(tempRow,tempCol).setExplored(true);
                                     exploredMap.getCell(tempRow, tempCol).setObstacle(true);
                                     for (int i = 1; i < obsBlock; i++) {
                                         tempRow1 = s.getRow() + rowInc * i;
