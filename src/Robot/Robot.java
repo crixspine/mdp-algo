@@ -296,7 +296,7 @@ public class Robot {
      */
 
     private boolean isRealExploration(){
-        return (!this.sim && !this.findingFP);
+        return (!this.sim);
     }
 
 
@@ -1340,9 +1340,9 @@ public class Robot {
             senseWithoutAlign(exploredMap, realMap);
             turnAndAlignCount = 0;
         }
-        else{
-            align_front1(exploredMap,realMap);
-        }
+//        else{
+//            align_front1(exploredMap,realMap);
+//        }
 
     }
     /**

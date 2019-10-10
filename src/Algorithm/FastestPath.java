@@ -59,24 +59,18 @@ public class FastestPath {
         openList.add(curCell);
         Direction curDir = initDir;
 
-        System.out.println("Inside astar 1");
         while (!openList.isEmpty()) { //while there are cells not yet visited
-            System.out.println("Inside astar 2");
             curCell = getMinCostCell(openList, goal); //get cell with lowest cost in open list
             if (pathMap.containsKey(curCell)) {
-                System.out.println("Inside astar 3");
                 curDir = exploredMap.getCellDir(pathMap.get(curCell).getPos(), curCell.getPos());
             }
-            System.out.println("Inside astar 4");
             closedList.add(curCell);
             openList.remove(curCell);
-            System.out.println("Inside astar 5");
             if (closedList.contains(exploredMap.getCell(goal))) { //if goal is reached
                 LOGGER.info("Fastest path found");
                 return getPath(start, goal);
             }
             else {
-                System.out.println("Inside astar 6");
                 neighbours = exploredMap.getNeighbours(curCell);
                 for (Cell n: neighbours) {
                     if (closedList.contains(n)) { //if neighbour already visited, ignore

@@ -13,11 +13,15 @@
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$FastTask.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$FastTask.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$ImageTask.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$ImageTask.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetworkConstants.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetworkConstants.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Network/RequestHandler.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Network/RequestHandler.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command$ArduinoMove.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command$ArduinoMove.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Command.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Algorithm/Exploration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Algorithm/Exploration.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Algorithm/FastestPath.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Algorithm/FastestPath.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Main/SimulatorNew.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main/SimulatorNew.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Robot/Command.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Robot/Command.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Network/NetworkConstants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Network/NetworkConstants.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Robot/Robot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Robot/Robot.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -150,7 +154,7 @@
       <workItem from="1570515996495" duration="2510000" />
       <workItem from="1570584352322" duration="8569000" />
       <workItem from="1570602930829" duration="28936000" />
-      <workItem from="1570693011866" duration="6740000" />
+      <workItem from="1570693011866" duration="23605000" />
     </task>
     <task id="LOCAL-00001" summary="updated sensor position and calibration constants">
       <created>1570000948504</created>
@@ -194,7 +198,14 @@
       <option name="project" value="LOCAL" />
       <updated>1570677137642</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="updated condition prior to calling align right, updated logic for L1 sensor to update map">
+      <created>1570700460961</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1570700460961</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

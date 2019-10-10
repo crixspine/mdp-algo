@@ -1070,17 +1070,19 @@ public class SimulatorNew extends Application {
                 do {
                     msg = netMgr.receive();
                     LOGGER.info(msg);
-                    // set wayPoint
-//                    if (msg.contains(NetworkConstants.WAY_POINT_KEY)) {
-//                        wayPoint = robot.parseWayPointJson(msg);
-//                        setWayPoint(wayPoint.y, wayPoint.x);
-//                    }
+//                     set wayPoint
+                    if (msg.contains(NetworkConstants.WAY_POINT_KEY)) {
+                        LOGGER.info("waypoint set");
+                        wayPoint = robot.parseWayPointJson(msg);
+                        setWayPoint(wayPoint.y, wayPoint.x);
+                    }
                     // set startPos 
 //                    if (msg.contains(NetworkConstants.START_POINT_KEY)) {
 //                        startPos = robot.parseStartPointJson(msg);
-                    robot.setStartPos(1, 1, exploredMap); //change if start pos changes
+                     //change if start pos changes
+                    robot.setStartPos(1, 1, exploredMap);
                 } while(!msg.equals(NetworkConstants.START_EXP));
-                LOGGER.info("Receiving command to start exploration: " + msg);
+                                LOGGER.info("Receiving command to start exploration: " + msg);
                 displayTimer.start();
                 // initial sensing
                 String calibrationCmd = robot.getCommand(Command.INITIAL_CALIBRATE, 1);
@@ -1088,7 +1090,7 @@ public class SimulatorNew extends Application {
                 do {
                     msg = netMgr.receive();
                     LOGGER.info(msg);
-                } while(!msg.equals(NetworkConstants.START_FP));
+                } while(!msg.equals("F"));
                 netMgr.send(NetworkConstants.ARDUINO + robot.getCommand(Command.SEND_SENSORS, RobotConstants.MOVE_STEPS));
 //                netMgr.send(NetworkConstants.ANDROID + )
                 robot.sense(exploredMap, map);
@@ -1248,7 +1250,8 @@ public class SimulatorNew extends Application {
 //    }
 
 
-    class FastTask extends Task<Integer> {
+    class
+    FastTask extends Task<Integer> {
 
         public String getFastTaskCmd(ArrayList<Command> commands) {
             System.out.println("getFastTaskCmd");
@@ -1313,25 +1316,25 @@ public class SimulatorNew extends Application {
             FastestPath fp = new FastestPath(exploredMap, robot, sim);
             ArrayList<Cell> path;
 
-            if(!sim) {
-                System.out.println("waiting for msg");
-                // waiting for the fastest path command
-                String msg;
-                do {
-                    msg = netMgr.receive();
-                    if (msg.contains(NetworkConstants.WAY_POINT_KEY)) {
-                        LOGGER.info("msg");
-                        wayPoint = robot.parseWayPointJson(msg);
-                        setWayPoint(wayPoint.y, wayPoint.x);
-                    }
-                } while (!msg.equals(NetworkConstants.START_FP));
-
-                LOGGER.info("Receiving command to start fastest path: " + msg);
-                System.out.println(Thread.currentThread().getName());
-                robot.setFindingFP(true);
-                displayTimer.initialize();
-                displayTimer.start();
-            }
+//            if(!sim) {
+//                System.out.println("waiting for msg");
+//                // waiting for the fastest path command
+//                String msg;
+//                do {
+//                    msg = netMgr.receive();
+//                    if (msg.contains(NetworkConstants.WAY_POINT_KEY)) {
+//                        LOGGER.info("msg");
+//                        wayPoint = robot.parseWayPointJson(msg);
+//                        setWayPoint(wayPoint.y, wayPoint.x);
+//                    }
+//                } while (!msg.equals(NetworkConstants.START_FP));
+//
+//                LOGGER.info("Receiving command to start fastest path: " + msg);
+//                System.out.println(Thread.currentThread().getName());
+//                robot.setFindingFP(true);
+//                displayTimer.initialize();
+//                displayTimer.start();
+//            }
 
             System.out.println("going to run astar");
             System.out.println("Robot position x:" + robot.getPos().x + "y: " +robot.getPos().y + "waypoint: "+ wayPoint.x + "," + wayPoint.y);
@@ -1346,20 +1349,20 @@ public class SimulatorNew extends Application {
 
             // execute the first command if it is turning
             Command firstCmd = commands.get(0);
-            if (firstCmd == Command.TURN_RIGHT) {
+            if (firstCmd == Command.TURN_LEFT) {
                 robot.turn(firstCmd, RobotConstants.STEP_PER_SECOND);
 
                 if (!sim) {
-                    //TODO: Can remove this, as findingFP check not in our command
-                    // send separate msg to arduino as findingFP == true, no command is sent to arduino
-                    String turnRightCmdStr = robot.getCommand(Command.TURN_RIGHT, 1);
-                    netMgr.send(NetworkConstants.ARDUINO + turnRightCmdStr);
+//                    //TODO: Can remove this, as findingFP check not in our command
+//                    // send separate msg to arduino as findingFP == true, no command is sent to arduino
+//                    String turnRightCmdStr = robot.getCommand(Command.TURN_RIGHT, 1);
+//                    netMgr.send(NetworkConstants.ARDUINO + turnRightCmdStr);
                     netMgr.receive();   // to flush out sensor reading
 
                     // send align right
-                    String alignRightCmdStr = robot.getCommand(Command.ALIGN_RIGHT, 3);   // align index is 3 for turn right
-                    netMgr.send(NetworkConstants.ARDUINO + alignRightCmdStr);
-                    netMgr.receive();   // to flush out sensor reading
+//                    String alignRightCmdStr = robot.getCommand(Command.ALIGN_RIGHT, 3);   // align index is 3 for turn right
+//                    netMgr.send(NetworkConstants.ARDUINO + alignRightCmdStr);
+//                    netMgr.receive();   // to flush out sensor reading
                 }
                 //Remove executed command from commands ArrayList
                 commands.remove(0);
@@ -1371,15 +1374,32 @@ public class SimulatorNew extends Application {
 
             robot.setStatus("Ready to start fastest path. Waiting for command.\n");
             LOGGER.info(robot.getStatus());
+
+            if(!sim) {
+                System.out.println("waiting for msg");
+                // waiting for the fastest path command
+                String msg;
+                do {
+                    msg = netMgr.receive();
+                } while (!msg.equals(NetworkConstants.START_FP));
+
+                LOGGER.info("Receiving command to start fastest path: " + msg);
+                System.out.println(Thread.currentThread().getName());
+                robot.setFindingFP(true);
+                displayTimer.initialize();
+                displayTimer.start();
+            }
+
+
             // TODO: do not send due to MDF - for dummy rpi debugging
 //            robot.send_android();
 
             // send align right dummy requested by arduino
             String alignRightDummy = robot.getCommand(Command.ALIGN_RIGHT, 1);   // align index is 3 for turn right
 
-            if (!sim) {
-                netMgr.send(NetworkConstants.ARDUINO + alignRightDummy + cmd);
-            }
+//            if (!sim) {
+//                netMgr.send(NetworkConstants.ARDUINO + alignRightDummy + cmd);
+//            }
             String[] cmdStr = cmd.split("\\|");
 
             int steps = (int) stepsSB.getValue();
@@ -1387,6 +1407,7 @@ public class SimulatorNew extends Application {
             int move;
             for (String c: cmdStr) {
                 firstChar = c.charAt(0);
+//                move = Character.getNumericValue(c.charAt(1));
                 System.out.println(firstChar);
                 if (c.length() > 1) {
                     move = Integer.parseInt(c.substring(1));
@@ -1492,7 +1513,7 @@ public class SimulatorNew extends Application {
         String calibrationCmd = robot.getCommand(Command.INITIAL_CALIBRATE, 1);    // steps 1 for consistency
         netMgr.send(NetworkConstants.ARDUINO + calibrationCmd);
         System.out.println("im here!");
-
+        robot.setDir(Direction.RIGHT);
 
         expMapDraw = true;
         robot.setFindingFP(true);
