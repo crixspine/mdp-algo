@@ -460,6 +460,8 @@ public class Exploration {
         areaExplored = exploredMap.getExploredPercentage();
         startTime = System.currentTimeMillis();
         endTime = startTime + timeLimit;
+
+        boolean exploreMore = false;
         double prevArea;
         int moves = 1;
         int checkingStep = RobotConstants.CHECKSTEPS;
@@ -473,6 +475,10 @@ public class Exploration {
             try {
                 System.out.println("Right wall hug");
                 rightWallHug(false);
+                if(robot.getPos().x == 1 && robot.getPos().y == 1){
+                    exploreMore = true;
+                    areaExplored = exploredMap.getExploredPercentage();
+                }
 
             } catch (InterruptedException e1) {
                 // TODO Auto-generated catch block
@@ -489,6 +495,14 @@ public class Exploration {
 
             //Prevent endless loop of moving right and forward in "cage-like" obstacle or no progression in
             //TODO: Change back if required
+            if(exploreMore && areaExplored < coverageLimit){
+                LOGGER.info("ran explore more");
+                robot.setStatus("Exploring more");
+                while(areaExplored < coverageLimit){
+                    goToUnexplored2();
+                    areaExplored = exploredMap.getExploredPercentage();
+                }
+            }
             if (moves % checkingStep == 0 || right_move > 3 || (robot.getPos().distance(start)==0 && areaExplored < 100.00)) {
                 do{
                     //Go back to start point
@@ -528,6 +542,27 @@ public class Exploration {
         return total_in_seconds;
     }
 
+    private boolean goToUnexplored2() throws InterruptedException {
+        robot.setStatus("Go to nearest unexplored\n");
+        LOGGER.info(robot.getStatus());
+
+
+        Cell nearestUnexplored = exploredMap.nearestUnexplored(robot.getPos());
+        LOGGER.info("Nearest unexplored: " + nearestUnexplored);
+
+
+        Cell nearestExp = exploredMap.nearestExplored(nearestUnexplored.getPos(), robot.getPos());
+        LOGGER.info("Nearest explored: " + nearestExp);
+        if (nearestExp == null) {
+            LOGGER.info("No nearest unexplored found.");
+            return false;
+        }
+        else {
+            robot.setStatus("Go to nearest explored " + nearestExp.getPos().toString() + "\n");
+            LOGGER.info("Go to " + nearestExp.toString());
+            return goToPoint2(nearestExp.getPos());
+        }
+    }
 
     /**
      * Robot move to nearest unexplored cell
@@ -541,6 +576,7 @@ public class Exploration {
 
         Cell nearestUnexplored = exploredMap.nearestUnexplored(robot.getPos());
         LOGGER.info("Nearest unexplored: " + nearestUnexplored);
+
         Cell nearestExp = exploredMap.nearestExplored(nearestUnexplored.getPos(), robot.getPos());
         LOGGER.info("Nearest explored: " + nearestExp);
         if (nearestExp == null) {
@@ -1008,6 +1044,46 @@ public class Exploration {
                 if (exploredMap.getExploredPercentage() < 100 && movable(Direction.getClockwise(robot.getDir()))) {
                     continueExplorationUponNearestUnexplored();
                 }
+            }
+
+            //Return to start position
+            else {
+                executeCommandsMoveToStartPoint(commands, loc);
+            }
+            //TODO: Might have problems when returning true/false from recursion call
+        }
+        //Robot successfully reached target location; return true
+        return true;
+    }
+
+    /**
+     * Moves the robot to a specific point in the arena
+     * @param loc Coordinates of the point intended for robot to move to
+     * @return True if movement is successful, false otherwise
+     * @throws InterruptedException Will throw exception if parameter is null
+     */
+    private boolean goToPoint2(Point loc) throws InterruptedException {
+        robot.setStatus("Go to point: " + loc.toString());
+        LOGGER.info(robot.getStatus());
+        if (!robotAndTargetAtStartPos(loc)) {
+
+            ArrayList<Command> commands;
+            ArrayList<Cell> path;
+            FastestPath fp = new FastestPath(exploredMap, robot, sim);
+            //Run aStar algorithm for robot to reach target location
+            path = fp.runAStar(robot.getPos(), loc, robot.getDir());
+            //Return false if no viable path from robot's current position to target location
+            if (path == null)
+                return false;
+            fp.displayFastestPath(path, true);
+            commands = fp.getPathCommands(path);
+            System.out.println("Exploration Fastest Commands: " + commands);
+
+            //Not moving back to start single moves
+            if (!loc.equals(start)) {
+                executeCommandsMoveToTarget(commands, loc);
+                //Sense environment after movement
+                //If robot moved to nearest unexplored area and still not finished exploration; find nearest virtual wall and continue exploration
             }
 
             //Return to start position

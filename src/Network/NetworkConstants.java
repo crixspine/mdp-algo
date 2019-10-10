@@ -8,7 +8,7 @@ public class NetworkConstants {
 
     // msg related
     public static final String START_EXP = "E";
-    public static final String START_FP = "F";
+    public static final String START_FP = "Z";
     public static final String START_CHECKLIST = "checklist";
 
     public static final String ANDROID = "B";
