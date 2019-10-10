@@ -1200,6 +1200,7 @@ public class SimulatorNew extends Application {
 
             explore.exploration(new Point(MapConstants.STARTZONE_COL, MapConstants.STARTZONE_COL));
             System.out.println(Thread.currentThread().getName());
+
             robot.setStatus("Done exploration\n");
 
             if (!sim) {
@@ -1250,6 +1251,7 @@ public class SimulatorNew extends Application {
     class FastTask extends Task<Integer> {
 
         public String getFastTaskCmd(ArrayList<Command> commands) {
+            System.out.println("getFastTaskCmd");
             Command tempCmd;
             int moves = 0;
             StringBuilder cmdBuilder = new StringBuilder();
@@ -1300,24 +1302,46 @@ public class SimulatorNew extends Application {
         }
 
 
+
         @Override
         protected Integer call() throws Exception {
+            System.out.println("fast task - call");
 
-            // calculate the path and make the first turn (if any) first during the 1min interval to save time
+            // Calculate the path and make the first turn (if any) first during the 1min interval to save time
             double startT = System.currentTimeMillis();
             double endT = 0;
             FastestPath fp = new FastestPath(exploredMap, robot, sim);
             ArrayList<Cell> path;
-//			if (wayPoint.distance(MapConstants.GOALZONE) != 0) {
+
+            if(!sim) {
+                System.out.println("waiting for msg");
+                // waiting for the fastest path command
+                String msg;
+                do {
+                    msg = netMgr.receive();
+                    if (msg.contains(NetworkConstants.WAY_POINT_KEY)) {
+                        LOGGER.info("msg");
+                        wayPoint = robot.parseWayPointJson(msg);
+                        setWayPoint(wayPoint.y, wayPoint.x);
+                    }
+                } while (!msg.equals(NetworkConstants.START_FP));
+
+                LOGGER.info("Receiving command to start fastest path: " + msg);
+                System.out.println(Thread.currentThread().getName());
+                robot.setFindingFP(true);
+                displayTimer.initialize();
+                displayTimer.start();
+            }
+
+            System.out.println("going to run astar");
+            System.out.println("Robot position x:" + robot.getPos().x + "y: " +robot.getPos().y + "waypoint: "+ wayPoint.x + "," + wayPoint.y);
             path = fp.runAStar(new Point(robot.getPos().x, robot.getPos().y), wayPoint, robot.getDir());
+            System.out.println("finish running astar");
             path.addAll(fp.runAStar(wayPoint, new Point(MapConstants.GOALZONE_COL, MapConstants.GOALZONE_ROW), robot.getDir()));
-//			} else
-//				path = fp.run(new Point(robot.getPos().x, robot.getPos().y), MapConstants.GOALZONE,
-//						robot.getDir());
 
             fp.displayFastestPath(path, true);
 
-            // TODO: check to send one single command or one by one
+            // TODO: Check to send one single command or one by one
             ArrayList<Command> commands = fp.getPathCommands(path);
 
             // execute the first command if it is turning
@@ -1326,9 +1350,10 @@ public class SimulatorNew extends Application {
                 robot.turn(firstCmd, RobotConstants.STEP_PER_SECOND);
 
                 if (!sim) {
+                    //TODO: Can remove this, as findingFP check not in our command
                     // send separate msg to arduino as findingFP == true, no command is sent to arduino
-                    String turnRigntCmdStr = robot.getCommand(Command.TURN_RIGHT, 1);
-                    netMgr.send(NetworkConstants.ARDUINO + turnRigntCmdStr);
+                    String turnRightCmdStr = robot.getCommand(Command.TURN_RIGHT, 1);
+                    netMgr.send(NetworkConstants.ARDUINO + turnRightCmdStr);
                     netMgr.receive();   // to flush out sensor reading
 
                     // send align right
@@ -1336,10 +1361,11 @@ public class SimulatorNew extends Application {
                     netMgr.send(NetworkConstants.ARDUINO + alignRightCmdStr);
                     netMgr.receive();   // to flush out sensor reading
                 }
-                // remove it from commands ArrayList
+                //Remove executed command from commands ArrayList
                 commands.remove(0);
             }
 
+            // Get commands to execute fastest path in String format
             String cmd = getFastTaskCmd(commands);
             LOGGER.info("Checking FPCmdString: " + cmd);
 
@@ -1350,19 +1376,6 @@ public class SimulatorNew extends Application {
 
             // send align right dummy requested by arduino
             String alignRightDummy = robot.getCommand(Command.ALIGN_RIGHT, 1);   // align index is 3 for turn right
-
-            if(!sim) {
-                // waiting for the fastest path command
-                String msg;
-                do {
-                    msg = netMgr.receive();
-                } while (!msg.equals(NetworkConstants.START_FP));
-                LOGGER.info("Receiving command to start fastest path: " + msg);
-                System.out.println(Thread.currentThread().getName());
-                robot.setFindingFP(true);
-                displayTimer.initialize();
-                displayTimer.start();
-            }
 
             if (!sim) {
                 netMgr.send(NetworkConstants.ARDUINO + alignRightDummy + cmd);
@@ -1424,100 +1437,11 @@ public class SimulatorNew extends Application {
                             robot.send_android(exploredMap);
                             // flush 3 sensor reading: align_front, turn, align_right
                             netMgr.receive();
-//                            netMgr.receive();
-//                            netMgr.receive();
                         }
                         break;
                 }
 
             }
-            /*
-            Command c = null;
-            int moves = 0;
-            for (int i = 0; i < commands.size(); i++) {
-
-                c = commands.get(i);
-//				System.out.println("c:"+commands.get(i)+" Condition:"+(commands.get(i)==Command.FORWARD|| commands.get(i) == Command.BACKWARD));
-//				System.out.println("index: "+i+" condition: "+(i==(commands.size()-1)));
-                if (c == Command.FORWARD && moves<9) {
-                    // System.out.println("moves "+moves);
-                    moves++;
-                    // If last command
-                    if (i == (commands.size() - 1)) {
-                        if (sim) {
-                            robot.move(c, moves, exploredMap, steps);
-                        }
-                        else {
-                            robot.move(c, moves, exploredMap, RobotConstants.STEP_PER_SECOND);
-                            netMgr.receive();
-                            // TODO send to android
-                            //robot.sense(exploredMap, Map);
-                        }
-                    }
-                }
-                else {
-
-                    if (moves > 0) {
-                        System.out.println("Moving Forwards "+moves+" steps.");
-                        if (sim) {
-                            robot.move(Command.FORWARD, moves, exploredMap, steps);
-                        }
-                        else {
-                            robot.move(Command.FORWARD, moves, exploredMap, RobotConstants.STEP_PER_SECOND);
-                            netMgr.receive();
-                        }
-
-//						robot.sense(exploredMap, Map);
-//                        if (sim) {
-//                            try {
-//                                TimeUnit.MILLISECONDS.sleep(RobotConstants.WAIT_TIME * moves / steps);
-//                            } catch (InterruptedException e) {
-//                                e.printStackTrace();
-//                            }
-//
-//                        }
-                    }
-
-                    if(c == Command.TURN_RIGHT || c == Command.TURN_LEFT) {
-                        if (sim) {
-                            robot.turn(c, steps);
-                        }
-                        else {
-                            robot.turn(c, RobotConstants.STEP_PER_SECOND);
-                            netMgr.receive();
-                        }
-                    }
-                    else {
-                        if (sim) {
-                            robot.move(c, RobotConstants.MOVE_STEPS, exploredMap, steps);
-
-                        }
-                        else {
-                            robot.move(c, RobotConstants.MOVE_STEPS, exploredMap, RobotConstants.STEP_PER_SECOND);
-                            netMgr.receive();
-                        }
-                    }
-
-//					robot.sense(exploredMap, Map);
-                    moves = 0;
-                }
-//                if (sim) {
-//                    try {
-//                        TimeUnit.MILLISECONDS.sleep(RobotConstants.WAIT_TIME / steps);
-//                    } catch (InterruptedException e) {
-//                        e.printStackTrace();
-//                    }
-//
-//                }
-            } // endfor
-*/
-
-
-//            if (!sim) {
-//                // TODO: check format
-//                netMgr.send("Alg|Ard|"+Command.ALIGN_FRONT.ordinal()+"|");
-//                netMgr.send("Alg|And|" + Command.ENDFAST+"|");
-//            }
             endT = System.currentTimeMillis();
             int seconds = (int)((endT - startT)/1000%60);
             int minutes = (int)((endT - startT)/1000/60);
@@ -1559,8 +1483,8 @@ public class SimulatorNew extends Application {
 
     private void calibrate_and_start_fp() throws InterruptedException {
         String msg;
-        // Caliberation
-        // pause for 1s, initially facing down, after calibration, should face up
+        // Calibration
+        // pause for 5s, initially facing down, after calibration, should face up
         TimeUnit.MILLISECONDS.sleep(5000);
         while(robot.getDir()!= Direction.LEFT){
             robot.turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
@@ -1583,22 +1507,26 @@ public class SimulatorNew extends Application {
 //        do {
 //            msg = netMgr.receive();
 //        } while (!msg.equals(NetworkConstants.START_FP));
-        do {
-            System.out.println("im here!3");
-            msg = netMgr.receive();
-            LOGGER.info(msg);
-            //{"x":1,"y":1,"waypoint":"true"}
-//             Set wayPoint
-            if (msg.contains(NetworkConstants.WAY_POINT_KEY)) {
-                wayPoint = robot.parseWayPointJson(msg);
-                setWayPoint(wayPoint.y, wayPoint.x);
-            }
-            if (msg.contains(NetworkConstants.START_POINT_KEY)) {
-                        startPos = robot.parseStartPointJson(msg);
-                        robot.setStartPos(startPos.y, startPos.x, exploredMap);
-                    }
-        } while(!msg.equals(NetworkConstants.START_FP));
-        //Doesn't work
+//        do {
+//            System.out.println("im here!3");
+//            msg = netMgr.receive();
+//            LOGGER.info(msg);
+//            //{"x":1,"y":1,"waypoint":"true"}
+////             Set wayPoint
+//            if (msg.contains(NetworkConstants.WAY_POINT_KEY)) {
+//                LOGGER.info("msg");
+//                wayPoint = robot.parseWayPointJson(msg);
+//                setWayPoint(wayPoint.y, wayPoint.x);
+//
+//            }
+//            if (msg.contains(NetworkConstants.START_POINT_KEY)) {
+//                        LOGGER.info("msg");
+//                        startPos = robot.parseStartPointJson(msg);
+//                        robot.setStartPos(startPos.y, startPos.x, exploredMap);
+//                    }
+//        } while(!msg.equals(NetworkConstants.START_FP));
+//        setWayPoint(5,5);
+        System.out.println("im here!4");
         fastTask = new Thread(new FastTask());
         startedTask = fastTask;
         taskStarted = true;
