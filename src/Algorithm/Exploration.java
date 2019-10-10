@@ -489,7 +489,7 @@ public class Exploration {
 
             //Prevent endless loop of moving right and forward in "cage-like" obstacle or no progression in
             //TODO: Change back if required
-            if (moves % checkingStep == 0 || right_move > 7 || (robot.getPos().distance(start)==0 && areaExplored < 100.00)) {
+            if (moves % checkingStep == 0 || right_move > 3 || (robot.getPos().distance(start)==0 && areaExplored < 100.00)) {
                 do{
                     //Go back to start point
                     if (robot.getPos().equals(start)) {
@@ -580,55 +580,40 @@ public class Exploration {
      * @throws InterruptedException Will throw exception if parameter is null
      */
     private void rightWallHug(boolean doingImage) throws InterruptedException {
-        LOGGER.info("rightWallHug");
         //ArrayList<ObsSurface> surfTaken;
         Direction robotDir = robot.getDir();
         //Check if right movement is possible
         if (movable(Direction.getClockwise(robotDir))) {
-            LOGGER.info("right wall hug right");
-            //Calibration for real run
             if (!sim) {
                 robot.align_front(exploredMap, realMap);
             }
             robot.turn(Command.TURN_RIGHT, stepPerSecond);
             robot.setR1count(0);
             //TODO: Revert back when doing image
-//            senseForExplorationOrImage(doingImage);
             robot.sense(exploredMap,realMap);
             moveForward(RobotConstants.MOVE_STEPS, stepPerSecond, doingImage);
-            //Track if robot has turned 360 degrees
             right_move++;
         }
         //Check if forward movement is possible
         else if (movable(robotDir)) {
-            LOGGER.info("right wall hug forward");
-
             robot.move(Command.FORWARD, RobotConstants.MOVE_STEPS, exploredMap, stepPerSecond);
             //TODO: Revert back when doing image
-//            senseForExplorationOrImage(doingImage);
             robot.sense(exploredMap,realMap);
-            //Reset
             right_move = 0;
         }
 
         //Check if can move in left direction
         else if (movable(Direction.getAntiClockwise(robotDir))) {
-            LOGGER.info("right wall hug left");
-            //Calibrate and capture image (if doing image recognition)
-//            turnRightAndAlignBeforeTurnLeft(doingImage);
-//            alignAndImageRecBeforeLeftTurn(doingImage);
              if (!sim) {
                  //TODO: If Arduino don't do checks, use explored map to see if can align right
                  if(backRightCellisObstacleOrWall()) {
-                     robot.align_right(exploredMap, realMap);
+                    robot.align_right(exploredMap, realMap);
                  }
                  robot.align_front(exploredMap, realMap);
              }
             robot.turn(Command.TURN_LEFT, stepPerSecond);
-            //Use right sensor to record obstacle surface (turn right only if there is obstacle on robot's right)
             robot.setR1count(0);
             //TODO: Revert back when doing image
-//            senseForExplorationOrImage(doingImage);
             robot.sense(exploredMap,realMap);
 
             moveForward(RobotConstants.MOVE_STEPS, stepPerSecond, doingImage);
@@ -638,38 +623,53 @@ public class Exploration {
 
         //If all fails, u-turn
         else {
-            LOGGER.info("right wall hug u-turn");
             if (!sim) {
                 //TODO: If Arduino don't do checks, use explored map to see if can align right
                 robot.align_front(exploredMap, realMap);
             }
-//            turnRightAndAlignBeforeTurnLeft(doingImage);
-            //Turn left first time, calibrate and capture images
-//            alignAndImageRecBeforeLeftTurn(doingImage);
             robot.turn(Command.TURN_LEFT, stepPerSecond);
             //TODO: Revert back when doing image
-//            senseForExplorationOrImage(doingImage);
             robot.sense(exploredMap,realMap);
 
             if (!sim) {
-                //TODO: If Arduino don't do checks, use explored map to see if can align right
                 robot.align_front(exploredMap, realMap);
             }
-            //Turn left second time (complete u-turn), calibrate and capture images
-//            alignAndImageRecBeforeLeftTurn(doingImage);
             robot.turn(Command.TURN_LEFT, stepPerSecond);
             //TODO: Revert back when doing image
-//            senseForExplorationOrImage(doingImage);
             robot.sense(exploredMap,realMap);
 
         }
     }
     private boolean backRightCellisObstacleOrWall(){
-        if(!exploredMap.checkValidCell(robot.getPos().x - 1, robot.getPos().y -1)){
-            return true;
+        int rowDiff=0, colDiff=0;
+        switch(robot.getDir()){
+            case UP: {
+                //colDiff is x
+                //rowDiff is y
+                rowDiff = -1;
+                colDiff = 2;
+                break;
+            }
+            case RIGHT:{
+                rowDiff = -2;
+                colDiff = -1;
+                break;
+            }
+            case LEFT:{
+                rowDiff = 2;
+                colDiff = 1;
+                break;
+            }
+            case DOWN:{
+                rowDiff = 1;
+                colDiff = -2;
+                break;
+            }
         }
-        Cell rightBackCell = exploredMap.getCell(robot.getPos().x - 1, robot.getPos().y -1);
-        return rightBackCell.isObstacle();
+        if(exploredMap.checkValidCell((robot.getPos().x+colDiff),(robot.getPos().y+rowDiff))){
+            return exploredMap.getCell((robot.getPos().x+colDiff),(robot.getPos().y+rowDiff)).isObstacle();
+        }
+        return robot.isRightHuggingWall();
     }
 
     /**

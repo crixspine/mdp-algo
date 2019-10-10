@@ -1119,7 +1119,6 @@ public class SimulatorNew extends Application {
                         if(sim) {
                             displayTimer.start();
                         }
-                        System.out.println("Waddup exploration complete");
                         break;
 
                     case FASTEST_PATH:
@@ -1212,12 +1211,14 @@ public class SimulatorNew extends Application {
             // Prepare for fastest path and wait for command from arduino
             //TODO: Check if this triggers fastest path algo when android calls
             //TODO: Remove duplicate condition test
+            System.out.println("Map Descriptor String 1: " + MapDescriptor.generateMDFString1(exploredMap));
+            System.out.println("Map Descriptor String 2: " + MapDescriptor.generateMDFString2(exploredMap));
+
             if(!sim) {
                 calibrate_and_start_fp();
             }
 
-            System.out.println("Map Descriptor String 1: " + MapDescriptor.generateMDFString1(exploredMap));
-            System.out.println("Map Descriptor String 2: " + MapDescriptor.generateMDFString2(exploredMap));
+
 
             return 1;
         }
@@ -1566,6 +1567,7 @@ public class SimulatorNew extends Application {
         }
         String calibrationCmd = robot.getCommand(Command.INITIAL_CALIBRATE, 1);    // steps 1 for consistency
         netMgr.send(NetworkConstants.ARDUINO + calibrationCmd);
+        System.out.println("im here!");
 
 
         expMapDraw = true;
@@ -1575,25 +1577,28 @@ public class SimulatorNew extends Application {
         // TODO: Check original code if turn has if (findingfp)
 //        robot.turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
 
+        System.out.println("im here!2");
         exploredMap.removeAllPaths();
 
 //        do {
 //            msg = netMgr.receive();
 //        } while (!msg.equals(NetworkConstants.START_FP));
         do {
+            System.out.println("im here!3");
             msg = netMgr.receive();
             LOGGER.info(msg);
             //{"x":1,"y":1,"waypoint":"true"}
 //             Set wayPoint
-                    if (msg.contains(NetworkConstants.WAY_POINT_KEY)) {
-                        wayPoint = robot.parseWayPointJson(msg);
-                        setWayPoint(wayPoint.y, wayPoint.x);
-                    }
+            if (msg.contains(NetworkConstants.WAY_POINT_KEY)) {
+                wayPoint = robot.parseWayPointJson(msg);
+                setWayPoint(wayPoint.y, wayPoint.x);
+            }
             if (msg.contains(NetworkConstants.START_POINT_KEY)) {
                         startPos = robot.parseStartPointJson(msg);
                         robot.setStartPos(startPos.y, startPos.x, exploredMap);
                     }
         } while(!msg.equals(NetworkConstants.START_FP));
+        //Doesn't work
         fastTask = new Thread(new FastTask());
         startedTask = fastTask;
         taskStarted = true;

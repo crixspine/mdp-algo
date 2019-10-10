@@ -7,14 +7,10 @@
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$18.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$18.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$19.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$19.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/Map$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/Map$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/Map.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/Map.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetworkConstants.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetworkConstants.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot$1.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Algorithm/Exploration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Algorithm/Exploration.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Main/SimulatorNew.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main/SimulatorNew.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Map/Map.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Map/Map.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Network/NetworkConstants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Network/NetworkConstants.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Robot/Robot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Robot/Robot.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -26,7 +22,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="no-img-exploration-100" />
+        <entry key="$PROJECT_DIR$" value="no-img-exploration-100-2" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -145,7 +141,8 @@
       <workItem from="1570409769645" duration="14216000" />
       <workItem from="1570498835161" duration="299000" />
       <workItem from="1570515996495" duration="2510000" />
-      <workItem from="1570584352322" duration="7075000" />
+      <workItem from="1570584352322" duration="8569000" />
+      <workItem from="1570602930829" duration="25806000" />
     </task>
     <task id="LOCAL-00001" summary="updated sensor position and calibration constants">
       <created>1570000948504</created>
@@ -175,7 +172,14 @@
       <option name="project" value="LOCAL" />
       <updated>1570507050285</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="decomposed calibration functions into align_right and align_front&#10;added test condition using exploredMap before carrying out align_right">
+      <created>1570593968569</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1570593968570</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -200,7 +204,8 @@
     <MESSAGE value="updated sensor position and logic for long sensor" />
     <MESSAGE value="updated calibrations logic and steps (using R1count)" />
     <MESSAGE value="removed image related functions and updated start method for fp after exploration" />
-    <option name="LAST_COMMIT_MESSAGE" value="removed image related functions and updated start method for fp after exploration" />
+    <MESSAGE value="decomposed calibration functions into align_right and align_front&#10;added test condition using exploredMap before carrying out align_right" />
+    <option name="LAST_COMMIT_MESSAGE" value="decomposed calibration functions into align_right and align_front&#10;added test condition using exploredMap before carrying out align_right" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/mdp_algo$SimulatorNew.ic" NAME="SimulatorNew Coverage Results" MODIFIED="1569233328247" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">

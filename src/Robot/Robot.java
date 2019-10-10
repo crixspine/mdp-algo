@@ -63,6 +63,7 @@ public class Robot {
 
     //To check how many consecutive immediate obstacles R1 and R2 senses
     private int R1count = 0;
+    private Point lastR2Pos = null;
     private int alignCount = 0;
     private int turnAndAlignCount = 0;
     private boolean hasTurnAndAlign = false;
@@ -541,6 +542,7 @@ public class Robot {
         if (isRealExploration()) {
             sendCommandToArduino(cmd,steps);
             updateAlignCount(steps);
+            lastR2Pos = sensorMap.get("R2").getPos();
         }
 
         //Determines increment of row and column coordinates with each step depending on direction of robot
@@ -606,6 +608,7 @@ public class Robot {
         if(isRealExploration()){
             sendCommandToArduino(cmd,1);
             updateAlignCount(1);
+            lastR2Pos = sensorMap.get("R2").getPos();
         }
 
         changeRobotAndSensorDirection(cmd);
@@ -960,6 +963,13 @@ public class Robot {
         this.R1count = R1count;
     }
 
+    public boolean isSamePoint(Point p1, Point p2){
+        if((p1.x == p2.x) && (p1.y == p2.y)){
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Sensing surrounding cells for obstacles in simulation mode
      * @param exploredMap Map of explored part of the arena
@@ -1133,42 +1143,38 @@ public class Robot {
             if(s.getId() == "L1") {
                 LOGGER.info(s.getId());
 //                //Update cells as clear if first two blocks are already cleared
-//                if (obsBlock < s.getMinRange() || obsBlock > s.getMaxRange()) {
-//                    int cell1Row, cell2Row, cell1Col, cell2Col;
-//                    tempRow = s.getRow() + rowInc * s.getMinRange();
-//                    tempCol = s.getCol() + colInc * s.getMinRange();
-//                    if (exploredMap.checkValidCell(tempRow, tempCol)) {
-//                        System.out.println("Yikes");
-//                        cell1Row = s.getRow() + rowInc;
-//                        cell1Col = s.getCol() + colInc;
-//                        cell2Row = s.getRow() + rowInc * 2;
-//                        cell2Col = s.getCol() + colInc * 2;
-//                        //If first two cells are explored and not obstacle
-//                        if (exploredMap.getCell(cell1Row, cell1Col).isExplored() && !exploredMap.getCell(cell1Row, cell1Col).isObstacle()) {
-//                            System.out.println("Yokes");
-//                            if (exploredMap.getCell(cell2Row, cell2Col).isExplored() && !exploredMap.getCell(cell2Row, cell2Col).isObstacle()) {
-//                                System.out.println("Yeeks");
-//                                //Set remaining cells in line of sight as non obstacles
-//                                for (int i = s.getMinRange(); i <= s.getMaxRange(); i++) {
-//                                    tempRow = s.getRow() + rowInc * i;
-//                                    tempCol = s.getCol() + colInc * i;
-//                                    if(exploredMap.checkValidCell(tempRow, tempCol)) {
-//                                        exploredMap.getCell(tempRow, tempCol).setExplored(true);
-//                                        exploredMap.getCell(tempRow, tempCol).setObstacle(false);
-//                                        exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), false);
-//                                    }
-//                                    else{
-//                                        break;
-//                                    }
-//
-//                                }
-//                                exploredMap.reinitVirtualWall();
-//                            }
-//                        }
-//                    }
-//
-//
-//                } else {
+                if (obsBlock < s.getMinRange() || obsBlock > s.getMaxRange() && lastR2Pos != null && isSamePoint(lastR2Pos, s.getPos())) {
+                    int cell1Row, cell2Row, cell1Col, cell2Col;
+                    tempRow = s.getRow() + rowInc * s.getMinRange();
+                    tempCol = s.getCol() + colInc * s.getMinRange();
+                    if (exploredMap.checkValidCell(tempRow, tempCol)) {
+                        cell1Row = s.getRow() + rowInc;
+                        cell1Col = s.getCol() + colInc;
+                        cell2Row = s.getRow() + rowInc * 2;
+                        cell2Col = s.getCol() + colInc * 2;
+                        //If first two cells are explored and not obstacle
+                        if (exploredMap.getCell(cell1Row, cell1Col).isExplored() && !exploredMap.getCell(cell1Row, cell1Col).isObstacle()) {
+                            if (exploredMap.getCell(cell2Row, cell2Col).isExplored() && !exploredMap.getCell(cell2Row, cell2Col).isObstacle()) {
+                                //Set remaining cells in line of sight as non obstacles
+                                for (int i = s.getMinRange(); i <= s.getMaxRange(); i++) {
+                                    tempRow = s.getRow() + rowInc * i;
+                                    tempCol = s.getCol() + colInc * i;
+                                    if (exploredMap.checkValidCell(tempRow, tempCol)) {
+                                        exploredMap.getCell(tempRow, tempCol).setExplored(true);
+                                        exploredMap.getCell(tempRow, tempCol).setObstacle(false);
+                                        exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), false);
+                                    } else {
+                                        break;
+                                    }
+
+                                }
+                                exploredMap.reinitVirtualWall();
+                            }
+                        }
+                    }
+
+
+                } else {
                     for (int j = s.getMinRange(); j <= s.getMaxRange(); j++) {
                         tempRow = s.getRow() + rowInc * j;
                         tempCol = s.getCol() + colInc * j;
@@ -1215,6 +1221,7 @@ public class Robot {
                         }
                     }
                 }
+            }
             else {
                 LOGGER.info(s.getId());
                 //Check for every block within sensor's valid range
