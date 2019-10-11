@@ -1364,6 +1364,34 @@ public class Robot {
         }
 
     /**
+     * Calibrate robot's direction using front sensors
+     */
+    public void align_front_no_update() {
+        //Robot directly in front of obstacle/wall
+        if (sensorRes.get("F1") == 1 && sensorRes.get("F3") == 1) {
+            // Send align front command to Arduino
+            String cmdStr = getCommand(Command.ALIGN_FRONT, 1);  // steps set to 0 to avoid appending to cmd
+
+            NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
+            status = "Aligning Front\n";
+            LOGGER.info(status);
+
+        }
+        else{
+            align_front1_no_update();
+        }
+
+    }
+    public void align_front1_no_update() {
+        //Robot directly in front of obstacle/wall
+        // Send align front command to Arduino
+        String cmdStr = getCommand(Command.ALIGN_FRONT1, 1);  // steps set to 0 to avoid appending to cmd
+
+        NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
+        status = "Aligning Front 1\n";
+        LOGGER.info(status);
+    }
+    /**
      * Calibrate robot's direction using right sensors
      * @param exploredMap Map of explored part of the arena
      * @param realMap Map of obstacles in arena
