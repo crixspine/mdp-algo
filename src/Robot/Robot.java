@@ -1341,9 +1341,9 @@ public class Robot {
             senseWithoutAlign(exploredMap, realMap);
             turnAndAlignCount = 0;
         }
-//        else{
-//            align_front1(exploredMap,realMap);
-//        }
+        else{
+            align_front1(exploredMap,realMap);
+        }
 
     }
     /**
