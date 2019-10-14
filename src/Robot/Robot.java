@@ -619,9 +619,9 @@ public class Robot {
         LOGGER.info(pos.toString());
 
         //Simulate delay for steps per second only for simulator mode
-        if(sim) {
-            simulateDelay(stepsPerSecond, 1);
-        }
+//        if(sim) {
+//            simulateDelay(stepsPerSecond, 1);
+//        }
     }
 
     /**
@@ -1014,6 +1014,25 @@ public class Robot {
         if (isRealExploration()) {
             send_android(exploredMap);
         }
+
+//        if (isRealExploration()) {
+//            //Send updated map to Android
+//            send_android(exploredMap);
+//
+//            //If robot is adjacent to right wall, will use normal calibrate after steps
+//            if(isRightHuggingWall() && alignCount> RobotConstants.CALIBRATE_AFTER){
+//                align_right(exploredMap, realMap);
+//                R1count = 0;
+//                alignCount = 0;
+//            }
+//            else if(R1count == 3){
+//                align_right(exploredMap, realMap);
+//            }
+//
+//        }
+
+
+
 
     }
 

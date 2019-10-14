@@ -1493,7 +1493,8 @@ public class SimulatorNew extends Application {
             Exploration explore = new Exploration(exploredMap, map, robot, coverageLimit, timeLimit, steps, sim);
 //            TODO: Replace back with imageExploration when done
 //            explore.imageExploration(new Point(MapConstants.STARTZONE_COL, MapConstants.STARTZONE_COL));
-            explore.exploration(new Point(MapConstants.STARTZONE_COL, MapConstants.STARTZONE_COL));
+//            explore.exploration(new Point(MapConstants.STARTZONE_COL, MapConstants.STARTZONE_COL));
+            explore.image_exploration(new Point(MapConstants.STARTZONE_COL, MapConstants.STARTZONE_COL));
             robot.setStatus("Done exploration\n");
             if (!sim) {
                 robot.send_android(exploredMap);

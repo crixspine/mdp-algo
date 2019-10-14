@@ -5,6 +5,7 @@ import Map.Cell;
 import Map.Direction;
 import Map.MapConstants;
 import Map.ObsSurface;
+
 import Network.NetMgr;
 import Network.NetworkConstants;
 import Robot.Robot;
@@ -14,6 +15,7 @@ import Robot.RobotConstants;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 public class Exploration {
@@ -45,6 +47,7 @@ public class Exploration {
     private long startTime;
     private long endTime;
     private Point start;
+    ArrayList<ObsSurface> obsSurfaces = new ArrayList<ObsSurface>();
 
     private HashMap<String, ObsSurface> notYetTaken;
 
@@ -542,6 +545,179 @@ public class Exploration {
         return total_in_seconds;
     }
 
+    public int image_exploration(Point start) throws InterruptedException {
+        areaExplored = exploredMap.getExploredPercentage();
+        startTime = System.currentTimeMillis();
+        endTime = startTime + timeLimit;
+
+        boolean exploreMore = false;
+        double prevArea;
+        int moves = 1;
+        int checkingStep = RobotConstants.CHECKSTEPS;
+        this.start = start;
+
+        outer:
+        do {
+            prevArea = areaExplored;
+            if(areaExplored >= 100)
+                break;
+            try {
+                System.out.println("Right wall hug");
+                rightWallHug(false);
+                if(robot.getPos().x == 1 && robot.getPos().y == 1){
+                    exploreMore = true;
+                    areaExplored = exploredMap.getExploredPercentage();
+                }
+
+            } catch (InterruptedException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+            areaExplored = exploredMap.getExploredPercentage();
+            //No progression in exploration
+            if (prevArea == areaExplored)
+                moves++;
+            else
+                moves=1;
+
+            System.out.println("Area explored  = " + (areaExplored));
+
+            //Prevent endless loop of moving right and forward in "cage-like" obstacle or no progression in
+            if(exploreMore && areaExplored < coverageLimit){
+                LOGGER.info("ran explore more");
+                robot.setStatus("Exploring more");
+                while(areaExplored < coverageLimit){
+                    goToUnexplored2();
+                    areaExplored = exploredMap.getExploredPercentage();
+                }
+            }
+            if (moves % checkingStep == 0 || right_move > 3 || (robot.getPos().distance(start)==0 && areaExplored < 100.00)) {
+                do{
+                    //Go back to start point
+                    if (robot.getPos().equals(start)) {
+                        goToPoint(start);
+                    }
+                    prevArea = areaExplored;
+                    //If cannot move to nearest unexplored cell, break
+                    if(!goToUnexplored())
+                        break outer;
+                    areaExplored = exploredMap.getExploredPercentage();
+                    //If no progression, attempt to recalibrate and move to unexplored area
+                    //To stop recalibration from repeating, add counter to limit loop of calibration
+                }while(prevArea == areaExplored);
+                moves = 1;
+                checkingStep = RobotConstants.CHECKSTEPS;
+            }
+            //Move to new position using right wall hug algorithm for each iteration
+        } while (areaExplored < coverageLimit && System.currentTimeMillis() < endTime);
+
+        //Return to start point
+        goToPoint(start);
+
+        System.out.println("Back at start point");
+
+        //Image rec part
+        //Initialize all obstacle surfaces and add in obsSurfaces
+        System.out.println("Creating obs surfaces");
+        createObstacleSurfaces(exploredMap);
+        System.out.println("No of obstacle surfaces = " + obsSurfaces.size());
+        System.out.println("Finished creating obs surfaces");
+        //Go through obsSurfaces array, go to point for each of them
+
+        System.out.println("Starting to go to obstacle surfaces");
+        goToObstacleSurfaces(exploredMap);
+        //Go back to start point
+        goToPointWithoutSensing(start);
+
+        if (sim) {
+            Main.SimulatorNew.displayTimer.stop();
+        }
+        endTime = System.currentTimeMillis();
+        int seconds = (int)((endTime - startTime)/1000%60);
+        int minutes = (int)((endTime - startTime)/1000/60);
+        int total_in_seconds = (int)((endTime - startTime)/1000);
+        System.out.println("Total Time: "+total_in_seconds+" seconds");
+        System.out.println("Total Time: "+minutes+"mins "+seconds+"seconds");
+        return total_in_seconds;
+
+    }
+
+    public void createObstacleSurfaces(Map exploredMap){
+        int rowInc, colInc, tempRow, tempCol;
+        Cell tempCell, tempCell2;
+        for(int i = 0; i < MapConstants.MAP_HEIGHT; i++){
+            for(int j = 0; j< MapConstants.MAP_WIDTH;j++){
+                tempCell = exploredMap.getCell(i,j);
+                System.out.println("For cell " + i + "," + j);
+                //Add obstacle surfaces for all obstacle in explored map
+                if(tempCell.isObstacle()){
+                    System.out.println("Cell is obstacle");
+                    //For each direction, get the increment for row/col
+                    Direction dir = Direction.UP;
+                    //Consider all possible surfaces of obstacle
+                    for(int k=0; k< 4; k++) {
+                        dir = Direction.getClockwise(dir);
+                        System.out.println("For direction no: " + k);
+                        rowInc = getRowIncrementForMovement(dir);
+                        colInc = getColIncrementForMovement(dir);
+                        //Check if each obstacle surface is possible to detect (need to have two free spaces in front for image rec)
+                        for (int l = 1; l <= RobotConstants.CAMERA_RANGE; l++) {
+                            tempRow = tempCell.getPos().y + rowInc * l;
+                            tempCol = tempCell.getPos().x + colInc * l;
+                            if (exploredMap.checkValidCell(tempRow, tempCol)) {
+                                System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is valid");
+                                tempCell2 = exploredMap.getCell(tempRow, tempCol);
+                                if (tempCell2.isObstacle()) {
+                                    System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is obstacle");
+                                    break;
+                                } else {
+                                    System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is NOT obstacle");
+                                    //Both cells directly in front of obstacle surface is empty, and the target cell is
+                                    // not virtual wall; add to obstacle surface
+                                    if (l == RobotConstants.CAMERA_RANGE && !tempCell2.isVirtualWall()) {
+                                        System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is NOT obstacle OR virtual wall");
+
+                                        ObsSurface obsSurface = new ObsSurface(tempCell.getPos(), tempCell2.getPos(), dir, Direction.getOpposite(dir));
+                                        obsSurfaces.add(obsSurface);
+                                        System.out.println("Created obstacle surface");
+                                    }
+                                }
+                            } else {
+                                System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is INVALID");
+                                break;
+                            }
+                        }
+                    }
+                }
+                System.out.println("is not obstacle");
+            }
+        }
+    }
+
+    public boolean goToObstacleSurfaces(Map exploredMap) throws InterruptedException{
+        ObsSurface targetObsSurface;
+        //Ensure that robot goes to all obstacle surfaces
+
+        while(obsSurfaces.size()>0){
+            targetObsSurface = exploredMap.nearestObsSurface(robot.getPos(), obsSurfaces);
+            //Execute movements to obstacle surface point to take image
+            if(!goToPointWithoutSensing(targetObsSurface.getTargetPos())) {
+                return false;
+            }
+            while(robot.getDir() != targetObsSurface.getTargetDir()){
+                robot.turn(Command.TURN_RIGHT, 1);
+                robot.senseWithoutMapUpdateAndAlignment(exploredMap,realMap);
+            }
+            obsSurfaces.remove(targetObsSurface);
+            robot.setStatus("Send image command to Rpi");
+            System.out.println("Send image command to Rpi");
+            TimeUnit.MILLISECONDS.sleep(500);
+
+        }
+        return true;
+    }
+
+
     private boolean goToUnexplored2() throws InterruptedException {
         robot.setStatus("Go to nearest unexplored\n");
         LOGGER.info(robot.getStatus());
@@ -808,6 +984,45 @@ public class Exploration {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Execute commands generated by a star algorithm for fastest path to target location; senses and update map after
+     * every move
+     * @param commands Array of commands to be executed in order
+     * @param loc Coordinates of target location
+     * @throws InterruptedException Will throw exception if parameter(s) is null
+     */
+    private void executeCommandsMoveToTargetWithoutSensing(ArrayList<Command> commands, Point loc) throws InterruptedException{
+        for (Command c : commands) {
+            System.out.println("Command: "+c);
+            if ((c == Command.FORWARD) && !movable(robot.getDir())) {
+                System.out.println("Not Executing Forward Not Movable");
+                // Recompute a star path to location
+                goToPoint(loc);
+                break;
+
+            } else{
+                //If last command is turn; robot has already reached the destination point
+                if(((c == Command.TURN_LEFT && !movable(Direction.getAntiClockwise(robot.getDir())))||
+                        (c == Command.TURN_RIGHT && !movable(Direction.getClockwise(robot.getDir())))) && commands.indexOf(c) == commands.size()-1)
+                    continue;
+                //Calibrate before turn
+                if (c == Command.TURN_LEFT || c == Command.TURN_RIGHT){
+//                    alignAndImageRecBeforeLeftTurn(false);
+                    if(!sim){
+                        robot.align_front(exploredMap,realMap);
+                    }
+                    robot.turn(c, stepPerSecond);
+                }
+                //Continue otherwise
+                else {
+                    robot.move(c, RobotConstants.MOVE_STEPS, exploredMap, stepPerSecond);
+                }
+
+                robot.senseWithoutMapUpdate(exploredMap, realMap);
+            }
+        }
     }
 
     /**
@@ -1091,6 +1306,46 @@ public class Exploration {
                 executeCommandsMoveToStartPoint(commands, loc);
             }
             //TODO: Might have problems when returning true/false from recursion call
+        }
+        //Robot successfully reached target location; return true
+        return true;
+    }
+
+    /**
+     * Moves the robot to a specific point in the arena without sensing
+     * @param loc Coordinates of the point intended for robot to move to
+     * @return True if movement is successful, false otherwise
+     * @throws InterruptedException Will throw exception if parameter is null
+     */
+    private boolean goToPointWithoutSensing(Point loc) throws InterruptedException {
+        robot.setStatus("Go to point: " + loc.toString());
+        LOGGER.info(robot.getStatus());
+        if (!robotAndTargetAtStartPos(loc)) {
+
+            ArrayList<Command> commands;
+            ArrayList<Cell> path;
+            FastestPath fp = new FastestPath(exploredMap, robot, sim);
+            //Run aStar algorithm for robot to reach target location
+            path = fp.runAStar(robot.getPos(), loc, robot.getDir());
+            //Return false if no viable path from robot's current position to target location
+            if (path == null)
+                return false;
+            fp.displayFastestPath(path, true);
+            commands = fp.getPathCommands(path);
+            System.out.println("Exploration Fastest Commands: " + commands);
+
+            //Not moving back to start single moves
+//            if (!loc.equals(start)) {
+                executeCommandsMoveToTargetWithoutSensing(commands, loc);
+                //Sense environment after movement
+                //If robot moved to nearest unexplored area and still not finished exploration; find nearest virtual wall and continue exploration
+//            }
+
+            //Return to start position
+//            else {
+//                executeCommandsMoveToStartPoint(commands, loc);
+//            }
+//            TODO: Might have problems when returning true/false from recursion call
         }
         //Robot successfully reached target location; return true
         return true;

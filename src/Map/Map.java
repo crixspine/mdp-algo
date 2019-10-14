@@ -4,6 +4,7 @@ import Robot.Robot;
 import Robot.RobotConstants;
 
 import java.awt.Point;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -308,12 +309,12 @@ public class Map {
         return n;
     }
 
-    public ObsSurface nearestObsSurface(Point loc, HashMap<String, ObsSurface> notYetTaken) {
+    public ObsSurface nearestObsSurface(Point loc, ArrayList<ObsSurface> notYetTaken) {
         double dist = 1000, tempDist;
         Point tempPos;
         ObsSurface nearest = null;
 
-        for (ObsSurface obstacle: notYetTaken.values()) {
+        for (ObsSurface obstacle: notYetTaken) {
 //            tempPos = obstacle.getPos();
             // neighbour cell of that surface
             tempPos = getNeighbour(obstacle.getPos(), obstacle.getSurface());
