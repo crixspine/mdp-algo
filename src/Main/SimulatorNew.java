@@ -1443,8 +1443,8 @@ public class SimulatorNew extends Application {
                         else {
                             //TODO: Remove if neccessary
                             // Added in for alignment
-                            robot.align_front_no_update();
-                            netMgr.receive();
+//                            robot.align_front_no_update();
+//                            netMgr.receive();
                             robot.turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
                             robot.send_android(exploredMap);
                             // flush 3 sensor reading: align_front, turn, align_right
@@ -1460,8 +1460,8 @@ public class SimulatorNew extends Application {
                         else {
                             //TODO: Remove if neccessary
                             // Added in for alignment
-                            robot.align_front_no_update();
-                            netMgr.receive();
+//                            robot.align_front_no_update();
+//                            netMgr.receive();
                             robot.turn(Command.TURN_LEFT, RobotConstants.STEP_PER_SECOND);
                             robot.send_android(exploredMap);
                             // flush 3 sensor reading: align_front, turn, align_right

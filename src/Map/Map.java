@@ -218,6 +218,7 @@ public class Map {
 //                neighbours.add(getCell(right));
 //            }
             if (checkValidCell(left.y, left.x)){
+
                 neighbours.add(getCell(left));
             }
 

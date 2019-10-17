@@ -1,23 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="488caee9-81d5-485a-bbd5-4e6442a4a240" name="Default Changelist" comment="">
+    <list default="true" id="488caee9-81d5-485a-bbd5-4e6442a4a240" name="Default Changelist" comment="updated image exploration and fixed simulator updatemap">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/defaultMap.txt" beforeDir="false" afterPath="$PROJECT_DIR$/defaultMap.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$FastTask.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Main/SimulatorNew$FastTask.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/Map$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/Map$1.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/Map.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/Map.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetMgr.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetMgr.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetworkConstants.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetworkConstants.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot$1.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/RobotConstants.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/RobotConstants.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Algorithm/Exploration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Algorithm/Exploration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Main/SimulatorNew.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Main/SimulatorNew.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Map/Map.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Map/Map.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Network/NetMgr.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Network/NetMgr.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Network/NetworkConstants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Network/NetworkConstants.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Robot/Robot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Robot/Robot.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Robot/RobotConstants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Robot/RobotConstants.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -31,7 +25,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="img-exploration" />
+        <entry key="$PROJECT_DIR$" value="img-exploration-2" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -160,7 +154,8 @@
       <workItem from="1570954749569" duration="10072000" />
       <workItem from="1571073820005" duration="1888000" />
       <workItem from="1571104565650" duration="9022000" />
-      <workItem from="1571244083454" duration="14386000" />
+      <workItem from="1571244083454" duration="26700000" />
+      <workItem from="1571319210105" duration="3022000" />
     </task>
     <task id="LOCAL-00001" summary="updated sensor position and calibration constants">
       <created>1570000948504</created>
@@ -239,7 +234,14 @@
       <option name="project" value="LOCAL" />
       <updated>1571075390121</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="updated image exploration and fixed simulator updatemap">
+      <created>1571303114972</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1571303114972</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -268,7 +270,8 @@
     <MESSAGE value="updated condition prior to calling align right, updated logic for L1 sensor to update map" />
     <MESSAGE value="added align_front in fast_task" />
     <MESSAGE value="added image exploration" />
-    <option name="LAST_COMMIT_MESSAGE" value="added image exploration" />
+    <MESSAGE value="updated image exploration and fixed simulator updatemap" />
+    <option name="LAST_COMMIT_MESSAGE" value="updated image exploration and fixed simulator updatemap" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

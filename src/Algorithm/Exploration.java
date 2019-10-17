@@ -894,9 +894,9 @@ public class Exploration {
         else if (movable(Direction.getAntiClockwise(robotDir))) {
              if (!sim) {
                  //TODO: If Arduino don't do checks, use explored map to see if can align right
-                 if(backRightCellisObstacleOrWall()) {
+//                 if(backRightCellisObstacleOrWall(exploredMap)) {
                     robot.align_right(exploredMap, realMap);
-                 }
+//                 }
                  robot.align_front(exploredMap, realMap);
              }
             robot.turn(Command.TURN_LEFT, stepPerSecond);
@@ -928,7 +928,7 @@ public class Exploration {
 
         }
     }
-    private boolean backRightCellisObstacleOrWall(){
+    private boolean backRightCellisObstacleOrWall(Map exploredMap){
         int rowDiff=0, colDiff=0;
         switch(robot.getDir()){
             case UP: {
@@ -959,6 +959,59 @@ public class Exploration {
         }
         return robot.isRightHuggingWall();
     }
+//    private boolean checkFrontForObstacleOrRightWall(Map exploredMap){
+//        Point F1= new Point();
+//        Point F2= new Point();
+//        Point F3= new Point();
+//        switch(robot.getDir()){
+//            case UP: {
+//                F1.x = robot.getPos().x -1;
+//                F1.y = robot.getPos().y +2;
+//                F2.x = robot.getPos().x;
+//                F2.y = robot.getPos().y+2;
+//                F3.x = robot.getPos().x +1;
+//                F3.y = robot.getPos().y+2;
+//                break;
+//            }
+//            case RIGHT:{
+//                F1.x = robot.getPos().x +2;
+//                F1.y = robot.getPos().y +1;
+//                F2.x = robot.getPos().x +2;
+//                F2.y = robot.getPos().y;
+//                F3.x = robot.getPos().x +2;
+//                F3.y = robot.getPos().y-1;
+//                break;
+//            }
+//            case DOWN:{
+//                F1.x = robot.getPos().x -1;
+//                F1.y = robot.getPos().y -2;
+//                F2.x = robot.getPos().x;
+//                F2.y = robot.getPos().y -2;
+//                F3.x = robot.getPos().x +1;
+//                F3.y = robot.getPos().y -2;
+//                break;
+//            }
+//            case LEFT:{
+//                F1.x = robot.getPos().x -2;
+//                F1.y = robot.getPos().y +1;
+//                F2.x = robot.getPos().x -2;
+//                F2.y = robot.getPos().y;
+//                F3.x = robot.getPos().x -2;
+//                F3.y = robot.getPos().y+1;
+//                break;
+//            }
+//        }
+//
+//        int F2row = robot.getSensor("F2").getRow();
+//        int F2col = robot.getSensor("F2").getCol();
+//        if(F2row == 0 || F2row == MapConstants.MAP_HEIGHT-1 || F2col == 0 || F2col == MapConstants.MAP_WIDTH-1) {
+//            return true;
+//        }
+//        else if(exploredMap.checkValidCell(F1.x, F1.y) && exploredMap.checkValidCell(F3.x,F3.y)){
+//            return exploredMap.getCell(F1.x, F1.y).isObstacle() && exploredMap.getCell(F3.x, F3.y).isObstacle();
+//        }
+//        return false;
+//    }
 
     /**
      * Turn right and calibrate front sensors to align with obstacle/wall; turn left and calibrate right sensors to
