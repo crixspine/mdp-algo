@@ -44,6 +44,16 @@ public class Robot {
     private boolean sim;
     private boolean findingFP;
     private boolean reachedGoal;
+
+    public boolean isImageRec() {
+        return imageRec;
+    }
+
+    public void setImageRec(boolean imageRec) {
+        this.imageRec = imageRec;
+    }
+
+    private boolean imageRec = false;
     private Point pos;
     private Direction dir;
     private String status;
@@ -60,6 +70,17 @@ public class Robot {
     private int imageCount = 0;
     private HashSet<String> imageHashSet = new HashSet<String>();
     private HashMap<String, ObsSurface> surfaceTaken = new HashMap<String, ObsSurface>();
+
+    public ArrayList<ObsSurface> getObsSurfaces() {
+        return obsSurfaces;
+    }
+
+    public void setObsSurfaces(ArrayList<ObsSurface> obsSurfaces) {
+        this.obsSurfaces = obsSurfaces;
+    }
+
+    //For image recognition
+    private ArrayList<ObsSurface> obsSurfaces = new ArrayList<ObsSurface>();
 
     //To check how many consecutive immediate obstacles R1 and R2 senses
     private int R1count = 0;
@@ -1138,6 +1159,75 @@ public class Robot {
     }
 
     /**
+     * Obtain row increment for robot's position for every direction
+     * @param dir Direction of movement
+     * @return Row coordinates after movement
+     */
+    private int getRowIncrementForMovement(Direction dir) {
+        int rowInc = 0;
+
+        switch (dir) {
+            case UP:
+                rowInc = 1;
+                break;
+            case DOWN:
+                rowInc = -1;
+                break;
+            default:
+                break;
+        }
+        return rowInc;
+    }
+    /**
+     * Obtain column increment for robot's position for every direction
+     * @param dir Direction of movement
+     * @return Column coordinates after movement
+     */
+    private int getColIncrementForMovement(Direction dir) {
+        int colInc = 0;
+
+        switch (dir) {
+            case LEFT:
+                colInc = -1;
+                break;
+            case RIGHT:
+                colInc = 1;
+                break;
+            default:
+                break;
+        }
+        return colInc;
+    }
+//Obstaclesurfaces here
+    public void removeObstacleSurfaces(Point point){
+        if(!imageRec) {
+            for (int i = 0; i < obsSurfaces.size(); i++) {
+                if (isSamePoint(obsSurfaces.get(i).getPos(), point)) {
+                    obsSurfaces.remove(obsSurfaces.get(i));
+                }
+            }
+        }
+    }
+
+    public boolean obstacleSurfaceExists(ObsSurface obsSurface){
+        for (int i = 0; i < obsSurfaces.size(); i++) {
+            if ((obsSurface.getPos() == obsSurfaces.get(i).getPos()) && obsSurface.getSurface() == obsSurfaces.get(i).getSurface()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public void addObstacleSurface(Point obstaclePos, Direction sensorDir) {
+        if(!imageRec) {
+            ObsSurface obsSurface = new ObsSurface(obstaclePos, this.pos, Direction.getClockwise(sensorDir), sensorDir);
+            if(!obstacleSurfaceExists(obsSurface)){
+                obsSurfaces.add(obsSurface);
+            }
+            System.out.println("Created obstacle surface");
+        }
+    }
+
+    /**
      * Update the map with result obtained from sensor
      * @param exploredMap Map of explored part of the arena
      * @param sensorResult Hashmap of the sensor result obtained from sensors
@@ -1181,6 +1271,9 @@ public class Robot {
                                     if (exploredMap.checkValidCell(tempRow, tempCol)) {
                                         exploredMap.getCell(tempRow, tempCol).setExplored(true);
                                         exploredMap.getCell(tempRow, tempCol).setObstacle(false);
+                                        if(!imageRec) {
+                                            removeObstacleSurfaces(new Point(tempRow, tempCol));
+                                        }
                                         exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), false);
                                     } else {
                                         break;
@@ -1206,11 +1299,17 @@ public class Robot {
                                     int tempRow1, tempCol1;
                                     exploredMap.getCell(tempRow,tempCol).setExplored(true);
                                     exploredMap.getCell(tempRow, tempCol).setObstacle(true);
+                                    if(!imageRec) {
+                                        addObstacleSurface(new Point(tempRow, tempCol), s.getSensorDir());
+                                    }
                                     for (int i = 1; i < obsBlock; i++) {
                                         tempRow1 = s.getRow() + rowInc * i;
                                         tempCol1 = s.getCol() + colInc * i;
                                         exploredMap.getCell(tempRow1, tempCol1).setExplored(true);
                                         exploredMap.getCell(tempRow1, tempCol1).setObstacle(false);
+                                        if(!imageRec) {
+                                            removeObstacleSurfaces(new Point(tempRow, tempCol));
+                                        }
                                         exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), false);
                                     }
                                 } else {
@@ -1227,11 +1326,20 @@ public class Robot {
                                     }
                                     if (!obstacleInLine) {
                                         exploredMap.getCell(tempRow, tempCol).setObstacle(true);
+                                        exploredMap.getCell(tempRow, tempCol).setExplored(true);
+//                                        System.out.println("temp row: " + tempRow);
+//                                        System.out.println("temp col: " + tempCol);
+                                        if(!imageRec) {
+                                            addObstacleSurface(new Point(tempRow, tempCol), s.getSensorDir());
+                                        }
                                         for (int i = 1; i < obsBlock; i++) {
                                             tempRow2 = s.getRow() + rowInc * i;
                                             tempCol2 = s.getCol() + colInc * i;
                                             exploredMap.getCell(tempRow2, tempCol2).setExplored(true);
                                             exploredMap.getCell(tempRow2, tempCol2).setObstacle(false);
+                                            if(!imageRec) {
+                                                removeObstacleSurfaces(new Point(tempRow, tempCol));
+                                            }
                                             exploredMap.setVirtualWall(exploredMap.getCell(tempRow2, tempCol2), false);
                                         }
                                     }
@@ -1258,6 +1366,9 @@ public class Robot {
                         //Will not update as obstacle if area has been moved through
                         if (j == obsBlock && !exploredMap.getCell(tempRow, tempCol).isMoveThru()) {
                             exploredMap.getCell(tempRow, tempCol).setObstacle(true);
+                            if(!imageRec) {
+                                addObstacleSurface(new Point(tempRow, tempCol), s.getSensorDir());
+                            }
                             exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), true);
                             exploredMap.reinitVirtualWall();
                             if(s.getId() == "R1"){
@@ -1269,6 +1380,9 @@ public class Robot {
                         //Previous detected obstacle is wrongly detected; reset the cell and virtual walls
                         else if (j != obsBlock && exploredMap.getCell(tempRow, tempCol).isObstacle()) {      // (3)
                             exploredMap.getCell(tempRow, tempCol).setObstacle(false);
+                            if(!imageRec) {
+                                removeObstacleSurfaces(new Point(tempRow, tempCol));
+                            }
                             exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), false);
                             exploredMap.reinitVirtualWall();
                             if(s.getId() == "R1"){

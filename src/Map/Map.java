@@ -8,6 +8,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.logging.Logger;
 
 public class Map {
 
@@ -193,6 +194,59 @@ public class Map {
         if (checkValidMove(right.y, right.x)){
             neighbours.add(getCell(right));
         }
+
+        return neighbours;
+    }
+
+    public ArrayList<Cell> getNeighbours(Cell c, Direction dir) {
+        System.out.print("Neighbour Position x: "+ c.getPos().x + " y: " + c.getPos().y + "\n");
+        System.out.print("Direction" + dir.toString() +  "\n");
+        ArrayList<Cell> neighbours = new ArrayList<Cell>();
+        Point up = new Point(c.getPos().x , c.getPos().y + 1);
+        Point down = new Point(c.getPos().x , c.getPos().y - 1);
+        Point left = new Point(c.getPos().x - 1 , c.getPos().y );
+        Point right = new Point(c.getPos().x + 1 , c.getPos().y );
+
+        // UP
+        if(dir.equals(Direction.UP) || dir.equals(Direction.DOWN)){
+//            if (checkValidMove(left.y, left.x)){
+//                neighbours.add(getCell(left));
+//            }
+//
+//            // RIGHT
+//            if (checkValidMove(right.y, right.x)){
+//                neighbours.add(getCell(right));
+//            }
+            if (checkValidCell(left.y, left.x)){
+                neighbours.add(getCell(left));
+            }
+
+            // RIGHT
+            if (checkValidCell(right.y, right.x)){
+                neighbours.add(getCell(right));
+            }
+        }
+        else if(dir.equals(Direction.LEFT) || dir.equals(Direction.RIGHT)) {
+//            if (checkValidMove(up.y, up.x)) {
+//                neighbours.add(getCell(up));
+//            }
+//
+//            // DOWN
+//            if (checkValidMove(down.y, down.x)) {
+//                neighbours.add(getCell(down));
+//            }
+            if (checkValidCell(up.y, up.x)) {
+                neighbours.add(getCell(up));
+            }
+
+            // DOWN
+            if (checkValidCell(down.y, down.x)) {
+                neighbours.add(getCell(down));
+            }
+        }
+
+        // LEFT
+
 
         return neighbours;
     }

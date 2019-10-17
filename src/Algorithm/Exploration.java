@@ -622,8 +622,10 @@ public class Exploration {
         createObstacleSurfaces(exploredMap);
         System.out.println("No of obstacle surfaces = " + obsSurfaces.size());
         System.out.println("Finished creating obs surfaces");
-        //Go through obsSurfaces array, go to point for each of them
-
+//        Go through obsSurfaces array, go to point for each of them
+//        System.out.println(robot.getObsSurfaces().size());
+//        obsSurfaces = robot.getObsSurfaces();
+//        robot.setImageRec(true);
         System.out.println("Starting to go to obstacle surfaces");
         goToObstacleSurfaces(exploredMap);
         //Go back to start point
@@ -642,9 +644,10 @@ public class Exploration {
 
     }
 
+
     public void createObstacleSurfaces(Map exploredMap){
         int rowInc, colInc, tempRow, tempCol;
-        Cell tempCell, tempCell2;
+        Cell tempCell, tempCell2, tempCell3;
         for(int i = 0; i < MapConstants.MAP_HEIGHT; i++){
             for(int j = 0; j< MapConstants.MAP_WIDTH;j++){
                 tempCell = exploredMap.getCell(i,j);
@@ -665,24 +668,56 @@ public class Exploration {
                             tempRow = tempCell.getPos().y + rowInc * l;
                             tempCol = tempCell.getPos().x + colInc * l;
                             if (exploredMap.checkValidCell(tempRow, tempCol)) {
-                                System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is valid");
+//                                System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is valid");
                                 tempCell2 = exploredMap.getCell(tempRow, tempCol);
                                 if (tempCell2.isObstacle()) {
-                                    System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is obstacle");
+//                                    System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is obstacle");
                                     break;
                                 } else {
-                                    System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is NOT obstacle");
+//                                    System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is NOT obstacle");
                                     //Both cells directly in front of obstacle surface is empty, and the target cell is
                                     // not virtual wall; add to obstacle surface
-                                    if (l == RobotConstants.CAMERA_RANGE && !tempCell2.isVirtualWall()) {
-                                        System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is NOT obstacle OR virtual wall");
+                                    if (l == RobotConstants.CAMERA_RANGE) {
+                                        if (!tempCell2.isVirtualWall()) {
+                                            System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is NOT obstacle OR virtual wall");
 
-                                        ObsSurface obsSurface = new ObsSurface(tempCell.getPos(), tempCell2.getPos(), dir, Direction.getOpposite(dir));
-                                        obsSurfaces.add(obsSurface);
-                                        System.out.println("Created obstacle surface");
+                                            ObsSurface obsSurface = new ObsSurface(tempCell.getPos(), tempCell2.getPos(), dir, Direction.getOpposite(dir));
+                                            obsSurfaces.add(obsSurface);
+                                            System.out.println("Created obstacle surface");
+                                        } else {
+                                            ArrayList<Cell> possibleNeighbours = exploredMap.getNeighbours(tempCell, dir);
+                                            System.out.print("Neighbours of Cell: "+ tempCell.getPos().x + " , " + tempCell.getPos().y + "\n");
+                                            System.out.print(possibleNeighbours.size());
+                                            for (int m = 0; m < possibleNeighbours.size(); m++) {
+
+                                                Cell neighbourCell = possibleNeighbours.get(m);
+                                                for (int n = 1; n <= RobotConstants.CAMERA_RANGE; n++) {
+                                                    tempRow = neighbourCell.getPos().y + rowInc * n;
+                                                    tempCol = neighbourCell.getPos().x + colInc * n;
+                                                    if (exploredMap.checkValidCell(tempRow, tempCol)) {
+                                                        tempCell2 = exploredMap.getCell(tempRow, tempCol);
+                                                        if (tempCell2.isObstacle()) {
+                                                            break;
+                                                        } else {
+                                                            if (n == RobotConstants.CAMERA_RANGE) {
+                                                                if (!tempCell2.isVirtualWall()) {
+                                                                    System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is NOT obstacle OR virtual wall");
+
+                                                                    ObsSurface obsSurface = new ObsSurface(tempCell.getPos(), tempCell2.getPos(), dir, Direction.getOpposite(dir));
+                                                                    obsSurfaces.add(obsSurface);
+                                                                    System.out.println("Created obstacle surface");
+                                                                }
+                                                            }
+                                                        }
+                                                    } else {
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
-                            } else {
+                            }else {
                                 System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is INVALID");
                                 break;
                             }
@@ -694,12 +729,44 @@ public class Exploration {
         }
     }
 
+    public ArrayList<ObsSurface> removeNeighbouringObsSurfaces(Map exploredMap, ObsSurface targetObsSurface){
+        ArrayList<ObsSurface> neighbouringObsSurfaces = new ArrayList<ObsSurface>();
+        Point tempPos;
+        Direction tempDir;
+        ObsSurface tempObsSurface;
+        for(int i=0;i<obsSurfaces.size();i++){
+            tempObsSurface = obsSurfaces.get(i);
+            tempPos = tempObsSurface.getPos();
+            if((Math.abs(tempPos.x - targetObsSurface.getPos().x) == 1 && Math.abs(tempPos.y - targetObsSurface.getPos().y) == 0)||(Math.abs(tempPos.x - targetObsSurface.getPos().x) == 0 && Math.abs(tempPos.y - targetObsSurface.getPos().y) == 1)) {
+                tempDir = tempObsSurface.getSurface();
+                if(targetObsSurface.getSurface().equals(tempDir)){
+                    obsSurfaces.remove(obsSurfaces.get(i));
+                }
+            }
+
+        }
+        return neighbouringObsSurfaces;
+    }
+
+    public boolean isNeighbouringCell(Point point1, Point point2){
+        int x1,x2,y1,y2, xDiff, yDiff;
+        x1= point1.x;
+        y1= point1.y;
+        x2= point2.x;
+        y2= point2.y;
+        return true;
+
+    }
+
     public boolean goToObstacleSurfaces(Map exploredMap) throws InterruptedException{
         ObsSurface targetObsSurface;
         //Ensure that robot goes to all obstacle surfaces
-
+//        ArrayList<ObsSurface> obsSurfaces = robot.getObsSurfaces();
         while(obsSurfaces.size()>0){
+            System.out.print("No of surfaces left" + obsSurfaces.size());
             targetObsSurface = exploredMap.nearestObsSurface(robot.getPos(), obsSurfaces);
+            System.out.print("Obstacle location" + targetObsSurface.getPos().x + "," +targetObsSurface.getPos().y);
+
             //Execute movements to obstacle surface point to take image
             if(!goToPointWithoutSensing(targetObsSurface.getTargetPos())) {
                 return false;
@@ -708,10 +775,19 @@ public class Exploration {
                 robot.turn(Command.TURN_RIGHT, 1);
                 robot.senseWithoutMapUpdateAndAlignment(exploredMap,realMap);
             }
+            removeNeighbouringObsSurfaces(exploredMap,targetObsSurface);
             obsSurfaces.remove(targetObsSurface);
-            robot.setStatus("Send image command to Rpi");
-            System.out.println("Send image command to Rpi");
-            TimeUnit.MILLISECONDS.sleep(500);
+
+            if(sim){
+                robot.setStatus("Send image command to Rpi");
+                System.out.println("Send image command to Rpi");
+                TimeUnit.MILLISECONDS.sleep(750);
+            }
+//            else{
+//                NetMgr.getInstance().send(NetworkConstants.RPI + Command.TAKE_IMG);
+//                String msg = NetMgr.getInstance().receive();
+//                System.out.println(msg);
+//            }
 
         }
         return true;

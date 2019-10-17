@@ -184,7 +184,7 @@ public class NetMgr {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        String ip = "192.168.4.4";
+        String ip = "192.168.4.1";
         int port = 5005;
         Map exploredMap = new Map();
         MapDescriptor MDF = new MapDescriptor();
@@ -192,6 +192,7 @@ public class NetMgr {
         String data;
         NetMgr netMgr = new NetMgr(ip, port);
         netMgr.initConn();
+
 
         //test send
 //        while (true) {
