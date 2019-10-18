@@ -1439,7 +1439,7 @@ public class Robot {
                             }
                             exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), true);
                             exploredMap.reinitVirtualWall();
-                            if(s.getId() == "R1"){
+                            if(s.getId() == "R1" && obsBlock == 1){
                                 R1count++;
                             }
                             break;
@@ -1556,6 +1556,55 @@ public class Robot {
 //        }
 //        return robot.isRightHuggingWall();
 //    }
+
+    private boolean checkFrontForSingleObstacle(Map exploredMap){
+        Point F1= new Point();
+        Point F2= new Point();
+        Point F3= new Point();
+        switch(this.getDir()){
+            case UP: {
+                F1.x = this.getPos().x -1;
+                F1.y = this.getPos().y +2;
+                F2.x = this.getPos().x;
+                F2.y = this.getPos().y+2;
+                F3.x = this.getPos().x +1;
+                F3.y = this.getPos().y+2;
+                break;
+            }
+            case RIGHT:{
+                F1.x = this.getPos().x +2;
+                F1.y = this.getPos().y +1;
+                F2.x = this.getPos().x +2;
+                F2.y = this.getPos().y;
+                F3.x = this.getPos().x +2;
+                F3.y = this.getPos().y-1;
+                break;
+            }
+            case DOWN:{
+                F1.x = this.getPos().x -1;
+                F1.y = this.getPos().y -2;
+                F2.x = this.getPos().x;
+                F2.y = this.getPos().y -2;
+                F3.x = this.getPos().x +1;
+                F3.y = this.getPos().y -2;
+                break;
+            }
+            case LEFT:{
+                F1.x = this.getPos().x -2;
+                F1.y = this.getPos().y +1;
+                F2.x = this.getPos().x -2;
+                F2.y = this.getPos().y;
+                F3.x = this.getPos().x -2;
+                F3.y = this.getPos().y+1;
+                break;
+            }
+        }
+
+        if(exploredMap.checkValidCell(F1.x, F1.y) && exploredMap.checkValidCell(F3.x,F3.y) && exploredMap.checkValidCell(F2.x,F2.y)){
+            return exploredMap.getCell(F1.x, F1.y).isObstacle() || exploredMap.getCell(F3.x, F3.y).isObstacle() ||exploredMap.getCell(F2.x, F2.y).isObstacle() ;
+        }
+        return false;
+    }
     private boolean checkFrontForObstacleOrRightWall(Map exploredMap){
         Point F1= new Point();
         Point F2= new Point();
@@ -1678,7 +1727,8 @@ public class Robot {
             senseWithoutAlign(exploredMap, realMap);
             turnAndAlignCount = 0;
         }
-        else{
+//        else if(checkFrontForSingleObstacle(exploredMap)){
+        else if(getSensorRes().get("F1").equals(1)||getSensorRes().get("F2").equals(1)||getSensorRes().get("F3").equals(1) ){
             align_front1(exploredMap,realMap);
         }
 

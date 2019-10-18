@@ -535,7 +535,11 @@ public class Exploration {
             Main.SimulatorNew.displayTimer.stop();
         }
         //Return to start point
-        goToPoint(start);
+
+        while(!robot.getPos().equals(start)){
+            rightWallHug(false);
+        }
+//        goToPoint(start);
         endTime = System.currentTimeMillis();
         int seconds = (int)((endTime - startTime)/1000%60);
         int minutes = (int)((endTime - startTime)/1000/60);
@@ -877,6 +881,7 @@ public class Exploration {
             }
             robot.turn(Command.TURN_RIGHT, stepPerSecond);
             robot.setR1count(0);
+            robot.setAlignCount(0);
             //TODO: Revert back when doing image
             robot.sense(exploredMap,realMap);
             moveForward(RobotConstants.MOVE_STEPS, stepPerSecond, doingImage);
@@ -895,12 +900,15 @@ public class Exploration {
              if (!sim) {
                  //TODO: If Arduino don't do checks, use explored map to see if can align right
 //                 if(backRightCellisObstacleOrWall(exploredMap)) {
-                    robot.align_right(exploredMap, realMap);
+                 if(robot.getAlignCount() == 0) {
+                     robot.align_right(exploredMap, realMap);
 //                 }
+                 }
                  robot.align_front(exploredMap, realMap);
              }
             robot.turn(Command.TURN_LEFT, stepPerSecond);
             robot.setR1count(0);
+            robot.setAlignCount(0);
             //TODO: Revert back when doing image
             robot.sense(exploredMap,realMap);
 
@@ -916,6 +924,8 @@ public class Exploration {
                 robot.align_front(exploredMap, realMap);
             }
             robot.turn(Command.TURN_LEFT, stepPerSecond);
+            robot.setR1count(0);
+            robot.setAlignCount(0);
             //TODO: Revert back when doing image
             robot.sense(exploredMap,realMap);
 
@@ -923,6 +933,8 @@ public class Exploration {
                 robot.align_front(exploredMap, realMap);
             }
             robot.turn(Command.TURN_LEFT, stepPerSecond);
+            robot.setR1count(0);
+            robot.setAlignCount(0);
             //TODO: Revert back when doing image
             robot.sense(exploredMap,realMap);
 
