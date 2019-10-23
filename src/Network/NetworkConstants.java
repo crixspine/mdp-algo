@@ -13,7 +13,7 @@ public class NetworkConstants {
 
     public static final String ANDROID = "B";
     public static final String ARDUINO = "A";
-    public static final String RPI = "R";
+    public static final String RPI_TAKEIMG = "I";
 
     public static final String START_POINT_KEY = "startpoint";
     public static final String WAY_POINT_KEY = "waypoint";

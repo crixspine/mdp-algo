@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="488caee9-81d5-485a-bbd5-4e6442a4a240" name="Default Changelist" comment="updated image exploration and fixed simulator updatemap">
+    <list default="true" id="488caee9-81d5-485a-bbd5-4e6442a4a240" name="Default Changelist" comment="created function to run imageRec in rpi and process and store image function">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/defaultMap.txt" beforeDir="false" afterPath="$PROJECT_DIR$/defaultMap.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration$1.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetMgr.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Network/NetMgr.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot$1.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Algorithm/Exploration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Algorithm/Exploration.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Network/NetMgr.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Network/NetMgr.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Network/NetworkConstants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Network/NetworkConstants.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Robot/Robot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Robot/Robot.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -47,7 +51,7 @@
     </favorite-branches>
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="img-exploration-3" />
+        <entry key="$PROJECT_DIR$" value="img-exploration-4" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -178,7 +182,12 @@
       <workItem from="1571104565650" duration="9022000" />
       <workItem from="1571244083454" duration="26700000" />
       <workItem from="1571319210105" duration="3022000" />
-      <workItem from="1571325336924" duration="11485000" />
+      <workItem from="1571325336924" duration="13419000" />
+      <workItem from="1571723700466" duration="1019000" />
+      <workItem from="1571738560974" duration="3407000" />
+      <workItem from="1571797630714" duration="1602000" />
+      <workItem from="1571801868827" duration="1015000" />
+      <workItem from="1571802915347" duration="4515000" />
     </task>
     <task id="LOCAL-00001" summary="updated sensor position and calibration constants">
       <created>1570000948504</created>
@@ -264,7 +273,14 @@
       <option name="project" value="LOCAL" />
       <updated>1571303114972</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="week 9 code - updated alignCount test in rightWallHug">
+      <created>1571365101442</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1571365101442</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -294,14 +310,15 @@
     <MESSAGE value="added align_front in fast_task" />
     <MESSAGE value="added image exploration" />
     <MESSAGE value="updated image exploration and fixed simulator updatemap" />
-    <option name="LAST_COMMIT_MESSAGE" value="updated image exploration and fixed simulator updatemap" />
+    <MESSAGE value="week 9 code - updated alignCount test in rightWallHug" />
+    <option name="LAST_COMMIT_MESSAGE" value="week 9 code - updated alignCount test in rightWallHug" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/Robot/Robot.java</url>
-          <line>1034</line>
+          <line>1036</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
       </breakpoints>

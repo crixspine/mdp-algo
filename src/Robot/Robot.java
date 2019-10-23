@@ -7,6 +7,9 @@ import Map.Cell;
 import Map.ObsSurface;
 
 import java.awt.Point;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1525,6 +1528,17 @@ public class Robot {
         NetMgr.getInstance().send(NetworkConstants.ANDROID + androidJson.toString() + "\n");
     }
 
+    public String takeImg() {
+
+        NetMgr.getInstance().send(NetworkConstants.RPI_TAKEIMG);
+        String msg = NetMgr.getInstance().receive();
+        while(msg == null){
+            msg = NetMgr.getInstance().receive();
+        }
+        return msg;
+
+    }
+
 //    private boolean backRightCellisObstacleOrWall(Map exploredMap){
 //        int rowDiff=0, colDiff=0;
 //        switch(robot.getDir()){
@@ -1881,7 +1895,32 @@ public class Robot {
 
         return cmdStr.toString();
     }
+    public String rpiImageRec(String imgFilePath){
+        String msg = "no result";
+        try{
 
+            String[] cmdArray = {"python", "mainImageRec.py", imgFilePath};
+            File path = new File("Y:/ImageRec/");
+            Process p = Runtime.getRuntime().exec(cmdArray, null, path);
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String result;
+
+            while (true) {
+                System.out.println("trying");
+                if((result = in.readLine()) != null){
+                    System.out.println(result);
+                    break;
+                }
+            }
+            System.out.println("hah");
+            return result;
+        }
+        catch(Exception e){
+            System.out.println(e);
+        }
+        return msg;
+    }
 
     // TODO: Remove when done
     public static void main(String[] args) throws InterruptedException{

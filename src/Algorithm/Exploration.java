@@ -17,13 +17,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
+import java.io.*;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.Timer;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.*;
 
 public class Exploration {
 
     /**
      * logger to print log information on robot status, movement, position, etc.
      * ExploredMap to hold current explored environment
-     * RealMap to hold entire environment of arena (obstacles, free cells, etc)
+     * RealMap to hold entire environment of arfena (obstacles, free cells, etc)
      * CoverageLimit to reflect no of cells to explore before ceasing exploration
      * TimeLimit to reflect the time limit before ceasing exploration
      * StepPerSecond to reflect the preset no of steps per second of the robot
@@ -48,6 +54,8 @@ public class Exploration {
     private long endTime;
     private Point start;
     ArrayList<ObsSurface> obsSurfaces = new ArrayList<ObsSurface>();
+    ArrayList<String> imageResult = new ArrayList<String>();
+
 
     private HashMap<String, ObsSurface> notYetTaken;
 
@@ -634,6 +642,9 @@ public class Exploration {
         goToObstacleSurfaces(exploredMap);
         //Go back to start point
         goToPointWithoutSensing(start);
+        for(int i=0; i<imageResult.size();i++){
+            System.out.println(imageResult.get(i));
+        }
 
         if (sim) {
             Main.SimulatorNew.displayTimer.stop();
@@ -764,6 +775,7 @@ public class Exploration {
 
     public boolean goToObstacleSurfaces(Map exploredMap) throws InterruptedException{
         ObsSurface targetObsSurface;
+        String imgFileName, imgResult;
         //Ensure that robot goes to all obstacle surfaces
 //        ArrayList<ObsSurface> obsSurfaces = robot.getObsSurfaces();
         while(obsSurfaces.size()>0){
@@ -779,19 +791,22 @@ public class Exploration {
                 robot.turn(Command.TURN_RIGHT, 1);
                 robot.senseWithoutMapUpdateAndAlignment(exploredMap,realMap);
             }
-            removeNeighbouringObsSurfaces(exploredMap,targetObsSurface);
-            obsSurfaces.remove(targetObsSurface);
-
+            //Robot facing obstacle surface
+            //Take image -> Image Rec -> Process result -> Add to image string if surface detected
             if(sim){
                 robot.setStatus("Send image command to Rpi");
                 System.out.println("Send image command to Rpi");
                 TimeUnit.MILLISECONDS.sleep(750);
             }
-//            else{
-//                NetMgr.getInstance().send(NetworkConstants.RPI + Command.TAKE_IMG);
-//                String msg = NetMgr.getInstance().receive();
-//                System.out.println(msg);
-//            }
+            else{
+                imgFileName = robot.takeImg();
+                imgResult = robot.rpiImageRec(imgFileName);
+                processImgResult(targetObsSurface, imgResult);
+            }
+            removeNeighbouringObsSurfaces(exploredMap,targetObsSurface);
+            obsSurfaces.remove(targetObsSurface);
+
+
 
         }
         return true;
@@ -1540,6 +1555,66 @@ public class Exploration {
         }
 
         return dir;
+    }
+
+    /**
+     * Process image string received from RPi by identifying position of image detected and direction of image
+     * Then, store image position, direction and id in imageResult
+     * @param targetObsSurface
+     * @param imgResult
+     */
+    private void processImgResult(ObsSurface targetObsSurface, String imgResult){
+        System.out.println("Processing image result");
+        String imageId, imageString;
+        Direction obsDir;
+        int gridPos;
+        Point obsPos = new Point();
+        //Need to identify: obstacle position, surface direction, surface id
+        if(!imgResult.contains("None")){
+            try {
+                String[] result = imgResult.split(",");
+                gridPos = Integer.getInteger(result[0]);
+                imageId = result[1];
+                obsDir = targetObsSurface.getSurface();
+                obsPos = processImgPosition(targetObsSurface,gridPos);
+                imageString = "Image Position: " + obsPos.x + "," + obsPos.y + "|" + "Image Direction: " + obsDir.toString() +"|" + " Surface ID: " + imageId + "\n";
+                this.imageResult.add(imageString);
+            }
+            catch(Exception e){
+                System.out.println(e);
+            }
+        }
+    }
+
+    private Point processImgPosition(ObsSurface obsSurface, int gridPos){
+        System.out.println("Processing image position");
+        Point obsPos = new Point();
+        int tempOffset;
+        Direction dir = obsSurface.getSurface();
+        if(gridPos==2){
+            return obsSurface.getPos();
+        }
+        tempOffset = (gridPos-2) * -1;
+        obsPos.x = obsSurface.getPos().x;
+        obsPos.y = obsSurface.getPos().y;
+
+        switch(dir){
+            case UP:
+                obsPos.x += tempOffset;
+                break;
+            case RIGHT:
+                obsPos.y -= tempOffset;
+                break;
+            case DOWN:
+                obsPos.x -=tempOffset;
+                break;
+            case LEFT:
+                obsPos.y +=tempOffset;
+                break;
+            default:
+                break;
+        }
+        return obsPos;
     }
 
 }
