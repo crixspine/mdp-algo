@@ -558,6 +558,7 @@ public class Exploration {
     }
 
     public int image_exploration(Point start) throws InterruptedException {
+
         areaExplored = exploredMap.getExploredPercentage();
         startTime = System.currentTimeMillis();
         endTime = startTime + timeLimit;
@@ -567,7 +568,7 @@ public class Exploration {
         int moves = 1;
         int checkingStep = RobotConstants.CHECKSTEPS;
         this.start = start;
-
+        robot.setDoingImage(true);
         outer:
         do {
             prevArea = areaExplored;
@@ -799,9 +800,7 @@ public class Exploration {
                 TimeUnit.MILLISECONDS.sleep(750);
             }
             else{
-                imgFileName = robot.takeImg();
-                imgResult = robot.rpiImageRec(imgFileName);
-                processImgResult(targetObsSurface, imgResult);
+
             }
             removeNeighbouringObsSurfaces(exploredMap,targetObsSurface);
             obsSurfaces.remove(targetObsSurface);
@@ -877,6 +876,64 @@ public class Exploration {
 //        }
     }
 
+    public void executeMovementAndImageRec() throws InterruptedException{
+        System.out.println("imagerec");
+        String imgFileName, imgResult;
+
+        Point refPoint = new Point((robot.getPos().x + getColIncrementForMovement(robot.getDir())), (robot.getPos().y + getRowIncrementForMovement(robot.getDir())));
+        Direction refDir = Direction.getOpposite(robot.getDir());
+        ObsSurface targetObsSurface = new ObsSurface(refPoint,refDir);
+
+        robot.move(Command.BACKWARD, 1,exploredMap, stepPerSecond);
+        if(!sim){
+            robot.senseWithoutMapUpdateAndAlignment(exploredMap,realMap);
+            imgFileName = robot.takeImg();
+            imgResult = robot.rpiImageRec(imgFileName);
+            processImgResult(targetObsSurface, imgResult);
+        }
+        else{
+            robot.senseWithoutMapUpdateAndAlignment(exploredMap,realMap);
+            robot.setStatus("Send image command to Rpi");
+            System.out.println("Send image command to Rpi");
+            TimeUnit.MILLISECONDS.sleep(500);
+        }
+        robot.move(Command.FORWARD, 1,exploredMap, stepPerSecond);
+        robot.senseWithoutMapUpdateAndAlignment(exploredMap,realMap);
+//        robot.setCanTakeImage(false);
+//        robot.setTookImgFront(true);
+    }
+
+    public void executeMovementAndImageRecToRight() throws InterruptedException{
+        System.out.println("imagerec right");
+        String imgFileName, imgResult;
+
+        Point refObsPoint = new Point((robot.getPos().x + getColIncrementForMovement(Direction.getClockwise(robot.getDir()))), (robot.getPos().y + getRowIncrementForMovement(Direction.getClockwise(robot.getDir()))));
+        Point refTargetPoint = new Point((robot.getPos().x + getColIncrementForMovement(Direction.getAntiClockwise(robot.getDir()))), (robot.getPos().y + getRowIncrementForMovement(Direction.getAntiClockwise(robot.getDir()))));
+        if(!exploredMap.checkValidMove(refTargetPoint.y,refTargetPoint.x)){
+            return;
+        }
+        Direction refDir = Direction.getAntiClockwise(robot.getDir());
+        ObsSurface targetObsSurface = new ObsSurface(refObsPoint,refDir);
+        robot.turn(Command.TURN_RIGHT, 1);
+        robot.senseWithoutMapUpdateAndAlignment(exploredMap,realMap);
+        robot.move(Command.BACKWARD, 1,exploredMap, stepPerSecond);
+        robot.senseWithoutMapUpdateAndAlignment(exploredMap,realMap);
+        if(!sim){
+            imgFileName = robot.takeImg();
+            imgResult = robot.rpiImageRec(imgFileName);
+            processImgResult(targetObsSurface, imgResult);
+        }
+        else{
+            robot.setStatus("Send image command to Rpi");
+            System.out.println("Send image command to Rpi");
+            TimeUnit.MILLISECONDS.sleep(500);
+        }
+        robot.move(Command.FORWARD, 1,exploredMap, stepPerSecond);
+        robot.senseWithoutMapUpdateAndAlignment(exploredMap,realMap);
+        robot.turn(Command.TURN_LEFT, 1);
+        robot.senseWithoutMapUpdateAndAlignment(exploredMap,realMap);
+        robot.setR1countCounter(0);
+    }
     /**
      * Right wall hug algorithm - order of preference of movement (highest preference to lowest preference)
      * 1. Turn right and move one cell (if possible)
@@ -887,40 +944,70 @@ public class Exploration {
      * @throws InterruptedException Will throw exception if parameter is null
      */
     private void rightWallHug(boolean doingImage) throws InterruptedException {
-        //ArrayList<ObsSurface> surfTaken;
+        boolean aligned_front;
         Direction robotDir = robot.getDir();
         //Check if right movement is possible
         if (movable(Direction.getClockwise(robotDir))) {
-            if (!sim) {
-                robot.align_front(exploredMap, realMap);
+            if(robot.getR1countCounter() == 3){
+                executeMovementAndImageRecToRight();
+                robot.setR1countCounter(0);
             }
+
+            if(robot.align_front(exploredMap, realMap) && robot.getPreMove().equals(Command.FORWARD)&& robot.isDoingImage() && !robot.isFacingWall()){
+                executeMovementAndImageRec();
+            }
+
             robot.turn(Command.TURN_RIGHT, stepPerSecond);
             robot.setR1count(0);
             robot.setAlignCount(0);
             //TODO: Revert back when doing image
             robot.sense(exploredMap,realMap);
+            if(robot.getR1countCounter() > 0 ){
+                robot.setR1countCounter(robot.getR1countCounter()+1);
+            }
             moveForward(RobotConstants.MOVE_STEPS, stepPerSecond, doingImage);
             right_move++;
         }
         //Check if forward movement is possible
         else if (movable(robotDir)) {
+            if(robot.getR1countCounter() == 3){
+                executeMovementAndImageRecToRight();
+                robot.setR1countCounter(0);
+            }
+
             robot.move(Command.FORWARD, RobotConstants.MOVE_STEPS, exploredMap, stepPerSecond);
+//            if(robot.getR1countCounter() > 0 ){
+//                robot.setR1countCounter(robot.getR1countCounter()+1);
+//            }
             //TODO: Revert back when doing image
             robot.sense(exploredMap,realMap);
+
+//            if(robot.getR1countCounter() == 1){
+//                executeMovementAndImageRecToRight();
+//                robot.setR1countCounter(0);
+//            }
+
             right_move = 0;
         }
 
         //Check if can move in left direction
         else if (movable(Direction.getAntiClockwise(robotDir))) {
-             if (!sim) {
+            if(robot.getR1countCounter() == 3){
+                executeMovementAndImageRecToRight();
+                robot.setR1countCounter(0);
+            }
+
+            if (!sim) {
                  //TODO: If Arduino don't do checks, use explored map to see if can align right
 //                 if(backRightCellisObstacleOrWall(exploredMap)) {
                  if(robot.getAlignCount() == 0) {
                      robot.align_right(exploredMap, realMap);
 //                 }
                  }
-                 robot.align_front(exploredMap, realMap);
              }
+            if(robot.align_front(exploredMap, realMap) && robot.getPreMove().equals(Command.FORWARD)&& robot.isDoingImage() &&!robot.isFacingWall()){
+                executeMovementAndImageRec();
+            }
             robot.turn(Command.TURN_LEFT, stepPerSecond);
             robot.setR1count(0);
             robot.setAlignCount(0);
@@ -934,9 +1021,13 @@ public class Exploration {
 
         //If all fails, u-turn
         else {
-            if (!sim) {
-                //TODO: If Arduino don't do checks, use explored map to see if can align right
-                robot.align_front(exploredMap, realMap);
+            if(robot.getR1countCounter() == 3){
+                executeMovementAndImageRecToRight();
+                robot.setR1countCounter(0);
+            }
+
+            if(robot.align_front(exploredMap, realMap) && robot.getPreMove().equals(Command.FORWARD)&& robot.isDoingImage()&&!robot.isFacingWall()){
+                executeMovementAndImageRec();
             }
             robot.turn(Command.TURN_LEFT, stepPerSecond);
             robot.setR1count(0);
@@ -944,8 +1035,8 @@ public class Exploration {
             //TODO: Revert back when doing image
             robot.sense(exploredMap,realMap);
 
-            if (!sim) {
-                robot.align_front(exploredMap, realMap);
+            if(robot.align_front(exploredMap, realMap) && robot.getPreMove().equals(Command.FORWARD)&& robot.isDoingImage()&&!robot.isFacingWall()){
+                executeMovementAndImageRec();
             }
             robot.turn(Command.TURN_LEFT, stepPerSecond);
             robot.setR1count(0);
@@ -1166,9 +1257,9 @@ public class Exploration {
                 //Calibrate before turn
                 if (c == Command.TURN_LEFT || c == Command.TURN_RIGHT){
 //                    alignAndImageRecBeforeLeftTurn(false);
-                    if(!sim){
+//                    if(!sim){
                         robot.align_front(exploredMap,realMap);
-                    }
+//                    }
                     robot.turn(c, stepPerSecond);
                 }
                 //Continue otherwise
@@ -1205,9 +1296,9 @@ public class Exploration {
                 //Calibrate before turn
                 if (c == Command.TURN_LEFT || c == Command.TURN_RIGHT){
 //                    alignAndImageRecBeforeLeftTurn(false);
-                    if(!sim){
+//                    if(!sim){
                         robot.align_front(exploredMap,realMap);
-                    }
+//                    }
                     robot.turn(c, stepPerSecond);
                 }
                 //Continue otherwise

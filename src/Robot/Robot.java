@@ -3,7 +3,6 @@ import Map.Map;
 import Map.Direction;
 import Map.MapDescriptor;
 import Map.MapConstants;
-import Map.Cell;
 import Map.ObsSurface;
 
 import java.awt.Point;
@@ -57,10 +56,78 @@ public class Robot {
     }
 
     private boolean imageRec = false;
+
+    public boolean isDoingImage() {
+        return doingImage;
+    }
+
+    public void setDoingImage(boolean doingImage) {
+        this.doingImage = doingImage;
+    }
+
+    private boolean doingImage = false;
+
+    public boolean isCanTakeImage() {
+        return canTakeImage;
+    }
+
+    public void setCanTakeImage(boolean canTakeImage) {
+        this.canTakeImage = canTakeImage;
+    }
+
+    private boolean canTakeImage = true;
+
+    public boolean isTurnAfterTakeImgFront() {
+        return turnAfterTakeImgFront;
+    }
+
+    public void setTurnAfterTakeImgFront(boolean turnAfterTakeImgFront) {
+        this.turnAfterTakeImgFront = turnAfterTakeImgFront;
+    }
+
+    private boolean turnAfterTakeImgFront = false;
+
+    public boolean isTookImgFront() {
+        return tookImgFront;
+    }
+
+    public void setTookImgFront(boolean tookImgFront) {
+        this.tookImgFront = tookImgFront;
+    }
+
+    public boolean isTookImgRight() {
+        return tookImgRight;
+    }
+
+    public void setTookImgRight(boolean tookImgRight) {
+        this.tookImgRight = tookImgRight;
+    }
+
+    public int getStepsCounterAfterTakingImg() {
+        return stepsCounterAfterTakingImg;
+    }
+
+    public void setStepsCounterAfterTakingImg(int stepsCounterAfterTakingImg) {
+        this.stepsCounterAfterTakingImg = stepsCounterAfterTakingImg;
+    }
+
+    private boolean tookImgFront = false;
+    private boolean tookImgRight = false;
+    private int stepsCounterAfterTakingImg = 0;
+
     private Point pos;
     private Direction dir;
     private String status;
-    private Command preMove = Command.FORWARD;
+
+    public Command getPreMove() {
+        return preMove;
+    }
+
+    public void setPreMove(Command preMove) {
+        this.preMove = preMove;
+    }
+
+    private Command preMove = Command.INITIAL_CALIBRATE;
 
     private ArrayList<String> sensorList;
     private HashMap<String, Sensor> sensorMap;
@@ -87,9 +154,20 @@ public class Robot {
 
     //To check how many consecutive immediate obstacles R1 and R2 senses
     private int R1count = 0;
+
+    public int getR1countCounter() {
+        return R1countCounter;
+    }
+
+    public void setR1countCounter(int r1countCounter) {
+        R1countCounter = r1countCounter;
+    }
+
+    private int R1countCounter = 0;
     private Point lastR2Pos = null;
     private int alignCount = 0;
     private int turnAndAlignCount = 0;
+    private int hasTurned = 0;
     private boolean hasTurnAndAlign = false;
 
     //Removed doingImage
@@ -489,7 +567,7 @@ public class Robot {
      * @param dir Direction that sensor is facing
      * @return Row multiplier to be used in evaluation during sensing
      */
-    private int getRowIncrementForSensor(Direction dir){
+    private int getRowIncrementForRobotAndSensor(Direction dir){
         int rowInc = 0;
         switch(dir) {
             case UP:
@@ -510,7 +588,7 @@ public class Robot {
      * @param dir Direction that sensor is facing
      * @return Column multiplier to be used in evaluation during sensing
      */
-    private int getColIncrementForSensor(Direction dir){
+    private int getColIncrementForRobotAndSensor(Direction dir){
         int colInc = 0;
         switch(dir) {
             case LEFT:
@@ -568,7 +646,14 @@ public class Robot {
             updateAlignCount(steps);
             lastR2Pos = sensorMap.get("R2").getPos();
         }
-
+        if(cmd.equals(Command.FORWARD)&& tookImgFront && turnAfterTakeImgFront){
+            stepsCounterAfterTakingImg++;
+        }
+        if(stepsCounterAfterTakingImg == 2){
+            canTakeImage = true;
+            tookImgFront = false;
+            turnAfterTakeImgFront = false;
+        }
         //Determines increment of row and column coordinates with each step depending on direction of robot
         int rowInc = getRowIncrementForMovement(cmd);
         int colInc = getColIncrementForMovement(cmd);
@@ -636,11 +721,14 @@ public class Robot {
         }
 
         changeRobotAndSensorDirection(cmd);
-
+        turnAfterTakeImgFront = true;
+        hasTurned ++;
+        setR1countCounter(0);
         preMove = cmd;
         status = cmd.toString() + "\n";
         LOGGER.info(status);
         LOGGER.info(pos.toString());
+
 
         //Simulate delay for steps per second only for simulator mode
 //        if(sim) {
@@ -1022,6 +1110,12 @@ public class Robot {
             }
 
         }
+        if(R1count == 1 && hasTurned > 1 && !isRightHuggingWall() && R1countCounter==0){
+            System.out.println("woohoo R1count" + R1count);
+            System.out.println("R1countCounter" + R1countCounter);
+            System.out.println("ran this shit");
+            R1countCounter = 1;
+        }
         return null;
     }
 
@@ -1317,8 +1411,8 @@ public class Robot {
             obsBlock = sensorResult.get(sname);
 
             // Assign the rowInc and colInc based on sensor direction
-            rowInc = getRowIncrementForSensor(s.getSensorDir());
-            colInc = getColIncrementForSensor(s.getSensorDir());
+            rowInc = getRowIncrementForRobotAndSensor(s.getSensorDir());
+            colInc = getColIncrementForRobotAndSensor(s.getSensorDir());
 
             if(s.getId() == "L1") {
                 LOGGER.info(s.getId());
@@ -1443,6 +1537,8 @@ public class Robot {
                             exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), true);
                             exploredMap.reinitVirtualWall();
                             if(s.getId() == "R1" && obsBlock == 1){
+                                System.out.println("Robot Position: " + this.getPos().toString());
+                                System.out.println("R1 Counters: " + R1count);
                                 R1count++;
                             }
                             break;
@@ -1595,17 +1691,17 @@ public class Robot {
                 break;
             }
             case DOWN:{
-                F1.x = this.getPos().x -1;
+                F1.x = this.getPos().x +1;
                 F1.y = this.getPos().y -2;
                 F2.x = this.getPos().x;
                 F2.y = this.getPos().y -2;
-                F3.x = this.getPos().x +1;
+                F3.x = this.getPos().x -1;
                 F3.y = this.getPos().y -2;
                 break;
             }
             case LEFT:{
                 F1.x = this.getPos().x -2;
-                F1.y = this.getPos().y +1;
+                F1.y = this.getPos().y -1;
                 F2.x = this.getPos().x -2;
                 F2.y = this.getPos().y;
                 F3.x = this.getPos().x -2;
@@ -1614,8 +1710,8 @@ public class Robot {
             }
         }
 
-        if(exploredMap.checkValidCell(F1.x, F1.y) && exploredMap.checkValidCell(F3.x,F3.y) && exploredMap.checkValidCell(F2.x,F2.y)){
-            return exploredMap.getCell(F1.x, F1.y).isObstacle() || exploredMap.getCell(F3.x, F3.y).isObstacle() ||exploredMap.getCell(F2.x, F2.y).isObstacle() ;
+        if(exploredMap.checkValidCell(F1.y, F1.x) && exploredMap.checkValidCell(F3.y,F3.x) && exploredMap.checkValidCell(F2.y,F2.x)){
+            return (exploredMap.getCell(F1.y, F1.x).isObstacle() || exploredMap.getCell(F3.y, F3.x).isObstacle() ||exploredMap.getCell(F2.y, F2.x).isObstacle());
         }
         return false;
     }
@@ -1667,8 +1763,8 @@ public class Robot {
         if(F2row == 0 || F2row == MapConstants.MAP_HEIGHT-1 || F2col == 0 || F2col == MapConstants.MAP_WIDTH-1) {
             return true;
         }
-        else if(exploredMap.checkValidCell(F1.x, F1.y) && exploredMap.checkValidCell(F3.x,F3.y)){
-            return exploredMap.getCell(F1.x, F1.y).isObstacle() && exploredMap.getCell(F3.x, F3.y).isObstacle();
+        else if(exploredMap.checkValidCell(F1.y, F1.x) && exploredMap.checkValidCell(F3.y,F3.x)){
+            return exploredMap.getCell(F1.y, F1.x).isObstacle() && exploredMap.getCell(F3.y, F3.x).isObstacle();
         }
         return false;
     }
@@ -1723,29 +1819,37 @@ public class Robot {
         return false;
     }
     /**
-     * Calibrate robot's direction using front sensors
+     * Calibrate robot's direction using front sensors, returns true if obstacles are detected
      * @param exploredMap Map of explored part of the arena
      * @param realMap Map of obstacles in arena
      */
-    public void align_front(Map exploredMap, Map realMap) {
+    public boolean align_front(Map exploredMap, Map realMap) {
         //Robot directly in front of obstacle/wall
 
-//        if (sensorRes.get("F1") == 1 && sensorRes.get("F3") == 1) {
-            // Send align front command to Arduino
         if(checkFrontForObstacleOrRightWall(exploredMap)){
-            String cmdStr = getCommand(Command.ALIGN_FRONT, 1);  // steps set to 0 to avoid appending to cmd
+            if(!sim){
+                String cmdStr = getCommand(Command.ALIGN_FRONT, 1);
 
-            NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
+                NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
+                senseWithoutAlign(exploredMap, realMap);
+            }
+            if(doingImage && preMove.equals(Command.FORWARD))
             status = "Aligning Front\n";
             LOGGER.info(status);
-            senseWithoutAlign(exploredMap, realMap);
             turnAndAlignCount = 0;
+            return true;
         }
-//        else if(checkFrontForSingleObstacle(exploredMap)){
-        else if(getSensorRes().get("F1").equals(1)||getSensorRes().get("F2").equals(1)||getSensorRes().get("F3").equals(1) ){
-            align_front1(exploredMap,realMap);
-        }
+        else if(checkFrontForSingleObstacle(exploredMap)){
+            if(!sim) {
+                align_front1(exploredMap, realMap);
+            }
+            if(doingImage && preMove.equals(Command.FORWARD))
 
+            status = "Aligning Front 1\n";
+            LOGGER.info(status);
+            return true;
+        }
+        return false;
     }
     /**
      * Calibrate robot's direction using one of front sensors
@@ -1756,10 +1860,7 @@ public class Robot {
         //Robot directly in front of obstacle/wall
             // Send align front command to Arduino
             String cmdStr = getCommand(Command.ALIGN_FRONT1, 1);  // steps set to 0 to avoid appending to cmd
-
             NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
-            status = "Aligning Front 1\n";
-            LOGGER.info(status);
             senseWithoutAlign(exploredMap, realMap);
             turnAndAlignCount = 0;
         }
@@ -1831,19 +1932,48 @@ public class Robot {
      * @return True if right hugging the wall; false otherwise
      */
     public boolean isRightHuggingWall() {
+
         Point R1_pos = sensorMap.get("R1").getPos();
         Point R2_pos = sensorMap.get("R2").getPos();
         if (R1_pos.x == 0 && R2_pos.x ==2 ){
+            this.hasTurned = 0;
             return true;
         }
         if(R1_pos.x == MapConstants.MAP_WIDTH - 1 && R2_pos.x == MapConstants.MAP_WIDTH - 3){
+            this.hasTurned = 0;
             return true;
         }
         if(R1_pos.y == 0 && R2_pos.y == 2){
+            this.hasTurned = 0;
             return true;
         }
-        return (R1_pos.y == MapConstants.MAP_HEIGHT - 1 && R2_pos.y == MapConstants.MAP_HEIGHT- 3);
+        if(R1_pos.y == MapConstants.MAP_HEIGHT - 1 && R2_pos.y == MapConstants.MAP_HEIGHT- 3)
+        {
+            this.hasTurned = 0;
+            return true;
+        }
+        return false;
     }
+    /**
+     * Robot is right hugging the wall if the right sensor position is equal to
+     * the lowest or highest possible row or col number
+     * @return True if right hugging the wall; false otherwise
+     */
+    public boolean isFacingWall() {
+        Point R1_pos = sensorMap.get("R1").getPos();
+        Point R2_pos = sensorMap.get("R2").getPos();
+        if (R1_pos.y == 0 && R2_pos.y ==0 ){
+            return true;
+        }
+        if(R1_pos.x == MapConstants.MAP_WIDTH - 1 && R2_pos.x == MapConstants.MAP_WIDTH - 1){
+            return true;
+        }
+        if(R1_pos.x == 0 && R2_pos.x == 0){
+            return true;
+        }
+        return (R1_pos.y == MapConstants.MAP_HEIGHT-1 && R2_pos.y == MapConstants.MAP_HEIGHT-1);
+    }
+
 
 
 
@@ -1921,6 +2051,10 @@ public class Robot {
         }
         return msg;
     }
+
+
+
+
 
     // TODO: Remove when done
     public static void main(String[] args) throws InterruptedException{

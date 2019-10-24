@@ -12,6 +12,13 @@ public class ObsSurface {
     private Direction targetDir;
     private Direction surface;
 
+    public ObsSurface(Point pos, Direction surface) {
+        this.pos = pos;
+        this.targetPos = pos;
+        this.surface = surface;
+        this.targetDir = surface;
+    }
+
     public ObsSurface(Point pos, Point targetPos, Direction surface, Direction targetDir) {
         this.pos = pos;
         this.targetPos = targetPos;
