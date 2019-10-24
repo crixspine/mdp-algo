@@ -3,12 +3,12 @@
   <component name="ChangeListManager">
     <list default="true" id="488caee9-81d5-485a-bbd5-4e6442a4a240" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/defaultMap.txt" beforeDir="false" afterPath="$PROJECT_DIR$/defaultMap.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration$1.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Algorithm/Exploration.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Map/ObsSurface.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Map/ObsSurface.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot$1.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/mdp_algo/Robot/Robot.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Algorithm/Exploration.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Algorithm/Exploration.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Map/ObsSurface.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Map/ObsSurface.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Robot/Robot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Robot/Robot.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -185,7 +185,7 @@
       <workItem from="1571738560974" duration="3407000" />
       <workItem from="1571797630714" duration="1602000" />
       <workItem from="1571801868827" duration="1015000" />
-      <workItem from="1571802915347" duration="25543000" />
+      <workItem from="1571802915347" duration="44516000" />
     </task>
     <task id="LOCAL-00001" summary="updated sensor position and calibration constants">
       <created>1570000948504</created>
@@ -285,7 +285,14 @@
       <option name="project" value="LOCAL" />
       <updated>1571807672455</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="updated image rec to be called during exploration (unfinished version)">
+      <created>1571884415284</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1571884415284</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -317,19 +324,20 @@
     <MESSAGE value="updated image exploration and fixed simulator updatemap" />
     <MESSAGE value="week 9 code - updated alignCount test in rightWallHug" />
     <MESSAGE value="created function to run imageRec in rpi and receive/process imgResult" />
-    <option name="LAST_COMMIT_MESSAGE" value="created function to run imageRec in rpi and receive/process imgResult" />
+    <MESSAGE value="updated image rec to be called during exploration (unfinished version)" />
+    <option name="LAST_COMMIT_MESSAGE" value="updated image rec to be called during exploration (unfinished version)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/Robot/Robot.java</url>
-          <line>1130</line>
+          <line>1070</line>
           <option name="timeStamp" value="1" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/Robot/Robot.java</url>
-          <line>717</line>
+          <line>664</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>

@@ -67,54 +67,6 @@ public class Robot {
 
     private boolean doingImage = false;
 
-    public boolean isCanTakeImage() {
-        return canTakeImage;
-    }
-
-    public void setCanTakeImage(boolean canTakeImage) {
-        this.canTakeImage = canTakeImage;
-    }
-
-    private boolean canTakeImage = true;
-
-    public boolean isTurnAfterTakeImgFront() {
-        return turnAfterTakeImgFront;
-    }
-
-    public void setTurnAfterTakeImgFront(boolean turnAfterTakeImgFront) {
-        this.turnAfterTakeImgFront = turnAfterTakeImgFront;
-    }
-
-    private boolean turnAfterTakeImgFront = false;
-
-    public boolean isTookImgFront() {
-        return tookImgFront;
-    }
-
-    public void setTookImgFront(boolean tookImgFront) {
-        this.tookImgFront = tookImgFront;
-    }
-
-    public boolean isTookImgRight() {
-        return tookImgRight;
-    }
-
-    public void setTookImgRight(boolean tookImgRight) {
-        this.tookImgRight = tookImgRight;
-    }
-
-    public int getStepsCounterAfterTakingImg() {
-        return stepsCounterAfterTakingImg;
-    }
-
-    public void setStepsCounterAfterTakingImg(int stepsCounterAfterTakingImg) {
-        this.stepsCounterAfterTakingImg = stepsCounterAfterTakingImg;
-    }
-
-    private boolean tookImgFront = false;
-    private boolean tookImgRight = false;
-    private int stepsCounterAfterTakingImg = 0;
-
     private Point pos;
     private Direction dir;
     private String status;
@@ -155,20 +107,22 @@ public class Robot {
     //To check how many consecutive immediate obstacles R1 and R2 senses
     private int R1count = 0;
 
-    public int getR1countCounter() {
-        return R1countCounter;
-    }
-
-    public void setR1countCounter(int r1countCounter) {
-        R1countCounter = r1countCounter;
-    }
-
-    private int R1countCounter = 0;
     private Point lastR2Pos = null;
     private int alignCount = 0;
     private int turnAndAlignCount = 0;
-    private int hasTurned = 0;
     private boolean hasTurnAndAlign = false;
+
+    public boolean isOnObstacle() {
+        return onObstacle;
+    }
+
+    public void setOnObstacle(boolean onObstacle) {
+        this.onObstacle = onObstacle;
+    }
+
+    private boolean onObstacle = false;
+    public int obstacleSide = 0;
+    public int obstacleStepsCounter =0;
 
     //Removed doingImage
 
@@ -646,14 +600,7 @@ public class Robot {
             updateAlignCount(steps);
             lastR2Pos = sensorMap.get("R2").getPos();
         }
-        if(cmd.equals(Command.FORWARD)&& tookImgFront && turnAfterTakeImgFront){
-            stepsCounterAfterTakingImg++;
-        }
-        if(stepsCounterAfterTakingImg == 2){
-            canTakeImage = true;
-            tookImgFront = false;
-            turnAfterTakeImgFront = false;
-        }
+
         //Determines increment of row and column coordinates with each step depending on direction of robot
         int rowInc = getRowIncrementForMovement(cmd);
         int colInc = getColIncrementForMovement(cmd);
@@ -721,9 +668,7 @@ public class Robot {
         }
 
         changeRobotAndSensorDirection(cmd);
-        turnAfterTakeImgFront = true;
-        hasTurned ++;
-        setR1countCounter(0);
+
         preMove = cmd;
         status = cmd.toString() + "\n";
         LOGGER.info(status);
@@ -1110,12 +1055,7 @@ public class Robot {
             }
 
         }
-        if(R1count == 1 && hasTurned > 1 && !isRightHuggingWall() && R1countCounter==0){
-            System.out.println("woohoo R1count" + R1count);
-            System.out.println("R1countCounter" + R1countCounter);
-            System.out.println("ran this shit");
-            R1countCounter = 1;
-        }
+
         return null;
     }
 
@@ -1625,6 +1565,7 @@ public class Robot {
     }
 
     public String takeImg() {
+        System.out.println("Send RPI taking image");
 
         NetMgr.getInstance().send(NetworkConstants.RPI_TAKEIMG);
         String msg = NetMgr.getInstance().receive();
@@ -1833,7 +1774,6 @@ public class Robot {
                 NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
                 senseWithoutAlign(exploredMap, realMap);
             }
-            if(doingImage && preMove.equals(Command.FORWARD))
             status = "Aligning Front\n";
             LOGGER.info(status);
             turnAndAlignCount = 0;
@@ -1843,7 +1783,6 @@ public class Robot {
             if(!sim) {
                 align_front1(exploredMap, realMap);
             }
-            if(doingImage && preMove.equals(Command.FORWARD))
 
             status = "Aligning Front 1\n";
             LOGGER.info(status);
@@ -1936,20 +1875,16 @@ public class Robot {
         Point R1_pos = sensorMap.get("R1").getPos();
         Point R2_pos = sensorMap.get("R2").getPos();
         if (R1_pos.x == 0 && R2_pos.x ==2 ){
-            this.hasTurned = 0;
             return true;
         }
         if(R1_pos.x == MapConstants.MAP_WIDTH - 1 && R2_pos.x == MapConstants.MAP_WIDTH - 3){
-            this.hasTurned = 0;
             return true;
         }
         if(R1_pos.y == 0 && R2_pos.y == 2){
-            this.hasTurned = 0;
             return true;
         }
         if(R1_pos.y == MapConstants.MAP_HEIGHT - 1 && R2_pos.y == MapConstants.MAP_HEIGHT- 3)
         {
-            this.hasTurned = 0;
             return true;
         }
         return false;
@@ -2026,6 +1961,7 @@ public class Robot {
         return cmdStr.toString();
     }
     public String rpiImageRec(String imgFilePath){
+        System.out.println("Calling RPI to image rec after taking image");
         String msg = "no result";
         try{
 
@@ -2037,14 +1973,14 @@ public class Robot {
             String result;
 
             while (true) {
-                System.out.println("trying");
+                System.out.println("Attempting to get image result from Python Script");
                 if((result = in.readLine()) != null){
                     System.out.println(result);
-                    break;
+//                    in.close();
+//                    p.destroy();
+                    return result;
                 }
             }
-            System.out.println("hah");
-            return result;
         }
         catch(Exception e){
             System.out.println(e);
