@@ -1965,20 +1965,21 @@ public class Robot {
         String msg = "no result";
         try{
 
-            String[] cmdArray = {"python", "mainImageRec.py", imgFilePath};
-            File path = new File("Y:/ImageRec/");
+            String[] cmdArray = {"python3", "mainImageRec.py", imgFilePath};
+            File path = new File("/Volumes/pi/ImageRec");
             Process p = Runtime.getRuntime().exec(cmdArray, null, path);
 
             BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String result;
+            p.waitFor();
 
             while (true) {
                 System.out.println("Attempting to get image result from Python Script");
                 if((result = in.readLine()) != null){
                     System.out.println("Yo yo");
                     System.out.println(result);
-//                    in.close();
-//                    p.destroy();
+                    in.close();
+                    p.destroy();
                     return result;
                 }
                 System.out.println("Problem?");

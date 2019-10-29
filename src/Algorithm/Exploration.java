@@ -1649,11 +1649,11 @@ public class Exploration {
             try {
                 String[] result = imgResult.split(",");
                 System.out.println("Trying convert  number");
-                gridPos = Integer.getInteger(result[0]);
-                int primitivePos = gridPos.intValue();
+
+                int primitivePos = Integer.parseInt(result[0].trim());
                 System.out.println("Grid position: "+primitivePos);
                 imageId = result[1];
-                System.out.println("Image Id:"+imageId);
+                System.out.println("Image Id: "+imageId);
                 obsDir = targetObsSurface.getSurface();
                 obsPos = processImgPosition(targetObsSurface,primitivePos);
                 imageString = "Image Position: " + obsPos.x + "," + obsPos.y + "|" + "Image Direction: " + obsDir.toString() +"|" + " Surface ID: " + imageId + "\n";
