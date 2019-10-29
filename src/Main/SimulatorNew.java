@@ -1519,7 +1519,7 @@ public class SimulatorNew extends Application {
         while(robot.getDir()!= Direction.LEFT){
             robot.turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
         }
-        String calibrationCmd = robot.getCommand(Command.INITIAL_CALIBRATE, 1);    // steps 1 for consistency
+        String calibrationCmd = robot.getCommand(Command.FINAL_CALIBRATE, 1);    // steps 1 for consistency
         netMgr.send(NetworkConstants.ARDUINO + calibrationCmd);
         System.out.println("im here!");
         robot.setDir(Direction.RIGHT);

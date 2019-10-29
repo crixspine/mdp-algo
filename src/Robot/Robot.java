@@ -1608,11 +1608,11 @@ public class Robot {
 //        return robot.isRightHuggingWall();
 //    }
 
-    private boolean checkFrontForSingleObstacle(Map exploredMap){
+    public boolean checkFrontForSingleObstacle(Map exploredMap, Direction dir){
         Point F1= new Point();
         Point F2= new Point();
         Point F3= new Point();
-        switch(this.getDir()){
+        switch(dir){
             case UP: {
                 F1.x = this.getPos().x -1;
                 F1.y = this.getPos().y +2;
@@ -1779,7 +1779,7 @@ public class Robot {
             turnAndAlignCount = 0;
             return true;
         }
-        else if(checkFrontForSingleObstacle(exploredMap)){
+        else if(checkFrontForSingleObstacle(exploredMap,this.getDir())){
             if(!sim) {
                 align_front1(exploredMap, realMap);
             }
@@ -1975,11 +1975,13 @@ public class Robot {
             while (true) {
                 System.out.println("Attempting to get image result from Python Script");
                 if((result = in.readLine()) != null){
+                    System.out.println("Yo yo");
                     System.out.println(result);
 //                    in.close();
 //                    p.destroy();
                     return result;
                 }
+                System.out.println("Problem?");
             }
         }
         catch(Exception e){

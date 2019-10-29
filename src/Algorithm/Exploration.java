@@ -462,7 +462,7 @@ public class Exploration {
      * @throws InterruptedException Will throw exception if parameters is null
      */
     public int exploration(Point start) throws InterruptedException {
-        robot.setDoingImage(false);
+        robot.setDoingImage(true);
         areaExplored = exploredMap.getExploredPercentage();
         startTime = System.currentTimeMillis();
         endTime = startTime + timeLimit;
@@ -892,7 +892,7 @@ public class Exploration {
         else{
             robot.setStatus("Send image command to Rpi");
             System.out.println("Send image command to Rpi");
-            TimeUnit.MILLISECONDS.sleep(500);
+            TimeUnit.MILLISECONDS.sleep(750);
         }
         System.out.println("Image Rec Front DONE");
 
@@ -916,7 +916,7 @@ public class Exploration {
         else{
             robot.setStatus("Send image command to Rpi");
             System.out.println("Send image command to Rpi");
-            TimeUnit.MILLISECONDS.sleep(500);
+            TimeUnit.MILLISECONDS.sleep(750);
         }
 
         robot.turn(Command.TURN_LEFT, 1);
@@ -967,7 +967,7 @@ public class Exploration {
             if(!robot.isRightHuggingWall()){
                 robot.obstacleStepsCounter++;
             }
-            if(robot.obstacleStepsCounter==3 && robot.isDoingImage()){
+            if(robot.obstacleStepsCounter==3 && robot.isDoingImage()&& robot.checkFrontForSingleObstacle(exploredMap, Direction.getClockwise(robot.getDir()))){
                 executeImageRecRight();
             }
             right_move = 0;
@@ -1019,6 +1019,9 @@ public class Exploration {
             //TODO: Revert back when doing image
             robot.sense(exploredMap,realMap);
 
+            if(robot.align_front(exploredMap, realMap) && robot.isDoingImage()&&!robot.isFacingWall()){
+                executeImageRecFront();
+            }
             robot.turn(Command.TURN_LEFT, stepPerSecond);
             robot.setR1count(0);
             robot.setAlignCount(0);

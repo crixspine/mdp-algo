@@ -10,7 +10,7 @@ public class RobotConstants {
     public static final double INFINITE_COST = 10000000;
     public static final int CHECKSTEPS = 18;
     //Can remove
-    public static final int CALIBRATE_AFTER = 4; //Calibrate After number of moves (for align_right)
+    public static final int CALIBRATE_AFTER = 3; //Calibrate After number of moves (for align_right)
     public static final int TURN_AND_CALIBRATE = 1000;
 
     //Maximum number of moves
