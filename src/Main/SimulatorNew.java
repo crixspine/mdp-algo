@@ -98,7 +98,7 @@ public class SimulatorNew extends Application {
             setObstacleBtn, cancelBtn, confirmBtn;
     private RadioButton expRB, fastPathRB, imageRB, simRB, realRB, upRB, downRB, leftRB, rightRB;
     private ToggleGroup mode, task, startDir;
-    private TextArea debugOutput; //mapOutput;
+    private TextArea debugOutput, imageOutput;
     private ScrollBar timeLimitSB, coverageLimitSB, stepsSB;
     private TextField startPosTxt, wayPointTxt, timeLimitTxt, coverageLimitTxt, stepsTxt, mapTxt;
     private Label genSetLbl, simSetLbl, arenaSetLbl, startPosLbl, startDirLbl, wayPointLbl, timeLimitLbl, coverageLimitLbl, stepsLbl;
@@ -164,6 +164,7 @@ public class SimulatorNew extends Application {
                 drawMap(expMapDraw);
                 drawRobot();
                 debugOutput.setText(robot.getStatus() + "\n" + robot.toString());
+                imageOutput.setText(robot.getImageResult().toString());
                 //mapOutput.setText("hello");
 
                 timerTextLbl.setText(displayTimer.getTimerLbl());
@@ -374,6 +375,8 @@ public class SimulatorNew extends Application {
         // TextArea
         debugOutput = new TextArea();
         debugOutput.setMaxHeight(100);
+        imageOutput = new TextArea();
+        imageOutput.setMaxHeight(100);
         //mapOutput = new TextArea();
         //mapOutput.setMaxHeight(100);
 
@@ -665,7 +668,7 @@ public class SimulatorNew extends Application {
         controlGrid.add(debugOutput, 0, 17, 2, 1);
 
         controlGrid.add(mapLbl, 2, 16, 1, 1);
-        //controlGrid.add(mapOutput, 2,17, 1,1 );
+        controlGrid.add(imageOutput, 2, 17, 1, 1);
 
         controlGrid.add(timerLbl, 3, 16, 1, 1);
         controlGrid.add(timerTextLbl, 3, 17, 1, 1);

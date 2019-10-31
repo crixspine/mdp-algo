@@ -11,6 +11,7 @@ import Network.NetworkConstants;
 import Robot.Robot;
 import Robot.Command;
 import Robot.RobotConstants;
+import org.json.JSONObject;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -48,6 +49,15 @@ public class Exploration {
     private long endTime;
     private Point start;
     ArrayList<ObsSurface> obsSurfaces = new ArrayList<ObsSurface>();
+
+    public ArrayList<String> getImageResult() {
+        return imageResult;
+    }
+
+    public void setImageResult(ArrayList<String> imageResult) {
+        this.imageResult = imageResult;
+    }
+
     ArrayList<String> imageResult = new ArrayList<String>();
 
 
@@ -552,6 +562,9 @@ public class Exploration {
         int total_in_seconds = (int)((endTime - startTime)/1000);
         System.out.println("Total Time: "+total_in_seconds+" seconds");
         System.out.println("Total Time: "+minutes+"mins "+seconds+"seconds");
+        for(int i=0; i< robot.getImageResult().length();i++){
+            System.out.println(robot.getImageResult().get(i).toString());
+        }
         return total_in_seconds;
     }
 
@@ -641,8 +654,8 @@ public class Exploration {
         goToObstacleSurfaces(exploredMap);
         //Go back to start point
         goToPointWithoutSensing(start);
-        for(int i=0; i<imageResult.size();i++){
-            System.out.println(imageResult.get(i));
+        for(int i=0; i<robot.getImageResult().length();i++){
+            System.out.println(robot.getImageResult().get(i).toString());
         }
 
         if (sim) {
@@ -878,14 +891,15 @@ public class Exploration {
         System.out.println("Image Rec Front");
         String imgFileName, imgResult;
 
-        Point refPoint = new Point((robot.getPos().x + getColIncrementForMovement(robot.getDir())), (robot.getPos().y + getRowIncrementForMovement(robot.getDir())));
+        Point refPoint = new Point((robot.getPos().x + getColIncrementForMovement(robot.getDir())*2), (robot.getPos().y + getRowIncrementForMovement(robot.getDir())*2));
+        System.out.println("Reference point :" + refPoint.x + "," +refPoint.y);
         Direction refDir = Direction.getOpposite(robot.getDir());
         ObsSurface targetObsSurface = new ObsSurface(refPoint,refDir);
 
         if(!sim){
             imgFileName = robot.takeImg();
             imgResult = robot.rpiImageRec(imgFileName);
-            System.out.println("String received is" + imgResult);
+            System.out.println("Image String received is" + imgResult);
             processImgResult(targetObsSurface, imgResult);
 
         }
@@ -902,7 +916,8 @@ public class Exploration {
         System.out.println("Image Rec Right");
         String imgFileName, imgResult;
 
-        Point refObsPoint = new Point((robot.getPos().x + getColIncrementForMovement(Direction.getClockwise(robot.getDir()))), (robot.getPos().y + getRowIncrementForMovement(Direction.getClockwise(robot.getDir()))));
+        Point refObsPoint = new Point((robot.getPos().x + getColIncrementForMovement(Direction.getClockwise(robot.getDir()))*2), (robot.getPos().y + getRowIncrementForMovement(Direction.getClockwise(robot.getDir()))*2));
+        System.out.println("Reference point :" + refObsPoint.x +"," + refObsPoint.y);
         Direction refDir = Direction.getAntiClockwise(robot.getDir());
         ObsSurface targetObsSurface = new ObsSurface(refObsPoint,refDir);
         robot.turn(Command.TURN_RIGHT, 1);
@@ -968,6 +983,7 @@ public class Exploration {
                 robot.obstacleStepsCounter++;
             }
             if(robot.obstacleStepsCounter==3 && robot.isDoingImage()&& robot.checkFrontForSingleObstacle(exploredMap, Direction.getClockwise(robot.getDir()))){
+                robot.align_front(exploredMap, realMap);
                 executeImageRecRight();
             }
             right_move = 0;
@@ -989,6 +1005,7 @@ public class Exploration {
             if(!robot.isRightHuggingWall()){
                 robot.obstacleSide=1;
                 if(robot.obstacleStepsCounter>0 && robot.isDoingImage()){
+                    robot.align_front(exploredMap, realMap);
                     executeImageRecRight();
                 }
                 robot.obstacleStepsCounter = 0;
@@ -1640,25 +1657,27 @@ public class Exploration {
      */
     private void processImgResult(ObsSurface targetObsSurface, String imgResult){
         System.out.println("Processing image result");
-        String imageId, imageString;
+        String imageId;
+        JSONObject imageJSON;
         Direction obsDir;
-        Integer gridPos;
         Point obsPos = new Point();
         //Need to identify: obstacle position, surface direction, surface id
         if(!imgResult.contains("None")){
             try {
                 String[] result = imgResult.split(",");
                 System.out.println("Trying convert  number");
-
+                //Leon fixed process integer
                 int primitivePos = Integer.parseInt(result[0].trim());
                 System.out.println("Grid position: "+primitivePos);
                 imageId = result[1];
                 System.out.println("Image Id: "+imageId);
                 obsDir = targetObsSurface.getSurface();
                 obsPos = processImgPosition(targetObsSurface,primitivePos);
-                imageString = "Image Position: " + obsPos.x + "," + obsPos.y + "|" + "Image Direction: " + obsDir.toString() +"|" + " Surface ID: " + imageId + "\n";
-                this.imageResult.add(imageString);
-                System.out.println(imageString);
+                //TODO: Check if processing image position is accurate
+//                imageJSON = "{x: " + obsPos.x + "," + obsPos.y + "|" + "Image Direction: " + obsDir.toString() +"|" + " Surface ID: " + imageId + "}\n";
+                imageJSON = robot.getImageJSON(obsPos.x, obsPos.y, imageId, obsDir);
+                robot.getImageResult().put(imageJSON);
+                System.out.println(imageJSON.toString());
             }
             catch(Exception e){
                 System.out.println(e);
@@ -1674,7 +1693,7 @@ public class Exploration {
         if(gridPos==2){
             return obsSurface.getPos();
         }
-        tempOffset = (gridPos-2) * -1;
+        tempOffset = (gridPos-2) * 1;
         obsPos.x = obsSurface.getPos().x;
         obsPos.y = obsSurface.getPos().y;
 

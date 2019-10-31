@@ -124,6 +124,28 @@ public class Robot {
     public int obstacleSide = 0;
     public int obstacleStepsCounter =0;
 
+    public JSONArray getImageResult() {
+        return imageResult;
+    }
+
+    public void setImageResult(JSONArray imageResult) {
+        this.imageResult = imageResult;
+    }
+
+
+    JSONArray imageResult = new JSONArray();
+
+    public JSONObject getImageJSON(int x, int y, String imageId, Direction dir) {
+        JSONObject imageJSON = new JSONObject()
+                .put("x", x )
+                .put("y", y)
+                .put("image ID", imageId)
+                .put("direction", dir.toString().toLowerCase());
+        return imageJSON;
+    }
+
+
+
     //Removed doingImage
 
     /**
@@ -1523,6 +1545,20 @@ public class Robot {
         return robotArray;
     }
 
+
+    //TODO: Image Rec
+    private JSONArray getImageArray() {
+
+        JSONArray robotArray = new JSONArray();
+        JSONObject robotJson = new JSONObject()
+                .put("x", pos.x )
+                .put("y", pos.y)
+                .put("direction", dir.toString().toLowerCase());
+        robotArray.put(robotJson);
+        return robotArray;
+    }
+
+
     /**
      * Translate map into JSON array for transmission
      * @param exploredMap Map of explored part of the arena
@@ -1561,7 +1597,10 @@ public class Robot {
         androidJson.put("robot", getRobotArray());
         androidJson.put("map", getMapArray(exploredMap));
         androidJson.put("status", getStatusArray());
+        androidJson.put("image", getImageResult());
+        //Might be very long
         NetMgr.getInstance().send(NetworkConstants.ANDROID + androidJson.toString() + "\n");
+
     }
 
     public String takeImg() {
@@ -1965,8 +2004,9 @@ public class Robot {
         String msg = "no result";
         try{
 
-            String[] cmdArray = {"python3", "mainImageRec.py", imgFilePath};
-            File path = new File("/Volumes/pi/ImageRec");
+            String[] cmdArray = {"python", "mainImageRec.py", imgFilePath};
+            System.out.println("ERROR IF ANY");
+            File path = new File("Y:/ImageRec/");
             Process p = Runtime.getRuntime().exec(cmdArray, null, path);
 
             BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
