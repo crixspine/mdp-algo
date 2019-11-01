@@ -53,6 +53,7 @@ public class SimulatorNew extends Application {
     // Program Variables
     private Map map; // Used to hold loaded Map for sim
     private Map exploredMap;
+    private Map fastestPathMap;
     private Map newExploredMap;
     private Point wayPoint = new Point(MapConstants.GOALZONE_COL, MapConstants.GOALZONE_ROW);
     private Point startPos = new Point(1, 1);
@@ -1253,8 +1254,7 @@ public class SimulatorNew extends Application {
 //    }
 
 
-    class
-    FastTask extends Task<Integer> {
+    class FastTask extends Task<Integer> {
 
         public String getFastTaskCmd(ArrayList<Command> commands) {
             System.out.println("getFastTaskCmd");

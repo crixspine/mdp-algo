@@ -85,6 +85,37 @@ public class Robot {
     private HashMap<String, Sensor> sensorMap;
     private HashMap<String, Integer> sensorRes;
 
+
+    public void addCapturedPosition(Point robotPos, Direction robotDir) {
+        String dir = robotDir.toString();
+        this.capturedPosition.put(robotPos,dir);
+    }
+
+    public boolean checkIfCapturedPosition(Point robotPos, Direction robotDir) {
+        String dir = robotDir.toString();
+        if(capturedPosition.containsKey(robotPos)){
+            if(capturedPosition.get(robotPos).equals(dir)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private HashMap<Point, String> capturedPosition;
+    private ArrayList<String> capturedImages;
+    public void addCapturedImages(String stringId) {
+        this.capturedImages.add(stringId);
+    }
+
+    public boolean checkIfCapturedImages(String stringId) {
+            if(capturedImages.contains(stringId)){
+                return true;
+            }
+
+        return false;
+    }
+
+
     private long tempStartTime, tempEndTime, tempDiff;
 
     private MapDescriptor MDF = new MapDescriptor();
@@ -128,6 +159,8 @@ public class Robot {
         return imageResult;
     }
 
+
+
     public void setImageResult(JSONArray imageResult) {
         this.imageResult = imageResult;
     }
@@ -166,6 +199,8 @@ public class Robot {
         this.sensorList = new ArrayList<String>();
         this.sensorMap = new HashMap<String, Sensor>();
         this.sensorRes = new HashMap<String, Integer>();
+        this.capturedPosition = new HashMap<Point,String>();
+        this.capturedImages = new ArrayList<String>();
         initSensors();
         this.status = "Initialization completed.\n";
 
@@ -1793,8 +1828,8 @@ public class Robot {
         if(isRightHuggingWall()){
             return true;
         }
-        else if(exploredMap.checkValidCell(F1.x, F1.y) && exploredMap.checkValidCell(F3.x,F3.y)){
-            return exploredMap.getCell(F1.x, F1.y).isObstacle() && exploredMap.getCell(F3.x, F3.y).isObstacle();
+        else if(exploredMap.checkValidCell(F1.y, F1.x) && exploredMap.checkValidCell(F3.y,F3.x)){
+            return exploredMap.getCell(F1.y, F1.x).isObstacle() && exploredMap.getCell(F3.y, F3.x).isObstacle();
         }
         return false;
     }
@@ -1934,18 +1969,18 @@ public class Robot {
      * @return True if right hugging the wall; false otherwise
      */
     public boolean isFacingWall() {
-        Point R1_pos = sensorMap.get("R1").getPos();
-        Point R2_pos = sensorMap.get("R2").getPos();
-        if (R1_pos.y == 0 && R2_pos.y ==0 ){
+        Point F1_pos = sensorMap.get("F1").getPos();
+        Point F2_pos = sensorMap.get("F2").getPos();
+        if (F1_pos.y == 0 && F2_pos.y ==0 ){
             return true;
         }
-        if(R1_pos.x == MapConstants.MAP_WIDTH - 1 && R2_pos.x == MapConstants.MAP_WIDTH - 1){
+        if(F1_pos.x == MapConstants.MAP_WIDTH - 1 && F2_pos.x == MapConstants.MAP_WIDTH - 1){
             return true;
         }
-        if(R1_pos.x == 0 && R2_pos.x == 0){
+        if(F1_pos.x == 0 && F2_pos.x == 0){
             return true;
         }
-        return (R1_pos.y == MapConstants.MAP_HEIGHT-1 && R2_pos.y == MapConstants.MAP_HEIGHT-1);
+        return (F1_pos.y == MapConstants.MAP_HEIGHT-1 && F2_pos.y == MapConstants.MAP_HEIGHT-1);
     }
 
 
@@ -2013,7 +2048,7 @@ public class Robot {
             String result;
             p.waitFor();
 
-            while (true) {
+            //while (true) {
                 System.out.println("Attempting to get image result from Python Script");
                 if((result = in.readLine()) != null){
                     System.out.println("Yo yo");
@@ -2023,7 +2058,8 @@ public class Robot {
                     return result;
                 }
                 System.out.println("Problem?");
-            }
+                return "None, None";
+            //}
         }
         catch(Exception e){
             System.out.println(e);

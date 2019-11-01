@@ -18,6 +18,7 @@ public class RobotConstants {
 
     // Best exploration timing for leaderboard in seconds
     public static final int BEST_EXP_TIMING = 1000;
+    public static final int IMG_TIME_LIMIT = 340;
 
     // To be adjusted
     public static final int MOVE_STEPS = 1;

@@ -567,4 +567,19 @@ public class Map {
             }
         }
     }
+//    public static Map getFastestMap(Map exploredMap){
+//
+//        for (int row = 0; row < MapConstants.MAP_HEIGHT; row++) {
+//            for (int col = 0; col < MapConstants.MAP_WIDTH; col++) {
+//                if
+//                grid[row][col] = new Cell(new Point(col, row));
+//
+//                // Init virtual wall
+//                if (row == 0 || col == 0 || row == MapConstants.MAP_HEIGHT - 1 || col == MapConstants.MAP_WIDTH - 1) {
+//                    grid[row][col].setVirtualWall(true);
+//                }
+//            }
+//        }
+//        return Map;
+//    }
 }
