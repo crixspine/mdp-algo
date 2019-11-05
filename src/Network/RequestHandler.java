@@ -15,7 +15,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import Robot.Robot;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 
@@ -32,10 +31,6 @@ public class RequestHandler extends Thread {
     private Map exploredMap;
     private Robot robot;
 
-    // hard coded for testing checklist
-//    private Point startPoint = new Point(7, 2);
-
-    // hard coded for testing exploration
     private Point startPoint = new Point(MapConstants.STARTZONE_COL, MapConstants.STARTZONE_ROW);
 
     private Point wayPoint = new Point(MapConstants.GOALZONE_COL, MapConstants.GOALZONE_ROW);
@@ -84,22 +79,10 @@ public class RequestHandler extends Thread {
             System.out.println( "Received a connection" );
             String data;
 
-//            TimeUnit.MILLISECONDS.sleep(1000);
-
-            // For checklist
-//            sendStartMsg();
-//            send(NetworkConstants.START_CHECKLIST);
-
-
-            // For exploration
+            //For exploration
             sendWayPoint();
             sendStartMsg();
             send(NetworkConstants.START_EXP);
-
-
-            // For fastest path
-//            robot.setFindingFP(true);
-//            send(NetworkConstants.START_FP);
 
             while (true) {
                 // wait for incoming data
@@ -110,12 +93,6 @@ public class RequestHandler extends Thread {
                 handle(data);
             }
 
-            // Close our connection
-//            in.close();
-//            out.close();
-//            socket.close();
-
-//            System.out.println( "Connection closed" );
         }
         catch( Exception e )
         {
@@ -145,12 +122,12 @@ public class RequestHandler extends Thread {
         else {
             String[] commands = msg.split("\\|");
             for (String cmd: commands) {
-                execute_command(cmd);
+                executeCommand(cmd);
             }
         }
     }
 
-    private void execute_command(String cmd) throws InterruptedException {
+    private void executeCommand(String cmd) throws InterruptedException {
         char firstChar = cmd.charAt(0);
         int step = 1;
         if (cmd.length() > 1) {
@@ -158,29 +135,29 @@ public class RequestHandler extends Thread {
         }
         switch (firstChar) {
             case 'K':
-                sendSensorRes();
+                sendSensorResult();
                 break;
             case 'W':
                 robot.move(Command.FORWARD, step, exploredMap, RobotConstants.STEP_PER_SECOND);
-                sendSensorRes();
+                sendSensorResult();
                 break;
             case 'S':
                 robot.move(Command.BACKWARD, step, exploredMap, RobotConstants.STEP_PER_SECOND);
-                sendSensorRes();
+                sendSensorResult();
                 break;
             case 'D':
                 robot.turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
-                sendSensorRes();
+                sendSensorResult();
                 break;
             case 'A':
                 robot.turn(Command.TURN_LEFT, RobotConstants.STEP_PER_SECOND);
-                sendSensorRes();
+                sendSensorResult();
                 break;
             case 'O':
-                sendSensorRes();
+                sendSensorResult();
                 break;
             case 'P':
-                sendSensorRes();
+                sendSensorResult();
                 break;
             case 'N':
                 System.out.println("Calibrating");
@@ -194,14 +171,13 @@ public class RequestHandler extends Thread {
         robot.sense(exploredMap, realMap);
     }
 
-    public void sendSensorRes() {
+    public void sendSensorResult() {
         robot.updateSensorRes(realMap);
-        send(formatSensorRes(robot.getSensorRes()));
+        send(formatSensorResult(robot.getSensorRes()));
     }
 
-    public String formatSensorRes(HashMap<String, Integer> sensorRes) {
+    public String formatSensorResult(HashMap<String, Integer> sensorRes) {
         StringBuilder sb = new StringBuilder();
-        int obsBlock;
         for (String sname: robot.getSensorList()) {
             sb.append(sname);
             sb.append(":");
@@ -211,11 +187,7 @@ public class RequestHandler extends Thread {
         return sb.toString();
     }
 
-    /**
-     * Sending a String type msg through socket
-     * @param msg
-     * @return true if the message is sent out successfully
-     */
+    //Sending a String type msg through socket
     public boolean send(String msg) {
         try {
             LOGGER.log(Level.FINE, "Sending Message...");
@@ -253,6 +225,7 @@ public class RequestHandler extends Thread {
         return null;
     }
 
+    //For testing purposes
     public static void main(String[] args) throws IOException, InterruptedException {
         RequestHandler handler = new RequestHandler(null);
     }

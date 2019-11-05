@@ -44,6 +44,7 @@ public class ServerSim {
         }
     }
 
+    //For testing purposes
     public static void main(String[] args) {
         ServerSim serverSim = new ServerSim(NetworkConstants.PORT);
 

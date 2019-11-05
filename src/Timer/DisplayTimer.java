@@ -1,6 +1,4 @@
-package Helper;
-import javafx.animation.Animation;
-import javafx.scene.control.*;
+package Timer;
 import java.lang.*;
 import javafx.animation.AnimationTimer;
 
@@ -34,9 +32,6 @@ public class DisplayTimer extends AnimationTimer {
     @Override
     public void handle(long timestamp) {
         long now = System.currentTimeMillis();
-        // timeSeconds.set((now - startTime) / 1000.0);
-        // Duration duration = ((KeyFrame)t.getSource()).getTime();
-        // timerTime = timerTime.add(duration);
         double duration = (now - startTime - pauseDuration) / 1000.0;
         timerText = String.format("%.2f", duration);
     }

@@ -25,10 +25,6 @@ public class Cell {
         return pos;
     }
 
-    public void setPos(){
-        this.pos = pos;
-    }
-
     public boolean isExplored() {
         return explored;
     }
@@ -51,10 +47,6 @@ public class Cell {
 
     public void setVirtualWall(boolean virtualWall) {
         this.virtualWall = virtualWall;
-    }
-
-    public boolean isWayPoint() {
-        return wayPoint;
     }
 
     public boolean setWayPoint(boolean isWayPoint) {
@@ -81,7 +73,7 @@ public class Cell {
         this.path = path;
     }
 
-    // Cell is movable is it has been explored and it is not obstacle or virtual wall
+    //Cell is movable is it has been explored and it is not obstacle or virtual wall
     public boolean movableCell() {
         return explored && !obstacle && !virtualWall;
     }

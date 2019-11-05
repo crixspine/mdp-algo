@@ -1,21 +1,11 @@
 package Network;
 
-import Map.Map;
-import Map.MapDescriptor;
-import Map.Direction;
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.*;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Timer;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.*;
 
-/**
- * Socket client class to connect to RPI
- */
+//Socket client class to connect to RPI
 public class NetMgr {
 
     private static final Logger LOGGER = Logger.getLogger(NetMgr.class.getName());
@@ -24,7 +14,6 @@ public class NetMgr {
     private int port;
     public static Socket socket = null;
     private String prevMsg = null;
-
     private BufferedWriter out;
     private BufferedReader in;
     private int msgCounter = 0;
@@ -43,29 +32,9 @@ public class NetMgr {
         return netMgr;
     }
 
-    public String getIp() {
-        return this.ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public int getPort() {
-        return this.port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    /**
-     * Initiate a connection with RPI if there isn't already one
-     *
-     * @return true if connection established with RPI
-     */
+    //Initiate a connection with RPI if there isn't already one
     public boolean initConn() {
-        if (isConnect()) {
+        if (isConnected()) {
             LOGGER.info("Already connected with RPI");
             return true;
         } else {
@@ -90,37 +59,7 @@ public class NetMgr {
         }
     }
 
-    /**
-     * Close the connection with RPI
-     *
-     * @return True if there is no more connection with RPI
-     */
-    public boolean closeConn() {
-        LOGGER.info("Closing connection... ");
-        if (!isConnect()) {
-            LOGGER.warning("No connection with RPI");
-            return true;
-        } else {
-            try {
-                socket.close();
-                out.close();
-                in.close();
-                socket = null;
-                return true;
-            } catch (IOException e) {
-                LOGGER.warning("Unable to close connection: IOException\n" + e.toString());
-                e.printStackTrace();
-                return false;
-            }
-        }
-    }
-
-    /**
-     * Sending a String type msg through socket
-     *
-     * @param msg
-     * @return true if the message is sent out successfully
-     */
+    //Sending a String type msg through socket
     public boolean send(String msg) {
         try {
             LOGGER.log(Level.FINE, "Sending Message...");
@@ -170,25 +109,18 @@ public class NetMgr {
         return null;
     }
     public static String rpiImageRec(){
-        String msg = "no result";
+        String msg = "No result";
         try{
             String imgFilePath = "image.png";
-            //Command is "python Y:\\ImageRec\mainImageRec.py Y:\\ImageRec\image.png
-
-//            String command = "python Y:/ImageRecmainImageRec.py Y:/ImageRec/1raw.png";
             String[] cmdArray = {"python", "mainImageRec.py", "1raw.png"};
             File path = new File("/Volumes/pi/ImageRec");
-//            ProcessBuilder pb = new ProcessBuilder(cmdArray);
             Process p = Runtime.getRuntime().exec(cmdArray, null, path);
-            //Process p = pb.start();
-//
-//          Runtime.getRuntime().exec("python Y:/ImageRec/mainImageRec.py Y:/ImageRec/1raw.png");
             BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String result = new String();
             p.waitFor();
 
             while (true) {
-                System.out.println("trying");
+                System.out.println("Trying");
                 if((result = in.readLine()) != null){
                     System.out.println(result);
                     break;
@@ -205,12 +137,8 @@ public class NetMgr {
         return msg;
     }
 
-    /**
-     * Check if there are existing connection with RPI
-     *
-     * @return
-     */
-    public boolean isConnect() {
+    //Check if there are existing connection with RPI
+    public boolean isConnected() {
         if (socket == null) {
             return false;
         } else {
@@ -218,6 +146,7 @@ public class NetMgr {
         }
     }
 
+    //Testing connection with RPi
     public static void main(String[] args) throws InterruptedException {
         int i = 3;
         while(i != 0){
@@ -227,6 +156,7 @@ public class NetMgr {
 
     }
     }
+//        //Testing MDF String
 //        String ip = "192.168.4.1";
 //        int port = 5005;
 //        Map exploredMap = new Map();

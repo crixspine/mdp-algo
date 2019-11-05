@@ -27,22 +27,6 @@ public class MapDescriptor {
         setHexMapStr(filename);
     }
 
-    public String getHexMapStr1() {
-        return hexMapStr1;
-    }
-
-    public String getHexMapStr2() {
-        return hexMapStr2;
-    }
-
-    public String getFilename() {
-        return filename;
-    }
-
-    public void setFilename(String filename) {
-        this.filename = filename;
-    }
-
     public void setHexMapStr(String filename) throws IOException {
         this.filename = filename;
 

@@ -33,24 +33,12 @@ public class Sensor {
         return id;
     }
 
-    void setId(String id) {
-        this.id = id;
-    }
-
     int getMinRange() {
         return minRange;
     }
 
-    void setMinRange(int minRange) {
-        this.minRange = minRange;
-    }
-
     int getMaxRange() {
         return maxRange;
-    }
-
-    void setMaxRange(int maxRange) {
-        this.maxRange = maxRange;
     }
 
     Point getPos() {
@@ -86,11 +74,7 @@ public class Sensor {
     }
 
 
-    /**
-     * Sensor detect if obstacle is a cell in simulation
-     * @param map RealMap to determine obstacle cells in simulation
-     * @return Sensor result (-1 as no obstacle detected; integer value of distance from obstacle otherwise)
-     */
+    //Sensor detect if obstacle is a cell in simulation
      int detect(Map map) {
 
         for (int cur = minRange; cur <= maxRange; cur++) {
