@@ -7,18 +7,30 @@ import java.util.Collections;
 public class ObsSurface {
 
     private Point pos;
+    private Point targetPos;
+
+    private Direction targetDir;
     private Direction surface;
 
     public ObsSurface(Point pos, Direction surface) {
         this.pos = pos;
+        this.targetPos = pos;
         this.surface = surface;
+        this.targetDir = surface;
+    }
+
+    public ObsSurface(Point pos, Point targetPos, Direction surface, Direction targetDir) {
+        this.pos = pos;
+        this.targetPos = targetPos;
+        this.surface = surface;
+        this.targetDir = targetDir;
     }
 
 
-    public ObsSurface(int row, int col, Direction surface) {
-        this.pos = new Point(col, row);
-        this.surface = surface;
-    }
+//    public ObsSurface(int row, int col, Direction surface) {
+//        this.pos = new Point(col, row);
+//        this.surface = surface;
+//    }
 
     @Override
     public String toString() {
@@ -39,6 +51,22 @@ public class ObsSurface {
 
     public Direction getSurface() {
         return surface;
+    }
+
+    public Point getTargetPos() {
+        return targetPos;
+    }
+
+    public void setTargetPos(Point targetPos) {
+        this.targetPos = targetPos;
+    }
+
+    public Direction getTargetDir() {
+        return targetDir;
+    }
+
+    public void setTargetDir(Direction targetDir) {
+        this.targetDir = targetDir;
     }
 
     public void setPos(Point pt) {

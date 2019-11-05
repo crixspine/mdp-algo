@@ -169,6 +169,41 @@ public class NetMgr {
         }
         return null;
     }
+    public static String rpiImageRec(){
+        String msg = "no result";
+        try{
+            String imgFilePath = "image.png";
+            //Command is "python Y:\\ImageRec\mainImageRec.py Y:\\ImageRec\image.png
+
+//            String command = "python Y:/ImageRecmainImageRec.py Y:/ImageRec/1raw.png";
+            String[] cmdArray = {"python", "mainImageRec.py", "1raw.png"};
+            File path = new File("/Volumes/pi/ImageRec");
+//            ProcessBuilder pb = new ProcessBuilder(cmdArray);
+            Process p = Runtime.getRuntime().exec(cmdArray, null, path);
+            //Process p = pb.start();
+//
+//          Runtime.getRuntime().exec("python Y:/ImageRec/mainImageRec.py Y:/ImageRec/1raw.png");
+            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String result = new String();
+            p.waitFor();
+
+            while (true) {
+                System.out.println("trying");
+                if((result = in.readLine()) != null){
+                    System.out.println(result);
+                    break;
+                }
+            }
+            in.close();
+            p.destroy();
+            System.out.println("hah");
+            return result;
+        }
+        catch(Exception e){
+            System.out.println(e);
+        }
+        return msg;
+    }
 
     /**
      * Check if there are existing connection with RPI
@@ -184,14 +219,23 @@ public class NetMgr {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        String ip = "192.168.4.4";
-        int port = 5005;
-        Map exploredMap = new Map();
-        MapDescriptor MDF = new MapDescriptor();
-        MDF.loadRealMap(exploredMap, "defaultMap.txt");
-        String data;
-        NetMgr netMgr = new NetMgr(ip, port);
-        netMgr.initConn();
+        int i = 3;
+        while(i != 0){
+            rpiImageRec();
+            i--;
+        }
+
+    }
+    }
+//        String ip = "192.168.4.1";
+//        int port = 5005;
+//        Map exploredMap = new Map();
+//        MapDescriptor MDF = new MapDescriptor();
+//        MDF.loadRealMap(exploredMap, "defaultMap.txt");
+//        String data;
+//        NetMgr netMgr = new NetMgr(ip, port);
+//        netMgr.initConn();
+
 
         //test send
 //        while (true) {
@@ -203,23 +247,23 @@ public class NetMgr {
 //            Thread.sleep(2500);
 //        }
 
-        while (true) {
-
-            do {
-                data = netMgr.receive();
-                System.out.println("\nReceived: " + data);
-            } while (data == null);
-
-
-            data = netMgr.receive();
-            System.out.println("\nReceived: " + data);
-            String msg = "AW3|D|W3|D|W3|D|W3|D|";
-            if (data.equals("checklist")) {
-                netMgr.send(msg);
-            }
-        }
-    }
-}
+//        while (true) {
+//            netMgr.send("");
+//            do {
+//                data = netMgr.receive();
+//                System.out.println("\nReceived: " + data);
+//            } while (data == null);
+//
+//
+//            data = netMgr.receive();
+//            System.out.println("\nReceived: " + data);
+//            String msg = "AW3|D|W3|D|W3|D|W3|D|";
+//            if (data.equals("checklist")) {
+//                netMgr.send(msg);
+//            }
+//        }
+//    }
+//}
 
 //            netMgr.closeConn();
 

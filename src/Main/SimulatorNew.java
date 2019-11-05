@@ -53,6 +53,7 @@ public class SimulatorNew extends Application {
     // Program Variables
     private Map map; // Used to hold loaded Map for sim
     private Map exploredMap;
+    private Map fastestPathMap;
     private Map newExploredMap;
     private Point wayPoint = new Point(MapConstants.GOALZONE_COL, MapConstants.GOALZONE_ROW);
     private Point startPos = new Point(1, 1);
@@ -98,7 +99,7 @@ public class SimulatorNew extends Application {
             setObstacleBtn, cancelBtn, confirmBtn;
     private RadioButton expRB, fastPathRB, imageRB, simRB, realRB, upRB, downRB, leftRB, rightRB;
     private ToggleGroup mode, task, startDir;
-    private TextArea debugOutput; //mapOutput;
+    private TextArea debugOutput, imageOutput;
     private ScrollBar timeLimitSB, coverageLimitSB, stepsSB;
     private TextField startPosTxt, wayPointTxt, timeLimitTxt, coverageLimitTxt, stepsTxt, mapTxt;
     private Label genSetLbl, simSetLbl, arenaSetLbl, startPosLbl, startDirLbl, wayPointLbl, timeLimitLbl, coverageLimitLbl, stepsLbl;
@@ -164,6 +165,7 @@ public class SimulatorNew extends Application {
                 drawMap(expMapDraw);
                 drawRobot();
                 debugOutput.setText(robot.getStatus() + "\n" + robot.toString());
+                imageOutput.setText(robot.getImageResult().toString());
                 //mapOutput.setText("hello");
 
                 timerTextLbl.setText(displayTimer.getTimerLbl());
@@ -374,6 +376,8 @@ public class SimulatorNew extends Application {
         // TextArea
         debugOutput = new TextArea();
         debugOutput.setMaxHeight(100);
+        imageOutput = new TextArea();
+        imageOutput.setMaxHeight(100);
         //mapOutput = new TextArea();
         //mapOutput.setMaxHeight(100);
 
@@ -665,7 +669,7 @@ public class SimulatorNew extends Application {
         controlGrid.add(debugOutput, 0, 17, 2, 1);
 
         controlGrid.add(mapLbl, 2, 16, 1, 1);
-        //controlGrid.add(mapOutput, 2,17, 1,1 );
+        controlGrid.add(imageOutput, 2, 17, 1, 1);
 
         controlGrid.add(timerLbl, 3, 16, 1, 1);
         controlGrid.add(timerTextLbl, 3, 17, 1, 1);
@@ -1250,8 +1254,7 @@ public class SimulatorNew extends Application {
 //    }
 
 
-    class
-    FastTask extends Task<Integer> {
+    class FastTask extends Task<Integer> {
 
         public String getFastTaskCmd(ArrayList<Command> commands) {
             System.out.println("getFastTaskCmd");
@@ -1441,6 +1444,10 @@ public class SimulatorNew extends Application {
                             robot.turn(Command.TURN_RIGHT, steps);
                         }
                         else {
+                            //TODO: Remove if neccessary
+                            // Added in for alignment
+//                            robot.align_front_no_update();
+//                            netMgr.receive();
                             robot.turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
                             robot.send_android(exploredMap);
                             // flush 3 sensor reading: align_front, turn, align_right
@@ -1454,6 +1461,10 @@ public class SimulatorNew extends Application {
                             robot.turn(Command.TURN_LEFT, steps);
                         }
                         else {
+                            //TODO: Remove if neccessary
+                            // Added in for alignment
+//                            robot.align_front_no_update();
+//                            netMgr.receive();
                             robot.turn(Command.TURN_LEFT, RobotConstants.STEP_PER_SECOND);
                             robot.send_android(exploredMap);
                             // flush 3 sensor reading: align_front, turn, align_right
@@ -1485,7 +1496,8 @@ public class SimulatorNew extends Application {
             Exploration explore = new Exploration(exploredMap, map, robot, coverageLimit, timeLimit, steps, sim);
 //            TODO: Replace back with imageExploration when done
 //            explore.imageExploration(new Point(MapConstants.STARTZONE_COL, MapConstants.STARTZONE_COL));
-            explore.exploration(new Point(MapConstants.STARTZONE_COL, MapConstants.STARTZONE_COL));
+//            explore.exploration(new Point(MapConstants.STARTZONE_COL, MapConstants.STARTZONE_COL));
+            explore.image_exploration(new Point(MapConstants.STARTZONE_COL, MapConstants.STARTZONE_COL));
             robot.setStatus("Done exploration\n");
             if (!sim) {
                 robot.send_android(exploredMap);
@@ -1510,7 +1522,7 @@ public class SimulatorNew extends Application {
         while(robot.getDir()!= Direction.LEFT){
             robot.turn(Command.TURN_RIGHT, RobotConstants.STEP_PER_SECOND);
         }
-        String calibrationCmd = robot.getCommand(Command.INITIAL_CALIBRATE, 1);    // steps 1 for consistency
+        String calibrationCmd = robot.getCommand(Command.FINAL_CALIBRATE, 1);    // steps 1 for consistency
         netMgr.send(NetworkConstants.ARDUINO + calibrationCmd);
         System.out.println("im here!");
         robot.setDir(Direction.RIGHT);

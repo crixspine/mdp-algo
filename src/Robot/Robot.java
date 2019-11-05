@@ -3,10 +3,12 @@ import Map.Map;
 import Map.Direction;
 import Map.MapDescriptor;
 import Map.MapConstants;
-import Map.Cell;
 import Map.ObsSurface;
 
 import java.awt.Point;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,14 +46,75 @@ public class Robot {
     private boolean sim;
     private boolean findingFP;
     private boolean reachedGoal;
+
+    public boolean isImageRec() {
+        return imageRec;
+    }
+
+    public void setImageRec(boolean imageRec) {
+        this.imageRec = imageRec;
+    }
+
+    private boolean imageRec = false;
+
+    public boolean isDoingImage() {
+        return doingImage;
+    }
+
+    public void setDoingImage(boolean doingImage) {
+        this.doingImage = doingImage;
+    }
+
+    private boolean doingImage = false;
+
     private Point pos;
     private Direction dir;
     private String status;
-    private Command preMove = Command.FORWARD;
+
+    public Command getPreMove() {
+        return preMove;
+    }
+
+    public void setPreMove(Command preMove) {
+        this.preMove = preMove;
+    }
+
+    private Command preMove = Command.INITIAL_CALIBRATE;
 
     private ArrayList<String> sensorList;
     private HashMap<String, Sensor> sensorMap;
     private HashMap<String, Integer> sensorRes;
+
+
+    public void addCapturedPosition(Point robotPos, Direction robotDir) {
+        String dir = robotDir.toString();
+        this.capturedPosition.put(robotPos,dir);
+    }
+
+    public boolean checkIfCapturedPosition(Point robotPos, Direction robotDir) {
+        String dir = robotDir.toString();
+        if(capturedPosition.containsKey(robotPos)){
+            if(capturedPosition.get(robotPos).equals(dir)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private HashMap<Point, String> capturedPosition;
+    private ArrayList<String> capturedImages;
+    public void addCapturedImages(String stringId) {
+        this.capturedImages.add(stringId);
+    }
+
+    public boolean checkIfCapturedImages(String stringId) {
+            if(capturedImages.contains(stringId)){
+                return true;
+            }
+
+        return false;
+    }
+
 
     private long tempStartTime, tempEndTime, tempDiff;
 
@@ -61,12 +124,60 @@ public class Robot {
     private HashSet<String> imageHashSet = new HashSet<String>();
     private HashMap<String, ObsSurface> surfaceTaken = new HashMap<String, ObsSurface>();
 
+    public ArrayList<ObsSurface> getObsSurfaces() {
+        return obsSurfaces;
+    }
+
+    public void setObsSurfaces(ArrayList<ObsSurface> obsSurfaces) {
+        this.obsSurfaces = obsSurfaces;
+    }
+
+    //For image recognition
+    private ArrayList<ObsSurface> obsSurfaces = new ArrayList<ObsSurface>();
+
     //To check how many consecutive immediate obstacles R1 and R2 senses
     private int R1count = 0;
+
     private Point lastR2Pos = null;
     private int alignCount = 0;
     private int turnAndAlignCount = 0;
     private boolean hasTurnAndAlign = false;
+
+    public boolean isOnObstacle() {
+        return onObstacle;
+    }
+
+    public void setOnObstacle(boolean onObstacle) {
+        this.onObstacle = onObstacle;
+    }
+
+    private boolean onObstacle = false;
+    public int obstacleSide = 0;
+    public int obstacleStepsCounter =0;
+
+    public JSONArray getImageResult() {
+        return imageResult;
+    }
+
+
+
+    public void setImageResult(JSONArray imageResult) {
+        this.imageResult = imageResult;
+    }
+
+
+    JSONArray imageResult = new JSONArray();
+
+    public JSONObject getImageJSON(int x, int y, String imageId, Direction dir) {
+        JSONObject imageJSON = new JSONObject()
+                .put("x", x )
+                .put("y", y)
+                .put("image ID", imageId)
+                .put("direction", dir.toString().toLowerCase());
+        return imageJSON;
+    }
+
+
 
     //Removed doingImage
 
@@ -88,6 +199,8 @@ public class Robot {
         this.sensorList = new ArrayList<String>();
         this.sensorMap = new HashMap<String, Sensor>();
         this.sensorRes = new HashMap<String, Integer>();
+        this.capturedPosition = new HashMap<Point,String>();
+        this.capturedImages = new ArrayList<String>();
         initSensors();
         this.status = "Initialization completed.\n";
 
@@ -465,7 +578,7 @@ public class Robot {
      * @param dir Direction that sensor is facing
      * @return Row multiplier to be used in evaluation during sensing
      */
-    private int getRowIncrementForSensor(Direction dir){
+    private int getRowIncrementForRobotAndSensor(Direction dir){
         int rowInc = 0;
         switch(dir) {
             case UP:
@@ -486,7 +599,7 @@ public class Robot {
      * @param dir Direction that sensor is facing
      * @return Column multiplier to be used in evaluation during sensing
      */
-    private int getColIncrementForSensor(Direction dir){
+    private int getColIncrementForRobotAndSensor(Direction dir){
         int colInc = 0;
         switch(dir) {
             case LEFT:
@@ -618,10 +731,11 @@ public class Robot {
         LOGGER.info(status);
         LOGGER.info(pos.toString());
 
+
         //Simulate delay for steps per second only for simulator mode
-        if(sim) {
-            simulateDelay(stepsPerSecond, 1);
-        }
+//        if(sim) {
+//            simulateDelay(stepsPerSecond, 1);
+//        }
     }
 
     /**
@@ -994,10 +1108,11 @@ public class Robot {
                 alignCount = 0;
             }
             else if(R1count == 3){
-                align_right(exploredMap, realMap);
+                align_right1(exploredMap, realMap);
             }
 
         }
+
         return null;
     }
 
@@ -1014,6 +1129,25 @@ public class Robot {
         if (isRealExploration()) {
             send_android(exploredMap);
         }
+
+//        if (isRealExploration()) {
+//            //Send updated map to Android
+//            send_android(exploredMap);
+//
+//            //If robot is adjacent to right wall, will use normal calibrate after steps
+//            if(isRightHuggingWall() && alignCount> RobotConstants.CALIBRATE_AFTER){
+//                align_right(exploredMap, realMap);
+//                R1count = 0;
+//                alignCount = 0;
+//            }
+//            else if(R1count == 3){
+//                align_right(exploredMap, realMap);
+//            }
+//
+//        }
+
+
+
 
     }
 
@@ -1119,6 +1253,143 @@ public class Robot {
     }
 
     /**
+     * Obtain row increment for robot's position for every direction
+     * @param dir Direction of movement
+     * @return Row coordinates after movement
+     */
+    private int getRowIncrementForMovement(Direction dir) {
+        int rowInc = 0;
+
+        switch (dir) {
+            case UP:
+                rowInc = 1;
+                break;
+            case DOWN:
+                rowInc = -1;
+                break;
+            default:
+                break;
+        }
+        return rowInc;
+    }
+    /**
+     * Obtain column increment for robot's position for every direction
+     * @param dir Direction of movement
+     * @return Column coordinates after movement
+     */
+    private int getColIncrementForMovement(Direction dir) {
+        int colInc = 0;
+
+        switch (dir) {
+            case LEFT:
+                colInc = -1;
+                break;
+            case RIGHT:
+                colInc = 1;
+                break;
+            default:
+                break;
+        }
+        return colInc;
+    }
+//Obstaclesurfaces here
+    public void removeObstacleSurfaces(Point point){
+        if(!imageRec) {
+            for (int i = 0; i < obsSurfaces.size(); i++) {
+                if (isSamePoint(obsSurfaces.get(i).getPos(), point)) {
+                    obsSurfaces.remove(obsSurfaces.get(i));
+                }
+            }
+        }
+    }
+
+    public boolean obstacleSurfaceExists(ObsSurface obsSurface){
+        for (int i = 0; i < obsSurfaces.size(); i++) {
+            if ((obsSurface.getPos() == obsSurfaces.get(i).getPos()) && obsSurface.getSurface() == obsSurfaces.get(i).getSurface()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public void addObstacleSurface(Point obstaclePos, Direction sensorDir) {
+
+//        if(!imageRec) {
+//        Direction obstacleDir = Direction.getOpposite(sensorDir);
+//        int rowInc, colInc, tempRow,tempCol;
+//        Cell tempCell = new Cell(obstaclePos);
+//        Cell tempCell2;
+//        //For each direction, get the increment for row/c
+//        //Consider all possible surfaces of obstacle
+//        rowInc = getRowIncrementForMovement(obstacleDir);
+//        colInc = getColIncrementForMovement(obstacleDir);
+//        for (int l = 1; l <= RobotConstants.CAMERA_RANGE; l++) {
+//            tempRow = tempCell.getPos().y + rowInc * l;
+//            tempCol = tempCell.getPos().x + colInc * l;
+//            if (exploredMap.checkValidCell(tempRow, tempCol)) {
+//                tempCell2 = exploredMap.getCell(tempRow, tempCol);
+//                if (tempCell2.isObstacle()) {
+//                    break;
+//                }
+//                else {
+//                    if (l == RobotConstants.CAMERA_RANGE) {
+//                        if (!tempCell2.isVirtualWall()) {
+//                            ObsSurface obsSurface = new ObsSurface(tempCell.getPos(), tempCell2.getPos(), obstacleDir, sensorDir);
+//                            obsSurfaces.add(obsSurface);
+//                            System.out.println("Created obstacle surface");
+//                        }
+//                        else {
+//                            ArrayList<Cell> possibleNeighbours = exploredMap.getNeighbours(tempCell, dir);
+//                            System.out.print("Neighbours of Cell: "+ tempCell.getPos().x + " , " + tempCell.getPos().y + "\n");
+//                            System.out.print(possibleNeighbours.size());
+//                            for (int m = 0; m < possibleNeighbours.size(); m++) {
+//
+//                                Cell neighbourCell = possibleNeighbours.get(m);
+//                                for (int n = 1; n <= RobotConstants.CAMERA_RANGE; n++) {
+//                                    tempRow = neighbourCell.getPos().y + rowInc * n;
+//                                    tempCol = neighbourCell.getPos().x + colInc * n;
+//                                    if (exploredMap.checkValidCell(tempRow, tempCol)) {
+//                                        tempCell2 = exploredMap.getCell(tempRow, tempCol);
+//                                        if (tempCell2.isObstacle()) {
+//                                            break;
+//                                        } else {
+//                                            if (n == RobotConstants.CAMERA_RANGE) {
+//                                                if (!tempCell2.isVirtualWall()) {
+//                                                    System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is NOT obstacle OR virtual wall");
+//
+//                                                    ObsSurface obsSurface = new ObsSurface(tempCell.getPos(), tempCell2.getPos(), dir, Direction.getOpposite(dir));
+//                                                    obsSurfaces.add(obsSurface);
+//                                                    System.out.println("Created obstacle surface");
+//                                                }
+//                                            }
+//                                        }
+//                                    } else {
+//                                        break;
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }else {
+//                System.out.println("Cell no " + l + " in front of obstacle in direction " + k + " is INVALID");
+//                break;
+//            }
+//        }
+//    }
+}
+//    }
+//}
+//    }
+//
+//
+//            if(!obstacleSurfaceExists(obsSurface)){
+//                obsSurfaces.add(obsSurface);
+//            }
+//            System.out.println("Created obstacle surface");
+//        }
+//    }
+
+    /**
      * Update the map with result obtained from sensor
      * @param exploredMap Map of explored part of the arena
      * @param sensorResult Hashmap of the sensor result obtained from sensors
@@ -1137,8 +1408,8 @@ public class Robot {
             obsBlock = sensorResult.get(sname);
 
             // Assign the rowInc and colInc based on sensor direction
-            rowInc = getRowIncrementForSensor(s.getSensorDir());
-            colInc = getColIncrementForSensor(s.getSensorDir());
+            rowInc = getRowIncrementForRobotAndSensor(s.getSensorDir());
+            colInc = getColIncrementForRobotAndSensor(s.getSensorDir());
 
             if(s.getId() == "L1") {
                 LOGGER.info(s.getId());
@@ -1162,6 +1433,9 @@ public class Robot {
                                     if (exploredMap.checkValidCell(tempRow, tempCol)) {
                                         exploredMap.getCell(tempRow, tempCol).setExplored(true);
                                         exploredMap.getCell(tempRow, tempCol).setObstacle(false);
+                                        if(!imageRec) {
+                                            removeObstacleSurfaces(new Point(tempRow, tempCol));
+                                        }
                                         exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), false);
                                     } else {
                                         break;
@@ -1187,11 +1461,17 @@ public class Robot {
                                     int tempRow1, tempCol1;
                                     exploredMap.getCell(tempRow,tempCol).setExplored(true);
                                     exploredMap.getCell(tempRow, tempCol).setObstacle(true);
+                                    if(!imageRec) {
+                                        addObstacleSurface(new Point(tempRow, tempCol), s.getSensorDir());
+                                    }
                                     for (int i = 1; i < obsBlock; i++) {
                                         tempRow1 = s.getRow() + rowInc * i;
                                         tempCol1 = s.getCol() + colInc * i;
                                         exploredMap.getCell(tempRow1, tempCol1).setExplored(true);
                                         exploredMap.getCell(tempRow1, tempCol1).setObstacle(false);
+                                        if(!imageRec) {
+                                            removeObstacleSurfaces(new Point(tempRow, tempCol));
+                                        }
                                         exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), false);
                                     }
                                 } else {
@@ -1208,11 +1488,20 @@ public class Robot {
                                     }
                                     if (!obstacleInLine) {
                                         exploredMap.getCell(tempRow, tempCol).setObstacle(true);
+                                        exploredMap.getCell(tempRow, tempCol).setExplored(true);
+//                                        System.out.println("temp row: " + tempRow);
+//                                        System.out.println("temp col: " + tempCol);
+                                        if(!imageRec) {
+                                            addObstacleSurface(new Point(tempRow, tempCol), s.getSensorDir());
+                                        }
                                         for (int i = 1; i < obsBlock; i++) {
                                             tempRow2 = s.getRow() + rowInc * i;
                                             tempCol2 = s.getCol() + colInc * i;
                                             exploredMap.getCell(tempRow2, tempCol2).setExplored(true);
                                             exploredMap.getCell(tempRow2, tempCol2).setObstacle(false);
+                                            if(!imageRec) {
+                                                removeObstacleSurfaces(new Point(tempRow, tempCol));
+                                            }
                                             exploredMap.setVirtualWall(exploredMap.getCell(tempRow2, tempCol2), false);
                                         }
                                     }
@@ -1239,9 +1528,14 @@ public class Robot {
                         //Will not update as obstacle if area has been moved through
                         if (j == obsBlock && !exploredMap.getCell(tempRow, tempCol).isMoveThru()) {
                             exploredMap.getCell(tempRow, tempCol).setObstacle(true);
+                            if(!imageRec) {
+                                addObstacleSurface(new Point(tempRow, tempCol), s.getSensorDir());
+                            }
                             exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), true);
                             exploredMap.reinitVirtualWall();
-                            if(s.getId() == "R1"){
+                            if(s.getId() == "R1" && obsBlock == 1){
+                                System.out.println("Robot Position: " + this.getPos().toString());
+                                System.out.println("R1 Counters: " + R1count);
                                 R1count++;
                             }
                             break;
@@ -1250,6 +1544,9 @@ public class Robot {
                         //Previous detected obstacle is wrongly detected; reset the cell and virtual walls
                         else if (j != obsBlock && exploredMap.getCell(tempRow, tempCol).isObstacle()) {      // (3)
                             exploredMap.getCell(tempRow, tempCol).setObstacle(false);
+                            if(!imageRec) {
+                                removeObstacleSurfaces(new Point(tempRow, tempCol));
+                            }
                             exploredMap.setVirtualWall(exploredMap.getCell(tempRow, tempCol), false);
                             exploredMap.reinitVirtualWall();
                             if(s.getId() == "R1"){
@@ -1282,6 +1579,20 @@ public class Robot {
         robotArray.put(robotJson);
         return robotArray;
     }
+
+
+    //TODO: Image Rec
+    private JSONArray getImageArray() {
+
+        JSONArray robotArray = new JSONArray();
+        JSONObject robotJson = new JSONObject()
+                .put("x", pos.x )
+                .put("y", pos.y)
+                .put("direction", dir.toString().toLowerCase());
+        robotArray.put(robotJson);
+        return robotArray;
+    }
+
 
     /**
      * Translate map into JSON array for transmission
@@ -1321,30 +1632,237 @@ public class Robot {
         androidJson.put("robot", getRobotArray());
         androidJson.put("map", getMapArray(exploredMap));
         androidJson.put("status", getStatusArray());
+        androidJson.put("image", getImageResult());
+        //Might be very long
         NetMgr.getInstance().send(NetworkConstants.ANDROID + androidJson.toString() + "\n");
+
     }
 
+    public String takeImg() {
+        System.out.println("Send RPI taking image");
+
+        NetMgr.getInstance().send(NetworkConstants.RPI_TAKEIMG);
+        String msg = NetMgr.getInstance().receive();
+        while(msg == null){
+            msg = NetMgr.getInstance().receive();
+        }
+        return msg;
+
+    }
+
+//    private boolean backRightCellisObstacleOrWall(Map exploredMap){
+//        int rowDiff=0, colDiff=0;
+//        switch(robot.getDir()){
+//            case UP: {
+//                //colDiff is x
+//                //rowDiff is y
+//                rowDiff = -1;
+//                colDiff = 2;
+//                break;
+//            }
+//            case RIGHT:{
+//                rowDiff = -2;
+//                colDiff = -1;
+//                break;
+//            }
+//            case LEFT:{
+//                rowDiff = 2;
+//                colDiff = 1;
+//                break;
+//            }
+//            case DOWN:{
+//                rowDiff = 1;
+//                colDiff = -2;
+//                break;
+//            }
+//        }
+//        if(exploredMap.checkValidCell((robot.getPos().x+colDiff),(robot.getPos().y+rowDiff))){
+//            return exploredMap.getCell((robot.getPos().x+colDiff),(robot.getPos().y+rowDiff)).isObstacle();
+//        }
+//        return robot.isRightHuggingWall();
+//    }
+
+    public boolean checkFrontForSingleObstacle(Map exploredMap, Direction dir){
+        Point F1= new Point();
+        Point F2= new Point();
+        Point F3= new Point();
+        switch(dir){
+            case UP: {
+                F1.x = this.getPos().x -1;
+                F1.y = this.getPos().y +2;
+                F2.x = this.getPos().x;
+                F2.y = this.getPos().y+2;
+                F3.x = this.getPos().x +1;
+                F3.y = this.getPos().y+2;
+                break;
+            }
+            case RIGHT:{
+                F1.x = this.getPos().x +2;
+                F1.y = this.getPos().y +1;
+                F2.x = this.getPos().x +2;
+                F2.y = this.getPos().y;
+                F3.x = this.getPos().x +2;
+                F3.y = this.getPos().y-1;
+                break;
+            }
+            case DOWN:{
+                F1.x = this.getPos().x +1;
+                F1.y = this.getPos().y -2;
+                F2.x = this.getPos().x;
+                F2.y = this.getPos().y -2;
+                F3.x = this.getPos().x -1;
+                F3.y = this.getPos().y -2;
+                break;
+            }
+            case LEFT:{
+                F1.x = this.getPos().x -2;
+                F1.y = this.getPos().y -1;
+                F2.x = this.getPos().x -2;
+                F2.y = this.getPos().y;
+                F3.x = this.getPos().x -2;
+                F3.y = this.getPos().y+1;
+                break;
+            }
+        }
+
+        if(exploredMap.checkValidCell(F1.y, F1.x) && exploredMap.checkValidCell(F3.y,F3.x) && exploredMap.checkValidCell(F2.y,F2.x)){
+            return (exploredMap.getCell(F1.y, F1.x).isObstacle() || exploredMap.getCell(F3.y, F3.x).isObstacle() ||exploredMap.getCell(F2.y, F2.x).isObstacle());
+        }
+        return false;
+    }
+    private boolean checkFrontForObstacleOrRightWall(Map exploredMap){
+        Point F1= new Point();
+        Point F2= new Point();
+        Point F3= new Point();
+        switch(this.getDir()){
+            case UP: {
+                F1.x = this.getPos().x -1;
+                F1.y = this.getPos().y +2;
+                F2.x = this.getPos().x;
+                F2.y = this.getPos().y+2;
+                F3.x = this.getPos().x +1;
+                F3.y = this.getPos().y+2;
+                break;
+            }
+            case RIGHT:{
+                F1.x = this.getPos().x +2;
+                F1.y = this.getPos().y +1;
+                F2.x = this.getPos().x +2;
+                F2.y = this.getPos().y;
+                F3.x = this.getPos().x +2;
+                F3.y = this.getPos().y-1;
+                break;
+            }
+            case DOWN:{
+                F1.x = this.getPos().x -1;
+                F1.y = this.getPos().y -2;
+                F2.x = this.getPos().x;
+                F2.y = this.getPos().y -2;
+                F3.x = this.getPos().x +1;
+                F3.y = this.getPos().y -2;
+                break;
+            }
+            case LEFT:{
+                F1.x = this.getPos().x -2;
+                F1.y = this.getPos().y +1;
+                F2.x = this.getPos().x -2;
+                F2.y = this.getPos().y;
+                F3.x = this.getPos().x -2;
+                F3.y = this.getPos().y+1;
+                break;
+            }
+        }
+
+        int F2row = this.getSensor("F2").getRow();
+        int F2col = this.getSensor("F2").getCol();
+        if(F2row == 0 || F2row == MapConstants.MAP_HEIGHT-1 || F2col == 0 || F2col == MapConstants.MAP_WIDTH-1) {
+            return true;
+        }
+        else if(exploredMap.checkValidCell(F1.y, F1.x) && exploredMap.checkValidCell(F3.y,F3.x)){
+            return exploredMap.getCell(F1.y, F1.x).isObstacle() && exploredMap.getCell(F3.y, F3.x).isObstacle();
+        }
+        return false;
+    }
+    private boolean checkRightisObstacleOrWall(Map exploredMap){
+        Point F1= new Point();
+        Point F2= new Point();
+        Point F3= new Point();
+        switch(this.getDir()){
+            case RIGHT: {
+                F1.x = this.getPos().x -1;
+                F1.y = this.getPos().y +2;
+                F2.x = this.getPos().x;
+                F2.y = this.getPos().y+2;
+                F3.x = this.getPos().x +1;
+                F3.y = this.getPos().y+2;
+                break;
+            }
+            case DOWN:{
+                F1.x = this.getPos().x +2;
+                F1.y = this.getPos().y +1;
+                F2.x = this.getPos().x +2;
+                F2.y = this.getPos().y;
+                F3.x = this.getPos().x +2;
+                F3.y = this.getPos().y-1;
+                break;
+            }
+            case LEFT:{
+                F1.x = this.getPos().x -1;
+                F1.y = this.getPos().y -2;
+                F2.x = this.getPos().x;
+                F2.y = this.getPos().y -2;
+                F3.x = this.getPos().x +1;
+                F3.y = this.getPos().y -2;
+                break;
+            }
+            case UP:{
+                F1.x = this.getPos().x -2;
+                F1.y = this.getPos().y +1;
+                F2.x = this.getPos().x -2;
+                F2.y = this.getPos().y;
+                F3.x = this.getPos().x -2;
+                F3.y = this.getPos().y+1;
+                break;
+            }
+        }
+        if(isRightHuggingWall()){
+            return true;
+        }
+        else if(exploredMap.checkValidCell(F1.y, F1.x) && exploredMap.checkValidCell(F3.y,F3.x)){
+            return exploredMap.getCell(F1.y, F1.x).isObstacle() && exploredMap.getCell(F3.y, F3.x).isObstacle();
+        }
+        return false;
+    }
     /**
-     * Calibrate robot's direction using front sensors
+     * Calibrate robot's direction using front sensors, returns true if obstacles are detected
      * @param exploredMap Map of explored part of the arena
      * @param realMap Map of obstacles in arena
      */
-    public void align_front(Map exploredMap, Map realMap) {
+    public boolean align_front(Map exploredMap, Map realMap) {
         //Robot directly in front of obstacle/wall
-        if (sensorRes.get("F1") == 1 && sensorRes.get("F3") == 1) {
-            // Send align front command to Arduino
-            String cmdStr = getCommand(Command.ALIGN_FRONT, 1);  // steps set to 0 to avoid appending to cmd
 
-            NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
+        if(checkFrontForObstacleOrRightWall(exploredMap)){
+            if(!sim){
+                String cmdStr = getCommand(Command.ALIGN_FRONT, 1);
+
+                NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
+                senseWithoutAlign(exploredMap, realMap);
+            }
             status = "Aligning Front\n";
             LOGGER.info(status);
-            senseWithoutAlign(exploredMap, realMap);
             turnAndAlignCount = 0;
+            return true;
         }
-        else{
-            align_front1(exploredMap,realMap);
-        }
+        else if(checkFrontForSingleObstacle(exploredMap,this.getDir())){
+            if(!sim) {
+                align_front1(exploredMap, realMap);
+            }
 
+            status = "Aligning Front 1\n";
+            LOGGER.info(status);
+            return true;
+        }
+        return false;
     }
     /**
      * Calibrate robot's direction using one of front sensors
@@ -1355,14 +1873,39 @@ public class Robot {
         //Robot directly in front of obstacle/wall
             // Send align front command to Arduino
             String cmdStr = getCommand(Command.ALIGN_FRONT1, 1);  // steps set to 0 to avoid appending to cmd
-
             NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
-            status = "Aligning Front 1\n";
-            LOGGER.info(status);
             senseWithoutAlign(exploredMap, realMap);
             turnAndAlignCount = 0;
         }
 
+    /**
+     * Calibrate robot's direction using front sensors
+     */
+    public void align_front_no_update() {
+        //Robot directly in front of obstacle/wall
+        if (sensorRes.get("F1") == 1 && sensorRes.get("F3") == 1) {
+            // Send align front command to Arduino
+            String cmdStr = getCommand(Command.ALIGN_FRONT, 1);  // steps set to 0 to avoid appending to cmd
+
+            NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
+            status = "Aligning Front\n";
+            LOGGER.info(status);
+
+        }
+        else{
+            align_front1_no_update();
+        }
+
+    }
+    public void align_front1_no_update() {
+        //Robot directly in front of obstacle/wall
+        // Send align front command to Arduino
+        String cmdStr = getCommand(Command.ALIGN_FRONT1, 1);  // steps set to 0 to avoid appending to cmd
+
+        NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
+        status = "Aligning Front 1\n";
+        LOGGER.info(status);
+    }
     /**
      * Calibrate robot's direction using right sensors
      * @param exploredMap Map of explored part of the arena
@@ -1370,7 +1913,8 @@ public class Robot {
      */
     public void align_right(Map exploredMap, Map realMap) {
         //Arduino will double check again if can align
-        if (sensorRes.get("R1") == 1) {
+//        if (sensorRes.get("R1") == 1) {
+        if(checkRightisObstacleOrWall(exploredMap)) {
             String cmdStr = getCommand(Command.ALIGN_RIGHT, 1);
             NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
             alignCount = 0;
@@ -1378,15 +1922,30 @@ public class Robot {
             LOGGER.info(status);
 
             senseWithoutAlign(exploredMap, realMap);
+//        }
         }
     }
+    public void align_right1(Map exploredMap, Map realMap) {
+        //Arduino will double check again if can align
+//        if (sensorRes.get("R1") == 1) {
 
+            String cmdStr = getCommand(Command.ALIGN_RIGHT, 1);
+            NetMgr.getInstance().send(NetworkConstants.ARDUINO + cmdStr);
+            alignCount = 0;
+            status = String.format("Aligning Right: %d\n", 1);
+            LOGGER.info(status);
+
+            senseWithoutAlign(exploredMap, realMap);
+//        }
+
+    }
     /**
      * Robot is right hugging the wall if the right sensor position is equal to
      * the lowest or highest possible row or col number
      * @return True if right hugging the wall; false otherwise
      */
     public boolean isRightHuggingWall() {
+
         Point R1_pos = sensorMap.get("R1").getPos();
         Point R2_pos = sensorMap.get("R2").getPos();
         if (R1_pos.x == 0 && R2_pos.x ==2 ){
@@ -1398,8 +1957,32 @@ public class Robot {
         if(R1_pos.y == 0 && R2_pos.y == 2){
             return true;
         }
-        return (R1_pos.y == MapConstants.MAP_HEIGHT - 1 && R2_pos.y == MapConstants.MAP_HEIGHT- 3);
+        if(R1_pos.y == MapConstants.MAP_HEIGHT - 1 && R2_pos.y == MapConstants.MAP_HEIGHT- 3)
+        {
+            return true;
+        }
+        return false;
     }
+    /**
+     * Robot is right hugging the wall if the right sensor position is equal to
+     * the lowest or highest possible row or col number
+     * @return True if right hugging the wall; false otherwise
+     */
+    public boolean isFacingWall() {
+        Point F1_pos = sensorMap.get("F1").getPos();
+        Point F2_pos = sensorMap.get("F2").getPos();
+        if (F1_pos.y == 0 && F2_pos.y ==0 ){
+            return true;
+        }
+        if(F1_pos.x == MapConstants.MAP_WIDTH - 1 && F2_pos.x == MapConstants.MAP_WIDTH - 1){
+            return true;
+        }
+        if(F1_pos.x == 0 && F2_pos.x == 0){
+            return true;
+        }
+        return (F1_pos.y == MapConstants.MAP_HEIGHT-1 && F2_pos.y == MapConstants.MAP_HEIGHT-1);
+    }
+
 
 
 
@@ -1451,6 +2034,41 @@ public class Robot {
 
         return cmdStr.toString();
     }
+    public String rpiImageRec(String imgFilePath){
+        System.out.println("Calling RPI to image rec after taking image");
+        String msg = "no result";
+        try{
+
+            String[] cmdArray = {"python", "mainImageRec.py", imgFilePath};
+            System.out.println("ERROR IF ANY");
+            File path = new File("Y:/ImageRec/");
+            Process p = Runtime.getRuntime().exec(cmdArray, null, path);
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            String result;
+            p.waitFor();
+
+            //while (true) {
+                System.out.println("Attempting to get image result from Python Script");
+                if((result = in.readLine()) != null){
+                    System.out.println("Yo yo");
+                    System.out.println(result);
+                    in.close();
+                    p.destroy();
+                    return result;
+                }
+                System.out.println("Problem?");
+                return "None, None";
+            //}
+        }
+        catch(Exception e){
+            System.out.println(e);
+        }
+        return msg;
+    }
+
+
+
 
 
     // TODO: Remove when done

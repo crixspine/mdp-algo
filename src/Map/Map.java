@@ -4,9 +4,11 @@ import Robot.Robot;
 import Robot.RobotConstants;
 
 import java.awt.Point;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.logging.Logger;
 
 public class Map {
 
@@ -196,6 +198,60 @@ public class Map {
         return neighbours;
     }
 
+    public ArrayList<Cell> getNeighbours(Cell c, Direction dir) {
+        System.out.print("Neighbour Position x: "+ c.getPos().x + " y: " + c.getPos().y + "\n");
+        System.out.print("Direction" + dir.toString() +  "\n");
+        ArrayList<Cell> neighbours = new ArrayList<Cell>();
+        Point up = new Point(c.getPos().x , c.getPos().y + 1);
+        Point down = new Point(c.getPos().x , c.getPos().y - 1);
+        Point left = new Point(c.getPos().x - 1 , c.getPos().y );
+        Point right = new Point(c.getPos().x + 1 , c.getPos().y );
+
+        // UP
+        if(dir.equals(Direction.UP) || dir.equals(Direction.DOWN)){
+//            if (checkValidMove(left.y, left.x)){
+//                neighbours.add(getCell(left));
+//            }
+//
+//            // RIGHT
+//            if (checkValidMove(right.y, right.x)){
+//                neighbours.add(getCell(right));
+//            }
+            if (checkValidCell(left.y, left.x)){
+
+                neighbours.add(getCell(left));
+            }
+
+            // RIGHT
+            if (checkValidCell(right.y, right.x)){
+                neighbours.add(getCell(right));
+            }
+        }
+        else if(dir.equals(Direction.LEFT) || dir.equals(Direction.RIGHT)) {
+//            if (checkValidMove(up.y, up.x)) {
+//                neighbours.add(getCell(up));
+//            }
+//
+//            // DOWN
+//            if (checkValidMove(down.y, down.x)) {
+//                neighbours.add(getCell(down));
+//            }
+            if (checkValidCell(up.y, up.x)) {
+                neighbours.add(getCell(up));
+            }
+
+            // DOWN
+            if (checkValidCell(down.y, down.x)) {
+                neighbours.add(getCell(down));
+            }
+        }
+
+        // LEFT
+
+
+        return neighbours;
+    }
+
     /**
      * Get all movable neighbours Direction and Cell object
      * @param c cell of current position
@@ -308,12 +364,12 @@ public class Map {
         return n;
     }
 
-    public ObsSurface nearestObsSurface(Point loc, HashMap<String, ObsSurface> notYetTaken) {
+    public ObsSurface nearestObsSurface(Point loc, ArrayList<ObsSurface> notYetTaken) {
         double dist = 1000, tempDist;
         Point tempPos;
         ObsSurface nearest = null;
 
-        for (ObsSurface obstacle: notYetTaken.values()) {
+        for (ObsSurface obstacle: notYetTaken) {
 //            tempPos = obstacle.getPos();
             // neighbour cell of that surface
             tempPos = getNeighbour(obstacle.getPos(), obstacle.getSurface());
@@ -511,4 +567,19 @@ public class Map {
             }
         }
     }
+//    public static Map getFastestMap(Map exploredMap){
+//
+//        for (int row = 0; row < MapConstants.MAP_HEIGHT; row++) {
+//            for (int col = 0; col < MapConstants.MAP_WIDTH; col++) {
+//                if
+//                grid[row][col] = new Cell(new Point(col, row));
+//
+//                // Init virtual wall
+//                if (row == 0 || col == 0 || row == MapConstants.MAP_HEIGHT - 1 || col == MapConstants.MAP_WIDTH - 1) {
+//                    grid[row][col].setVirtualWall(true);
+//                }
+//            }
+//        }
+//        return Map;
+//    }
 }
